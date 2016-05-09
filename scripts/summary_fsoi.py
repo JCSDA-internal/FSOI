@@ -30,7 +30,7 @@ def main():
 
     parser = ArgumentParser(description = 'Create and Plot Observation Impacts Statistics',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c','--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET'])
-    parser.add_argument('-r','--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/ObsImpact',required=False)
+    parser.add_argument('-r','--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',required=False)
     parser.add_argument('-p','--platform',help='platform to plot channels',type=str,default='',required=False)
     parser.add_argument('-s','--savefigure',help='save figures',action='store_true',required=False)
     parser.add_argument('-x','--exclude',help='exclude platforms',type=str,nargs='+',required=False)

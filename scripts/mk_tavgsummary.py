@@ -29,7 +29,7 @@ def main():
 
     parser = ArgumentParser(description = 'Create time-average data given bulk statistics',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c','--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET'])
-    parser.add_argument('-r','--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/ObsImpact',required=False)
+    parser.add_argument('-r','--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',required=False)
 
     args = parser.parse_args()
 
