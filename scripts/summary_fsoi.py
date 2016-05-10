@@ -22,8 +22,10 @@ __version__ = "0.1"
 
 import os
 import sys
+import pandas as pd
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
+
 import lib_obimpact as loi
 
 def main():
@@ -80,15 +82,18 @@ def main():
         else:
             print 'Excluding the following platforms:'
             if 'reference' in exclude:
-                pref = loi.RefPlatform()
+                pref = loi.RefPlatform('full')
                 pcenter = df.index.get_level_values('PLATFORM').unique()
                 exclude = list(set(pcenter)-set(pref))
         print ", ".join('%s'% x for x in exclude)
         df.drop(exclude,inplace=True)
 
-    for qty in ['TotImp','ImpPerOb','FracBenObs','FracImp','ObCnt']:
+    df['ImpPerOb'] = df['ImpPerOb'] / df['TotImp'].sum() * 100.
+    df['FracBenNeuObs'] = pd.Series(df['FracBenObs']+df['FracNeuObs'],index=df.index)
+
+    for qty in ['TotImp','ImpPerOb','FracBenObs','FracNeuObs','FracBenNeuObs','FracImp','ObCnt']:
         plotOpt = loi.getPlotOpt(qty,center=center,savefigure=savefig,platform=platform)
-        plotOpt['figname'] = '%s/plots/%s/%s' % (rootdir,center,plotOpt.get('figname'))
+        plotOpt['figname'] = '%s/plots/summary/%s/%s' % (rootdir,center,plotOpt.get('figname'))
         loi.summaryplot(df,qty=qty,plotOpt=plotOpt)
 
     if not savefig:

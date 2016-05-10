@@ -27,7 +27,7 @@ from matplotlib import pyplot as _plt
 from matplotlib import cm as _cm
 import matplotlib.colors as _colors
 from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
-from itertools import chain as _chain
+import itertools as _itertools
 
 from lib_plotting import savefigure as _savefigure
 
@@ -484,7 +484,7 @@ def add_dicts(dicts,unique=False):
 
     # flatten out the values for a key
     for key in result.keys():
-        value = list(set(list(_chain.from_iterable(result[key]))))
+        value = list(set(list(_itertools.chain.from_iterable(result[key]))))
         result[key] = value
 
     return result
@@ -776,10 +776,18 @@ def getPlotOpt(qty='TotImp',**kwargs):
         plotOpt['sortAscending'] = True
     elif qty == 'ImpPerOb':
         plotOpt['name'] = 'Impact per Observation'
-        plotOpt['xlabel'] = '%s (J/kg)' % plotOpt['name']
-        plotOpt['sortAscending'] = False
+        plotOpt['xlabel'] = '%s (%%)' % plotOpt['name']
+        plotOpt['sortAscending'] = True
+    elif qty == 'FracBenNeuObs':
+        plotOpt['name'] = 'Fraction of Ben. & Neu. Observations'
+        plotOpt['xlabel'] = '%s (%%)' % plotOpt['name']
+        plotOpt['sortAscending'] = True
     elif qty == 'FracBenObs':
         plotOpt['name'] = 'Fraction of Beneficial Observations'
+        plotOpt['xlabel'] = '%s (%%)' % plotOpt['name']
+        plotOpt['sortAscending'] = True
+    elif qty == 'FracNeuObs':
+        plotOpt['name'] = 'Fraction of Neutral Observations'
         plotOpt['xlabel'] = '%s (%%)' % plotOpt['name']
         plotOpt['sortAscending'] = True
     elif qty == 'FracImp':
@@ -791,15 +799,39 @@ def getPlotOpt(qty='TotImp',**kwargs):
 
     return plotOpt
 
+def getbarcolors(data,logscale,cmax,cmin,cmap):
+
+    lmin = _np.log10(cmin)
+    lmax = _np.log10(cmax)
+    barcolors = []
+    for cnt in data:
+        if cnt <= cmin:
+            cindex = 0
+        elif cnt >= cmax:
+            cindex = cmap.N - 1
+        else:
+            if logscale: # linear in log-space
+                lcnt = _np.log10(cnt)
+                cindex =  (lcnt - lmin) / (lmax - lmin) * (cmap.N - 1)
+            else:
+                cindex = (cnt - cmin) / (cmax - cmin) * (cmap.N - 1)
+        cindex = _np.int(cindex)
+        barcolors.append(cmap(cindex))
+
+    return barcolors
+
 def summaryplot(df,qty='TotImp',plotOpt={}):
 
     if plotOpt['finite']:
         df = df[_np.isfinite(df[qty])]
 
-    if not plotOpt['platform']:
-        df.sort_values(by=qty,ascending=plotOpt['sortAscending'],inplace=True,na_position='first')
-    else:
+    if plotOpt['platform']:
         df.sort_index(ascending=True,inplace=True)
+    else:
+        if qty in ['FracBenNeuObs']:
+            df.sort_values(by='FracBenObs',ascending=plotOpt['sortAscending'],inplace=True,na_position='first')
+        else:
+            df.sort_values(by=qty,ascending=plotOpt['sortAscending'],inplace=True,na_position='first')
 
     fig = _plt.figure(figsize=(10,8))
     ax = fig.add_subplot(111,axisbg='w')
@@ -810,23 +842,7 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
     cmin = plotOpt['cmin']
     cmap = _cm.get_cmap(plotOpt['cmap'])
 
-    lmin = _np.log10(cmin)
-    lmax = _np.log10(cmax)
-    barcolors = []
-    for cnt in df['ObCnt']:
-        if cnt <= cmin:
-            cindex = 0
-        elif cnt >= cmax:
-            cindex = cmap.N - 1
-        else:
-            if logscale:
-                lcnt = _np.log10(cnt)
-                cindex =  (lcnt - lmin) / (lmax - lmin) * (cmap.N - 1)
-            else:
-                cindex = (cnt - cmin) / (cmax - cmin) * (cmap.N - 1)
-        cindex = _np.int(cindex)
-        barcolors.append(cmap(cindex))
-
+    barcolors = getbarcolors(df['ObCnt'],logscale,cmax,cmin,cmap)
     norm = _colors.LogNorm() if logscale else _colors.Normalize()
 
     # dummy plot for keeping colorbar on a bar plot
@@ -837,16 +853,16 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
     cbar = _plt.colorbar(tmp,aspect=30,format='%.0e',alpha=alpha)
 
     width = 1.0
-    index = _np.arange(len(df))+(1.-width)/2.
-    if qty == 'FracBenObs':
+    if qty == 'FracBenNeuObs':
         left = df['FracBenObs'].values
-        bars = _plt.barh(index,df['FracBenObs'],width,alpha=alpha,color=barcolors,edgecolor='k',linewidth=1.25) + \
-               _plt.barh(index,df['FracNeuObs'],width,left=left,alpha=alpha,color=barcolors,edgecolor='k',linewidth=1.25)
+        df['FracBenObs'].plot.barh(width=width,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)
+        bax = df['FracNeuObs'].plot.barh(left=left,width=width,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)
     else:
-        bars = _plt.barh(index,df[qty],width,alpha=alpha,color=barcolors,edgecolor='k',linewidth=1.25)
+        df[qty].plot.barh(width=width,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)
 
-    if qty == 'FracBenObs':
+    if qty == 'FracBenNeuObs':
         _plt.axvline(50.,color='k',linestyle='--',linewidth=1.25)
+        bars = bax.patches
         for b,bar in enumerate(bars):
             if b >= len(bars)/2:
                 if _np.mod(b,2):
@@ -854,7 +870,7 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
                 else:
                     bar.set_hatch('\\\\')
 
-    if qty == 'FracBenObs':
+    if qty == 'FracBenNeuObs':
         xmin,xmax = df['FracBenObs'].min(), (df['FracBenObs'] + df['FracNeuObs']).max()
     else:
         df = df[qty]
@@ -870,17 +886,16 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
     #xticks = _np.arange(-3,0.1,0.5)
     #ax.set_xticks(xticks)
     #x.set_xticklabels(_np.ndarray.tolist(xticks),fontsize=12)
-    xlab = plotOpt['xlabel']
-    ax.set_xlabel(xlab,fontsize=14)
+    ax.set_xlabel(plotOpt['xlabel'],fontsize=14)
     ax.get_xaxis().get_offset_text().set_x(0)
     xfmt = _ScalarFormatter()
     xfmt.set_powerlimits((-3,3))
     ax.xaxis.set_major_formatter(xfmt)
 
-    _plt.ylim([0,len(df)])
-    ax.set_yticks(index+width/2.)
+    ax.set_ylabel('',visible=False)
     ax.set_yticklabels(df.index,fontsize=12)
 
+    ax.autoscale(enable=True,axis='y',tight=True)
     ax.grid(False)
 
     cbar.solids.set_edgecolor("face")
@@ -902,35 +917,30 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
 
 def comparesummaryplot(df,qty='TotImp',plotOpt={}):
 
-    #if plotOpt['platform'] is not '':
-    #    df.sort_index(ascending=True,inplace=True)
-
     alpha = plotOpt['alpha']
     barcolors = ["#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"]
     barcolors = reversed(barcolors)
 
-    width = 1.0
-    index = _np.arange(len(df))
+    width = 0.9
     df.plot.barh(width=width,stacked=True,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)
+    _plt.axvline(0.,color='k',linestyle='-',linewidth=1.25)
 
     ax = _plt.gca()
 
     ax.set_title(plotOpt['title'],fontsize=18)
 
     xmin,xmax = ax.get_xlim()
-    #dx = xmax - xmin
-    #xmin, xmax = xmin-0.1*dx,xmax+0.1*dx
     _plt.xlim(xmin,xmax)
-    xlab = plotOpt['xlabel']
-    ax.set_xlabel(xlab,fontsize=14)
+    ax.set_xlabel(plotOpt['xlabel'],fontsize=14)
     ax.get_xaxis().get_offset_text().set_x(0)
     xfmt = _ScalarFormatter()
     xfmt.set_powerlimits((-3,3))
     ax.xaxis.set_major_formatter(xfmt)
 
-    ax.set_yticks(index)
+    ax.set_ylabel('',visible=False)
     ax.set_yticklabels(df.index,fontsize=12)
 
+    ax.autoscale(enable=True,axis='y',tight=True)
     ax.grid(False)
 
     _plt.tight_layout()

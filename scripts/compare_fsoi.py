@@ -73,11 +73,13 @@ def main():
     DF = load_centers(rootdir,centers)
     DF = sort_centers(DF,platforms)
 
-    for qty in ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracImp']:
+    for qty in ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']:
         plotOpt = loi.getPlotOpt(qty,savefigure=savefig)
-        plotOpt['figname'] = '%s/plots/compare/unstacked/%s/%s' % (rootdir,platform,plotOpt.get('figname'))
+        plotOpt['figname'] = '%s/plots/compare/%s/%s' % (rootdir,platform,plotOpt.get('figname'))
         tmpdf = []
         for c,center in enumerate(centers):
+            if qty is 'ImpPerOb':
+                tmp = DF[c][qty] / DF[c]['TotImp'].sum() * 100.
             tmp = DF[c][qty]
             tmp.name = center
             tmpdf.append(tmp)
