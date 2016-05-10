@@ -31,6 +31,54 @@ from itertools import chain as _chain
 
 from lib_plotting import savefigure as _savefigure
 
+def RefPlatform(plat_type):
+
+    if plat_type not in ['full', 'conv', 'rad']:
+        print 'Input to RefPlatform must be "full", "conv" or "rad", instead got %s' % plat_type
+        raise
+
+    conv = [
+        'Radiosonde',
+        #'Dropsonde',
+        'Ship',
+        'Buoy',
+        'Land Surface',
+        'Aircraft',
+        'PIBAL',
+        'GPSRO',
+        #'Profiler Wind',
+        #'NEXRAD Wind',
+        'Geo Wind',
+        'MODIS Wind',
+        'AVHRR Wind',
+        #'ASCAT Wind',
+        #'RAPIDSCAT Wind'
+        ]
+
+    rad = [
+        'AIRS',
+        'AMSUA',
+        'MHS',
+        'ATMS',
+        'CrIS',
+        'HIRS',
+        'IASI',
+        'Seviri',
+        'GOES',
+        #'SSMIS'
+        ]
+
+    full = conv + rad
+
+    if plat_type == 'conv':
+        platforms = conv
+    elif plat_type == 'rad':
+        platforms = rad
+    elif plat_type == 'full':
+        platforms = full
+
+    return platforms
+
 def OnePlatform():
 
     platforms = {
@@ -106,7 +154,7 @@ def OnePlatform():
             'TMI_TRMM'
             ],
     'Synthetic':[
-        'TCBogus'
+        'TCBogus',
         'TYBogus'
         ],
     'AIRS':[
@@ -222,39 +270,8 @@ def OnePlatform():
 
 def Platforms(center):
 
-    if not center:
-        platforms = {
-        'Radiosonde':['Radiosonde'],
-        'Dropsonde':['Dropsonde'],
-        'Marine':['Ship','Buoy'],
-        'Land':['Land Surface'],
-        'Aircraft':['Aircraft'],
-        'PIBAL':['PIBAL'],
-        'GPSRO':['GPSRO'],
-        'Profiler Wind':['Profiler Wind'],
-        'NEXRAD Wind':['NEXRAD Wind'],
-        'Geo Wind':['Geo Wind'],
-        'MODIS Wind':['MODIS Wind'],
-        'AVHRR Wind':['AVHRR Wind'],
-        'ASCAT Wind':['ASCAT Wind'],
-        'RAPIDSCAT Wind':['RAPIDSCAT Wind'],
-        'Ozone':['Ozone'],
-        'TMI Rain Rate':['TMI Rain Rate'],
-        'AIRS':['Airs'],
-        'AMSUA':['AMSUA'],
-        'MHS':['MHS'],
-        'ATMS':['ATMS'],
-        'CrIS':['CrIS'],
-        'HIRS':['HIRS'],
-        'IASI':['IASI-A'],
-        'Seviri':['Seviri'],
-        'GOES':['GOES'],
-        'SSMIS':['SSMIS'],
-        'LEO-GEO':['LEO-GEO']
-        }
-
-    else:
-        exec('platforms = %s_platforms()' % center)
+    platforms={}
+    exec('platforms = %s_platforms()' % center)
     return platforms
 
 def GMAO_platforms():
@@ -662,31 +679,6 @@ def groupBulkStats(DF,Platforms):
                 FracBenObs = (tmp2['FracBenObs']*tmp2['ObCnt']).sum() / ObCnt
                 FracNeuObs = (tmp2['FracNeuObs']*tmp2['ObCnt']).sum() / ObCnt
                 df.loc[(idate,Platform),:] = [TotImp,ObCnt,ImpPerOb,FracBenObs,FracNeuObs]
-    df['ObCnt'] = df['ObCnt'].astype(_np.int)
-
-    return df
-
-def consolidateStats(DF,Platforms):
-
-    print '... consolidating statistics ...'
-
-    columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs']
-    names = ['PLATFORM']
-    df = EmptyDataFrame(columns,names,dtype=_np.float)
-
-    for Platform in Platforms:
-        Instruments = Platforms[Platform]
-        indx = DF.index.get_level_values('PLATFORM') == ''
-        for Instrument in Instruments:
-            indx = _np.ma.logical_or(indx,DF.index.get_level_values('PLATFORM') == Instrument)
-        tmp = DF.loc[indx]
-        if not tmp.empty:
-            TotImp = tmp['TotImp'].sum()
-            ObCnt = _np.float(tmp['ObCnt'].sum())
-            ImpPerOb = TotImp / ObCnt
-            FracBenObs = (tmp['FracBenObs']*tmp['ObCnt']).sum() / ObCnt
-            FracNeuObs = (tmp['FracNeuObs']*tmp['ObCnt']).sum() / ObCnt
-            df.loc[(Platform),:] = [TotImp,ObCnt,ImpPerOb,FracBenObs,FracNeuObs]
     df['ObCnt'] = df['ObCnt'].astype(_np.int)
 
     return df

@@ -79,6 +79,10 @@ def main():
             exclude = map(int, exclude)
         else:
             print 'Excluding the following platforms:'
+            if 'reference' in exclude:
+                pref = loi.RefPlatform()
+                pcenter = df.index.get_level_values('PLATFORM').unique()
+                exclude = list(set(pcenter)-set(pref))
         print ", ".join('%s'% x for x in exclude)
         df.drop(exclude,inplace=True)
 
