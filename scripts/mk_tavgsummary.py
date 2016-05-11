@@ -24,6 +24,7 @@ import sys
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 import lib_obimpact as loi
+import lib_utils as lutils
 
 def main():
 
@@ -37,10 +38,7 @@ def main():
     center = args.center
 
     fname = '%s/work/%s/bulk_stats.h5' % (rootdir,center)
-    try:
-        df = loi.loadDF(fname)
-    except RuntimeError,e:
-        raise RuntimeError(e.message + fname)
+    df = lutils.readHDF(fname,'df')
     df = loi.accumBulkStats(df)
     platforms = loi.OnePlatform()
     df = loi.groupBulkStats(df,platforms)
@@ -49,7 +47,7 @@ def main():
     fpkl = '%s/work/%s/tavg_stats.pkl' % (rootdir,center)
     if os.path.isfile(fpkl):
         os.remove(fpkl)
-    loi.pickleDF(fpkl,df)
+    lutils.pickle(fpkl,df)
 
     sys.exit(0)
 

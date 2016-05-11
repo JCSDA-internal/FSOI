@@ -26,6 +26,7 @@ from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 import lib_obimpact as loi
+import lib_utils as lutils
 
 def main():
 
@@ -56,9 +57,9 @@ def main():
         fname = '%s/ascii/%s/%s_%s.txt' % (rootdir,center,center,adate.strftime('%Y%m%d%H'))
         if not os.path.isfile(fname): continue
         df = loi.read_ascii(adate,fname)
-        loi.dumpDF(fname_raw,df)
+        lutils.writeHDF(fname_raw,'df',df)
         df = loi.BulkStats(df)
-        loi.dumpDF(fname_bulk,df)
+        lutils.writeHDF(fname_bulk,'df',df)
 
     sys.exit(0)
 

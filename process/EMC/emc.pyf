@@ -1,0 +1,68 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module emc ! in 
+    interface  ! in :emc
+        module emc ! in :emc:emc.f90
+            integer(kind=4), private,parameter,optional :: iunit=10
+            logical, private,parameter,optional :: lverbose=.false.
+            type diag_header ! in :emc:emc.f90:emc
+                integer(kind=4) :: idate
+                integer(kind=4) :: obsnum
+                integer(kind=4) :: convnum
+                integer(kind=4) :: oznum
+                integer(kind=4) :: satnum
+                integer(kind=4) :: npred
+                integer(kind=4) :: nanals
+            end type diag_header
+            type diag_data ! in :emc:emc.f90:emc
+                real(kind=4) :: obfit_prior
+                real(kind=4) :: obsprd_prior
+                real(kind=4) :: ensmean_obnobc
+                real(kind=4) :: ensmean_ob
+                real(kind=4) :: ob
+                real(kind=4) :: oberrvar
+                real(kind=4) :: lon
+                real(kind=4) :: lat
+                real(kind=4) :: pres
+                real(kind=4) :: time
+                real(kind=4) :: oberrvar_orig
+                integer(kind=4) :: stattype
+                character(len=20) :: obtype
+                integer(kind=4) :: indxsat
+                real(kind=4) :: osense_kin
+                real(kind=4) :: osense_dry
+                real(kind=4) :: osense_moist
+            end type diag_data
+            subroutine get_header(ifile,x_idate,x_nobscon,x_nobsoz,x_nobssat,x_npred,x_nens,endian) ! in :emc:emc.f90:emc
+                character*255 intent(in) :: ifile
+                integer(kind=4) intent(out) :: x_idate
+                integer(kind=4) intent(out) :: x_nobscon
+                integer(kind=4) intent(out) :: x_nobsoz
+                integer(kind=4) intent(out) :: x_nobssat
+                integer(kind=4) intent(out) :: x_npred
+                integer(kind=4) intent(out) :: x_nens
+                character*6, optional,intent(in) :: endian
+            end subroutine get_header
+            subroutine get_data(ifile,nobstot,npred,nens,x_obtype,x_platform,x_channel,x_lat,x_lon,x_lev,x_omb,x_oberr,x_impact,endian) ! in :emc:emc.f90:emc
+                character*255 intent(in) :: ifile
+                integer(kind=4) intent(in) :: nobstot
+                integer(kind=4) intent(in) :: npred
+                integer(kind=4) intent(in) :: nens
+                character*20 dimension(nobstot),intent(out),depend(nobstot) :: x_obtype
+                character*20 dimension(nobstot),intent(out),depend(nobstot) :: x_platform
+                integer(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_channel
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_lat
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_lon
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_lev
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_omb
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_oberr
+                real(kind=4) dimension(nobstot,3),intent(out),depend(nobstot) :: x_impact
+                character*6, optional,intent(in) :: endian
+            end subroutine get_data
+        end module emc
+    end interface 
+end python module emc
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/

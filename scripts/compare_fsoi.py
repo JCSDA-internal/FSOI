@@ -24,7 +24,9 @@ import sys
 import pandas as pd
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
+
 import lib_obimpact as loi
+import lib_utils as lutils
 
 def load_centers(rootdir,centers,platform=''):
 
@@ -34,11 +36,11 @@ def load_centers(rootdir,centers,platform=''):
         if platform:
             search_str = 'PLATFORM == \"%s\"' % platform
             fname = '%s/work/%s/bulk_stats.h5' % (rootdir,center)
-            df = loi.loadDF(fname,where=search_str)
+            df = lutils.readHDF(fname,'df',where=search_str)
             df = loi.tavg_CHANNEL(df)
         else:
             fname = '%s/work/%s/tavg_stats.pkl' % (rootdir,center)
-            df = loi.unpickleDF(fname)
+            df = lutils.unpickle(fname)
 
         DF.append(df)
 
@@ -74,13 +76,14 @@ def main():
     DF = sort_centers(DF,platforms)
 
     for qty in ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']:
+    #for qty in ['ImpPerOb']:
         plotOpt = loi.getPlotOpt(qty,savefigure=savefig)
         plotOpt['figname'] = '%s/plots/compare/%s/%s' % (rootdir,platform,plotOpt.get('figname'))
         tmpdf = []
         for c,center in enumerate(centers):
+            tmp = DF[c][qty]
             if qty is 'ImpPerOb':
                 tmp = DF[c][qty] / DF[c]['TotImp'].sum() * 100.
-            tmp = DF[c][qty]
             tmp.name = center
             tmpdf.append(tmp)
         df = pd.concat(tmpdf,axis=1)

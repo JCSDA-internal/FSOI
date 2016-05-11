@@ -22,14 +22,14 @@ __version__ = "0.1"
 
 import numpy as _np
 import pandas as _pd
-import cPickle as _pickle
 from matplotlib import pyplot as _plt
 from matplotlib import cm as _cm
 import matplotlib.colors as _colors
 from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 import itertools as _itertools
 
-from lib_plotting import savefigure as _savefigure
+import lib_plotting as _lplotting
+import lib_utils as _lutils
 
 def RefPlatform(plat_type):
 
@@ -508,47 +508,6 @@ def read_ascii(adate,fname):
 
     return df
 
-def pickleDF(fname,data):
-    try:
-        print 'pickling to ... %s' % fname
-        _pickle.dump(data, open(fname, "wb"))
-        print 'pickled ... %s' % fname
-    except _pickle.PicklingError:
-        print 'failed to pickle ... %s' % fname
-        raise
-    return
-
-def unpickleDF(fname):
-    try:
-        print 'unpickling ... %s' % fname
-        data = _pickle.load(open(fname, "rb"))
-        print 'unpickled ... %s' % fname
-    except _pickle.UnpicklingError:
-        print 'failed to unpickle ... %s' % fname
-        raise
-    return data
-
-def dumpDF(fname,df):
-    try:
-        print 'dumping to ... %s' % fname
-        hdf = _pd.HDFStore(fname)
-        hdf.put('df',df,format='table',append=True)
-        hdf.close()
-        print 'dumped ... %s' % fname
-    except Exception:
-        print 'failed to dump ... %s' % fname
-        raise
-    return
-
-def loadDF(fname,**kwargs):
-    try:
-        print 'reading ... %s' % fname
-        df = _pd.read_hdf(fname,'df',**kwargs)
-    except Exception:
-        print 'failed to read ... %s' % fname
-        raise
-    return df
-
 def select(df,dates=None,platforms=None,obtypes=None,channels=None,latitudes=None,longitudes=None,pressures=None):
     '''
         Successively slice a dataframe given ranges of dates, platforms, obtypes, channels, latitudes, longitudes and pressures
@@ -591,29 +550,13 @@ def select(df,dates=None,platforms=None,obtypes=None,channels=None,latitudes=Non
 
     return df
 
-def EmptyDataFrame(columns,names,dtype=None):
-    '''
-        Create an empty Multi-index DataFrame
-        Input:
-            columns = 'name of all columns; including indices'
-            names = 'name of index columns'
-        Output:
-            df = Multi-index DataFrame object
-    '''
-
-    levels = [[] for i in range(len(names))]
-    labels = [[] for i in range(len(names))]
-    indices = _pd.MultiIndex(levels=levels,labels=labels,names=names)
-    df = _pd.DataFrame(index=indices, columns=columns, dtype=dtype)
-    return df
-
 def BulkStats(DF):
 
     print '... computing bulk statistics ...'
 
     columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs']
     names = ['DATETIME','PLATFORM','OBTYPE','CHANNEL']
-    df = EmptyDataFrame(columns,names,dtype=_np.float)
+    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
     for idate in DF.index.get_level_values('DATETIME').unique():
         tmp1 = DF.xs(idate,level='DATETIME',drop_level=False)
@@ -640,7 +583,7 @@ def accumBulkStats(DF):
 
     columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs']
     names = ['DATETIME','PLATFORM']
-    df = EmptyDataFrame(columns,names,dtype=_np.float)
+    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
     for idate in DF.index.get_level_values('DATETIME').unique():
         tmp1 = DF.xs(idate,level='DATETIME',drop_level=False)
@@ -662,7 +605,7 @@ def groupBulkStats(DF,Platforms):
 
     columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs']
     names = ['DATETIME','PLATFORM']
-    df = EmptyDataFrame(columns,names,dtype=_np.float)
+    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
     for idate in DF.index.get_level_values('DATETIME').unique():
         tmp1 = DF.xs(idate,level='DATETIME',drop_level=False)
@@ -689,7 +632,7 @@ def tavg_PLATFORM(DF):
 
     columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']
     names = ['PLATFORM']
-    df = EmptyDataFrame(columns,names,dtype=_np.float)
+    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
     ntimes = _np.float(len(DF.index.get_level_values('DATETIME').unique()))
     Platforms = DF.index.get_level_values('PLATFORM').unique()
@@ -713,7 +656,7 @@ def tavg_CHANNEL(DF):
 
     columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']
     names = ['CHANNEL']
-    df = EmptyDataFrame(columns,names,dtype=_np.float)
+    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
     ntimes = _np.float(len(DF.index.get_level_values('DATETIME').unique()))
     channels = DF.index.get_level_values('CHANNEL').unique()
@@ -911,7 +854,7 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
     _plt.tight_layout()
 
     if plotOpt['savefigure']:
-        _savefigure(fname=plotOpt['figname'])
+        _lplotting.savefigure(fname=plotOpt['figname'])
 
     return fig
 
@@ -925,6 +868,8 @@ def comparesummaryplot(df,qty='TotImp',plotOpt={}):
     df.plot.barh(width=width,stacked=True,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)
     _plt.axvline(0.,color='k',linestyle='-',linewidth=1.25)
 
+    _plt.legend(frameon=False,loc=0)
+
     ax = _plt.gca()
 
     ax.set_title(plotOpt['title'],fontsize=18)
@@ -934,7 +879,7 @@ def comparesummaryplot(df,qty='TotImp',plotOpt={}):
     ax.set_xlabel(plotOpt['xlabel'],fontsize=14)
     ax.get_xaxis().get_offset_text().set_x(0)
     xfmt = _ScalarFormatter()
-    xfmt.set_powerlimits((-3,3))
+    xfmt.set_powerlimits((-2,2))
     ax.xaxis.set_major_formatter(xfmt)
 
     ax.set_ylabel('',visible=False)
@@ -946,6 +891,6 @@ def comparesummaryplot(df,qty='TotImp',plotOpt={}):
     _plt.tight_layout()
 
     if plotOpt['savefigure']:
-        _savefigure(fname=plotOpt['figname'])
+        _lplotting.savefigure(fname=plotOpt['figname'])
 
     return

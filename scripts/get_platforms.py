@@ -8,14 +8,14 @@
  # $Id$
  ###############################################################
 
- '''
+'''
 get_platforms.py - List platforms and observation types
- '''
+'''
 
 import sys
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
-import lib_obimpact as loi
+import lib_utils as lutils
 
 parser = ArgumentParser(description = 'Get platforms and observation types',formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument('-c','--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET'])
@@ -28,7 +28,7 @@ center = args.center
 show_obtypes = args.obtypes
 
 fname = '%s/work/%s/bulk_stats.h5' % (rootdir,center)
-df = loi.loadDF(fname)
+df = lutils.readHDF(fname,'df')
 
 platforms = df.index.get_level_values('PLATFORM').unique()
 for platform in sorted(platforms):

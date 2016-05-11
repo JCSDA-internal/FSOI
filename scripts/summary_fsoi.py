@@ -27,6 +27,7 @@ from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 
 import lib_obimpact as loi
+import lib_utils as lutils
 
 def main():
 
@@ -49,10 +50,7 @@ def main():
 
     if platform:
         search_str = 'PLATFORM == \"%s\"' % platform
-        try:
-            df = loi.loadDF(fname,where=search_str)
-        except RuntimeError,e:
-            raise RuntimeError(e.message + fname)
+        df = lutils.readHDF(fname,'df',where=search_str)
         df = loi.tavg_CHANNEL(df)
     else:
         fpkl = '%s/work/%s/tavg_stats.pkl' % (rootdir,center)
@@ -61,19 +59,16 @@ def main():
         else:
             overwrite = 'Y'
         if overwrite.upper() in ['Y','YES']:
-            try:
-                df = loi.loadDF(fname)
-            except RuntimeError,e:
-                raise RuntimeError(e.message + fname)
+            df = lutils.readHDF(fname,'df')
             df = loi.accumBulkStats(df)
             platforms = loi.Platforms(center)
             df = loi.groupBulkStats(df,platforms)
             df = loi.tavg_PLATFORM(df)
             if os.path.isfile(fpkl):
                 os.remove(fpkl)
-            loi.pickleDF(fpkl,df)
+            lutils.pickle(fpkl,df)
         else:
-            df = loi.unpickleDF(fpkl)
+            df = lutils.unpickle(fpkl)
 
     if exclude is not None:
         if platform:
