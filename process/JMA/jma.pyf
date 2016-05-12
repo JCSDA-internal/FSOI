@@ -1,0 +1,60 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module jma ! in 
+    interface  ! in :jma
+        module jma ! in :jma:jma.f90
+            integer(kind=4), private,parameter,optional :: iunit=10
+            logical, private,parameter,optional :: lverbose=.false.
+            type diag_header ! in :jma:jma.f90:jma
+                character(len=8) :: formulation
+                integer(kind=4) dimension(5) :: idate
+                integer(kind=4) :: nobstot
+            end type diag_header
+            type diag_data ! in :jma:jma.f90:jma
+                character(len=8) :: elem
+                integer(kind=4) :: channel
+                real(kind=4) :: rlon
+                real(kind=4) :: rlat
+                real(kind=4) :: rlev
+                character(len=12) :: otype
+                character(len=12) :: satname
+                real(kind=4) :: omb
+                real(kind=4) :: oma
+                real(kind=4) :: oberr
+                real(kind=4) :: fso_kin
+                real(kind=4) :: fso_dry
+                real(kind=4) :: fso_moist
+                real(kind=4) :: fsr_kin
+                real(kind=4) :: fsr_dry
+                real(kind=4) :: fsr_moist
+            end type diag_data
+            subroutine get_header(ifile,x_formulation,x_idate,x_nobstot,x_nmetric,endian) ! in :jma:jma.f90:jma
+                character*255 intent(in) :: ifile
+                character*8 intent(out) :: x_formulation
+                integer(kind=4) dimension(5),intent(out) :: x_idate
+                integer(kind=4) intent(out) :: x_nobstot
+                integer(kind=4) intent(out) :: x_nmetric
+                character*6, optional,intent(in) :: endian
+            end subroutine get_header
+            subroutine get_data(ifile,nobstot,nmetric,x_obtype,x_platform,x_channel,x_lat,x_lon,x_lev,x_omb,x_oberr,x_impact,endian) ! in :jma:jma.f90:jma
+                character*255 intent(in) :: ifile
+                integer(kind=4) intent(in) :: nobstot
+                integer(kind=4) intent(in) :: nmetric
+                character*20 dimension(nobstot),intent(out),depend(nobstot) :: x_obtype
+                character*20 dimension(nobstot),intent(out),depend(nobstot) :: x_platform
+                integer(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_channel
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_lat
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_lon
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_lev
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_omb
+                real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_oberr
+                real(kind=4) dimension(nobstot,nmetric),intent(out),depend(nobstot,nmetric) :: x_impact
+                character*6, optional,intent(in) :: endian
+            end subroutine get_data
+        end module jma
+    end interface 
+end python module jma
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
