@@ -7,25 +7,26 @@
 # $Id$
 ###############################################################
 
-set todo = $1
+set center = $1
+set todo = $2
 
 set echo
 
-if ( $todo == 'clean' ) then
-    rm -f emc.pyf emc.so read_emc.x emc.mod emc.o read_emc.o
-else if ( $todo == 'build' ) then
-    rm -f emc.pyf emc.so emc.mod
-    f2py -m emc -h emc.pyf emc.f90
-    echo "open emc.pyf and edit the len=20, len=20 to *20,*20 in the intent out section of get_data"
-    vi emc.pyf
-    f2py -c --fcompiler=intelem emc.pyf emc.f90
-else if ( $todo == 'test' ) then
-    rm -f read_emc.x emc.mod emc.o read_emc.o
+if ( $todo == "clean" ) then
+    rm -f $center.pyf $center.so read_$center.x $center.mod $center.o read_$center.o
+else if ( $todo == "build" ) then
+    rm -f $center.pyf $center.so $center.mod
+    f2py -m $center -h $center.pyf $center.f90
+    echo "open $center.pyf and edit the len=20, len=20 to *20,*20 in the intent out section of get_data"
+    vi $center.pyf
+    f2py -c --fcompiler=intelem $center.pyf $center.f90
+else if ( $todo == "test" ) then
+    rm -f read_$center.x $center.mod $center.o read_$center.o
     set FC = "ifort"
     set FFLAGS = "-g -C -traceback"
-    $FC -c $FFLAGS emc.f90
-    $FC -c $FFLAGS read_emc.f90
-    $FC $FFLAGS -o read_emc.x *.o
+    $FC -c $FFLAGS $center.f90
+    $FC -c $FFLAGS read_$center.f90
+    $FC $FFLAGS -o read_$center.x *.o
 else
     echo "undefined task: $todo"
 endif
