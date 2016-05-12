@@ -7,16 +7,16 @@
 # $Id$
 ###############################################################
 
-set algorithm = $1
+set formulation = $1
 set center = "JMA"
 set dir_scripts="$data/FSOI/process/$center"
 set indir = "/data/users/jxu/FSOI/FSO_data/$center"
-if ( $algorithm == 'ens' ) then
+if ( $formulation == "ens" ) then
     set indir = "$indir/original"
-else if ( $algorithm == 'adj' ) then
+else if ( $formulation == "adj" ) then
     set indir = "$indir/DJF_JMA_DRY_Original_Adjoint"
 endif
-set outdir = "/data/users/rmahajan/FSOI/ascii2/$center/$algorithm"
+set outdir = "/data/users/rmahajan/FSOI/ascii/$center/$formulation"
 set bdate = "2014120100"
 set edate = "2015030100"
 
@@ -36,17 +36,14 @@ cat > job_script.csh << EOF
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=00:05:00
-#SBATCH --output=/scratch/%u/output/$center/log.$algorithm.$adate.%j
+#SBATCH --output=/scratch/%u/output/$center/log.$formulation.$adate.%j
 
 source /etc/csh.cshrc
 
 echo "Job started at \`date\`"
 
-set infile  = "$indir/${algorithm}_fso_jma_${adate}00.dat"
-set outfile = "$outdir/JMA_${adate}.txt"
-
 cd $dir_scripts
-./process_$center.x \$infile \$outfile
+./process_$center.py -i \$indir -o \$outdir -a $adate -f $formulation
 
 echo "Job ended at \`date\`"
 exit 0

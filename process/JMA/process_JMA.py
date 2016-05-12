@@ -9,8 +9,6 @@
 
 import os
 import sys
-import numpy as np
-from netCDF4 import Dataset
 from datetime import datetime,timedelta
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
@@ -24,7 +22,7 @@ def main():
     parser.add_argument('-i','--indir',help='path to JMA data directory',type=str,required=True)
     parser.add_argument('-o','--outdir',help='path to output directory',type=str,required=True)
     parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
-    parser.add_argument('-f','--formulation',help='FSO formulation',choices=['ADJOINT','ENSEMBLE'],required=True)
+    parser.add_argument('-f','--formulation',help='FSO formulation',choices=['adj','ens'],required=True)
     args = parser.parse_args()
 
     datapth = args.indir
@@ -35,10 +33,7 @@ def main():
     fname_out = '%s/JMA_%s.txt' % (workdir,adate.strftime('%Y%m%d%H'))
     fascii = open(fname_out,'w')
 
-    if formulation == 'ADJOINT':
-        fname = os.path.join(datapth,'adj_fso_jma_%s00.dat' % adate.strftime('%Y%m%d%H'))
-    elif formulation == 'ENSEMBLE':
-        fname = os.path.join(datapth,'ens_fso_jma_%s00.dat' % adate.strftime('%Y%m%d%H'))
+    fname = os.path.join(datapth,'%s_fso_jma_%s00.dat' % (formulation, adate.strftime('%Y%m%d%H')))
     formulation,idate,nobstot,nmetric = jma.get_header(fname,endian='big')
     obtype,platform,chan,lat,lon,lev,omf,oberr,imp = jma.get_data(fname,nobstot,nmetric,endian='big')
 
