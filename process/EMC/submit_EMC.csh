@@ -36,8 +36,11 @@ source /etc/csh.cshrc
 
 echo "Job started at \`date\`"
 
+set input = "$indir/osense_${adate}_24.dat"
+set output = "$outdir/${center}_$adate.txt"
+
 cd $dir_scripts
-./process_$center.py -i $indir -o $outdir -a $adate
+./process_$center.py -i \$input -o \$output
 
 echo "Job ended at \`date\`"
 exit 0

@@ -7,11 +7,8 @@
 # $Id$
 ###############################################################
 
-import os
 import sys
 import numpy as np
-from netCDF4 import Dataset
-from datetime import datetime,timedelta
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 from emc import emc
@@ -116,20 +113,16 @@ def main():
 
     BUFFER_LINES = 1000000
 
-    parser = ArgumentParser(description = 'Read EMC file',formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i','--indir',help='path to EMC data directory',type=str,required=True)
-    parser.add_argument('-o','--outdir',help='path to output directory',type=str,required=True)
-    parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
+    parser = ArgumentParser(description = 'Process EMC file',formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-i','--input',help='Raw EMC file',type=str,required=True)
+    parser.add_argument('-o','--output',help='Processed EMC file',type=str,required=True)
     args = parser.parse_args()
 
-    datapth = args.indir
-    workdir = args.outdir
-    adate = datetime.strptime(args.adate,'%Y%m%d%H')
+    fname = args.infile
+    fname_out = args.outfile
 
-    fname_out = '%s/EMC_%s.txt' % (workdir,adate.strftime('%Y%m%d%H'))
     fascii = open(fname_out,'w')
 
-    fname = os.path.join(datapth,'osense_%s_24.dat' % adate.strftime('%Y%m%d%H'))
     idate,nobscon,nobsoz,nobssat,npred,nens = emc.get_header(fname,endian='big')
     nobs = nobscon + nobsoz + nobssat
     obtype,platform,chan,lat,lon,lev,omf,oberr,imp = emc.get_data(fname,nobs,npred,nens,endian='big')
@@ -161,7 +154,7 @@ def main():
 
     fascii.close()
 
-    print 'Total obs used in %s = %d' % (adate.strftime('%Y%m%d%H'),nobs)
+    print 'Total obs = %d' % (nobs)
 
     sys.exit(0)
 

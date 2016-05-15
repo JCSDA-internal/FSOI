@@ -7,10 +7,8 @@
 # $Id$
 ###############################################################
 
-import os
 import sys
 import numpy as np
-from datetime import datetime,timedelta
 from Scientific.IO import FortranFormat as ff
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
@@ -226,22 +224,18 @@ def main():
 
     BUFFER_LINES = 100000
 
-    parser = ArgumentParser(description = 'Read UKMetfile',formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i','--indir',help='path to UKMet data directory',type=str,required=True)
-    parser.add_argument('-o','--outdir',help='path to output directory',type=str,required=True)
-    parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
+    parser = ArgumentParser(description = 'Process UKMet file',formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-i','--input',help='Raw UKMet file',type=str,required=True)
+    parser.add_argument('-o','--output',help='Processed UKMet file',type=str,required=True)
     args = parser.parse_args()
 
-    datapth = args.indir
-    workdir = args.outdir
-    adate = datetime.strptime(args.adate,'%Y%m%d%H')
+    fname = args.input
+    fname_out = args.output
 
-    fname_out = '%s/MET_%s.txt' % (workdir,adate.strftime('%Y%m%d%H'))
     fascii = open(fname_out,'w')
 
     nobs = 0
 
-    fname = os.path.join(datapth,'%s.FSO'%adate.strftime('%Y%m%dT%H00Z'))
     try:
         fh = open(fname,'rb')
     except RuntimeError,e:
@@ -286,7 +280,7 @@ def main():
     fh.close()
     fascii.close()
 
-    print 'Total obs used in %s = %d' % (adate.strftime('%Y%m%d%H'),nobs)
+    print 'Total obs = %d' % (nobs)
 
     sys.exit(0)
 

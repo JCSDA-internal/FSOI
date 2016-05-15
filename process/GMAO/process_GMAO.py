@@ -136,18 +136,17 @@ def main():
 
     parser = ArgumentParser(description = 'Process GMAO data',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i','--indir',help='path to ODS directory',type=str,required=True)
-    parser.add_argument('-o','--outdir',help='path to output directory',type=str,required=True)
+    parser.add_argument('-o','--output',help='Processed GMAO file',type=str,required=True)
     parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
     args = parser.parse_args()
 
     datapth = args.indir
-    workdir = args.outdir
+    fname_out = args.output
     adate = datetime.strptime(args.adate,'%Y%m%d%H')
 
     kx = kx_def()
     kt = kt_def()
 
-    fname_out = '%s/GMAO_%s.txt' % (workdir,adate.strftime('%Y%m%d%H'))
     fascii = open(fname_out,'w')
 
     datadir = os.path.join(datapth,adate.strftime('M%m'),adate.strftime('D%d'))
