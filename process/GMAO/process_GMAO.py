@@ -168,10 +168,11 @@ def main():
         print 'platform = %s, nobs = %d' % (platform,ods.nobs)
 
         for o in range(ods.nobs):
+
             plat = kx[ods.kx[o]] if platform in ['CONV'] else platform
             obtype = kt[ods.kt[o]][0]
             channel = -999 if platform in ['CONV'] else np.int(ods.lev[o])
-            lon = ods.lon[o] if ods.lon[o] >=0 else ods.lon[o] + 360.0
+            lon = ods.lon[o] if ods.lon[o] >= 0.0 else ods.lon[o] + 360.0
             lat = ods.lat[o]
             if obtype == 'ps':
                 lev = ods.obs[o]

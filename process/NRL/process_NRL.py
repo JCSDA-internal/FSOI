@@ -292,7 +292,7 @@ def main():
         plat = data['platform']
         channel = data['channel']
         obtype = data['obtype']
-        lon = data['lon']
+        lon = data['lon'] if data['lon'] >= 0.0 else data['lon'] + 360.0
         lat = data['lat']
         lev = data['lev']
         imp = data['impact']
