@@ -9,10 +9,11 @@
 
 set center = "NRL"
 set dir_scripts = "$data/FSOI/process/$center"
-set indir = "/data/users/jxu/FSOI/FSO_data/$center/original/DJF_original"
-set outdir = "/data/users/rmahajan/FSOI/ascii2/$center"
+set indir = "$data/FSOI/data/$center"
+set outdir = "$data/FSOI/ascii/$center"
 set bdate = "2014120100"
 set edate = "2015030100"
+set norm = "dry"
 
 cd $dir_scripts
 
@@ -36,8 +37,18 @@ source /etc/csh.cshrc
 
 echo "Job started at \`date\`"
 
-set input = $indir/obs_sens_run1_$adate.txt
-set output = $outdir/${center}_$adate.txt
+if ( $norm == "dry" ) then
+    set input = $indir/obs_sens_run1_$adate.txt
+else if ( $norm == "moist" ) then
+    set input = $indir/obs_sens_run2_$adate.txt
+endif
+set output = $outdir/$center.$norm.$adate.txt
+
+if ( ! -e \$input ) then
+    echo "ERROR: \$input does not exist, nothing to process, EXITING"
+    echo "Job ended at \`date\`"
+    exit 0
+endif
 
 cd $dir_scripts
 ./process_$center.py -i \$input -o \$output

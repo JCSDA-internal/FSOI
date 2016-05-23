@@ -9,10 +9,11 @@
 
 set center = "GMAO"
 set dir_scripts="$data/FSOI/process/$center"
-set indir = "/data/users/jxu/FSOI/FSO_data/$center/original/DJF_txe_2014_2015"
-set outdir = "/data/users/rmahajan/FSOI/ascii/$center"
+set indir = "$data/FSOI/data/$center"
+set outdir = "$data/FSOI/ascii/$center"
 set bdate = "2014120100"
 set edate = "2015030100"
+set norm = "dry"
 
 cd $dir_scripts
 
@@ -43,10 +44,10 @@ source /etc/csh.cshrc
 
 echo "Job started at \`date\`"
 
-set output = $outdir/${center}_$adate.txt
+set output = $outdir/$center.$norm.$adate.txt
 
 cd $dir_scripts
-./process_$center.py -i $indir -o \$output -a $adate
+./process_$center.py -i $indir -o \$output -a $adate -n $norm
 
 echo "Job ended at \`date\`"
 exit 0

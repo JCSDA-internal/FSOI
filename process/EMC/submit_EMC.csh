@@ -9,10 +9,11 @@
 
 set center = "EMC"
 set dir_scripts = "$data/FSOI/process/$center"
-set indir = "/data/users/jxu/FSOI/FSO_data/$center/original"
-set outdir = "/data/users/rmahajan/FSOI/ascii2/$center"
+set indir = "$data/FSOI/data/$center"
+set outdir = "$data/FSOI/ascii/$center"
 set bdate = "2014120100"
 set edate = "2015030100"
+set norm = "dry"
 
 cd $dir_scripts
 
@@ -30,14 +31,20 @@ cat > job_script.csh << EOF
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=00:15:00
-#SBATCH --output=/scratch/%u/output/$center/log.$adate.%j
+#SBATCH --output=/scratch/%u/output/$center/log.$norm.$adate.%j
 
 source /etc/csh.cshrc
 
 echo "Job started at \`date\`"
 
 set input = "$indir/osense_${adate}_24.dat"
-set output = "$outdir/${center}_$adate.txt"
+set output = "$outdir/$center.$norm.$adate.txt"
+
+if ( ! -e \$input ) then
+    echo "ERROR: \$input does not exist, nothing to process, EXITING"
+    echo "Job ended at \`date\`"
+    exit 0
+endif
 
 cd $dir_scripts
 ./process_$center.py -i \$input -o \$output

@@ -297,10 +297,10 @@ def main():
         lev = data['lev']
         imp = data['impact']
         omf = data['omf']
+        oberr = data['oberr']
 
         # PLATFORM OBTYPE LONGITUDE LATITUDE LEVEL IMPACT OMF
-        #line = '%-15s %-15s %10.4f %10.4f %10.4f %15.8e %15.8e\n' % (plat,obtype,lon,lat,lev,imp,omf)
-        line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e\n' % (plat,obtype,channel,lon,lat,lev,imp,omf)
+        line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e %15.8e\n' % (plat,obtype,channel,lon,lat,lev,imp,omf,oberr)
 
         bufr += line
         lbufr += 1

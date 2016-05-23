@@ -138,25 +138,35 @@ def main():
     parser.add_argument('-i','--indir',help='path to ODS directory',type=str,required=True)
     parser.add_argument('-o','--output',help='Processed GMAO file',type=str,required=True)
     parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
+    parser.add_argument('-n','--norm',help='norm to process',type=str,required=True)
     args = parser.parse_args()
 
     datapth = args.indir
     fname_out = args.output
     adate = datetime.strptime(args.adate,'%Y%m%d%H')
+    norm = args.norm
+    if norm in ['dry']:
+        norm = 'txe'
+    elif norm in ['moist']:
+        norm = 'twe'
 
     kx = kx_def()
     kt = kt_def()
 
     fascii = open(fname_out,'w')
 
-    datadir = os.path.join(datapth,adate.strftime('M%m'),adate.strftime('D%d'))
+    datadir = os.path.join(datapth,adate.strftime('Y%Y'),adate.strftime('M%m'),adate.strftime('D%d'))
     flist = get_files(datadir,adate)
     nobs = 0
     bufr,lbufr = '',0
     for fname in flist:
+
+        if norm not in fname:
+            continue
+
         print 'processing %s' % fname
 
-        platform = fname.split('.')[1].split('imp3_txe_')[-1].upper()
+        platform = fname.split('.')[1].split('imp3_%s_'%norm)[-1].upper()
 
         fname = os.path.join(datadir,fname)
         ods = ODS(fname)
@@ -182,9 +192,10 @@ def main():
                 lev = ods.lev[o]
             imp = ods.xvec[o]
             omf = ods.omf[o]
+            oberr = -999. # GMAO does not provide obs. error in the impact ODS files
 
-            # PLATFORM OBTYPE LONGITUDE LATITUDE LEVEL IMPACT OMF
-            line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e\n' % (plat,obtype,channel,lon,lat,lev,imp,omf)
+            # PLATFORM OBTYPE LONGITUDE LATITUDE LEVEL IMPACT OMF OBERR
+            line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e %15.8e\n' % (plat,obtype,channel,lon,lat,lev,imp,omf,oberr)
 
             bufr += line
             lbufr += 1

@@ -37,7 +37,7 @@ def main():
 
         lon[o] = lon[o] if lon[o] >= 0.0 else lon[o] + 360.0
 
-        line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e\n' % (plat,obtyp,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o])
+        line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e %15.8e\n' % (plat,obtyp,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o])
 
         bufr += line
         lbufr += 1
