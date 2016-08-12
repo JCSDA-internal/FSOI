@@ -491,15 +491,17 @@ def add_dicts(dicts,unique=False):
 
 def read_ascii(adate,fname):
 
-    print '... reading ... %s' % fname
-
     # DataFrame for the data base
-    names = ['PLATFORM','OBTYPE','CHANNEL','LONGITUDE','LATITUDE','PRESSURE','IMPACT','OMF']
+    names = ['PLATFORM','OBTYPE','CHANNEL','LONGITUDE','LATITUDE','PRESSURE','IMPACT','OMF','OBERR']
     index_cols = names[0:3]
-    dtypes = {'PLATFORM':str,'OBTYPE':str,'CHANNEL':_np.int,'LATITUDE':_np.float,'LONGITUDE':_np.float,'PRESSURE':_np.float,'IMPACT':_np.float,'OMF':_np.float}
+    dtypes = {'PLATFORM':str,'OBTYPE':str,'CHANNEL':_np.int,'LONGITUDE':_np.float,'LATITUDE':_np.float,'PRESSURE':_np.float,'IMPACT':_np.float,'OMF':_np.float,'OBERR':_np.float}
 
     # read data into a DataFrame object
-    df = _pd.read_csv(fname,delim_whitespace=True,header=None,names=names,index_col=index_cols,dtype=dtypes)
+    print 'reading ... %s' % fname
+    try:
+        df = _pd.read_csv(fname,delim_whitespace=True,header=None,names=names,index_col=index_cols,dtype=dtypes)
+    except RuntimeError:
+        raise
 
     # Append the DateTime as the 1st level
     df['DATETIME'] = adate
