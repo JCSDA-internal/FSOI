@@ -20,13 +20,6 @@ cd $dir_scripts
 set adate = $bdate
 while ( $adate < $edate )
 
-    # GMAO only provided 00Z and 06Z sensitivities
-    set hh = `echo $adate | cut -c9-10`
-    if ( $hh == "12" | $hh == "18" ) then
-        set adate = `advance_time $adate +6h`
-        continue
-    endif
-
     echo "Creating job script for $adate"
 
     rm -f job_script.csh

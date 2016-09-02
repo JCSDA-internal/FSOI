@@ -7,15 +7,15 @@
 # $Id$
 ###############################################################
 
-set center = "GMAO"
-set norm = "txe"
+set center = "MeteoFr"
+set norm = "dry"
 set bdate = "2014120100"
 set edate = "2015030100"
-set remote_datadir = "/pub/data/obs_impact/DJF_${norm}_2014_2015"
+set remote_datadir = "DRY/WINTER"
 set datadir = "$data/FSOI/data/$center"
 
-# Get FTP information from GMAO.netrc
-source GMAO.netrc
+# Load the FTP information from MeteoFr.txt
+source MeteoFr.netrc
 
 set adate = $bdate
 while ( $adate < $edate )
@@ -25,24 +25,27 @@ while ( $adate < $edate )
     set dd   = `echo $adate | cut -c7-8`
     set hh   = `echo $adate | cut -c9-10`
 
-    mkdir -p $datadir/Y$yyyy/M$mm/D$dd
-    cd $datadir/Y$yyyy/M$mm/D$dd
+    mkdir -p $datadir/$norm/$yyyy$mm$dd$hh
+    cd       $datadir/$norm/$yyyy$mm$dd$hh
 
     echo "Fetching files for ... $norm, $adate"
 
     ftp -in $ftphost << EOT
 user $ftpuser $ftppasswd
 binary
-cd $remote_datadir/M$mm/D$dd
-mget *.ods
+cd $remote_datadir/$yyyy$mm$dd$hh
+mget *.tar.gz
 bye
 EOT
 
-    @ nfiles = `ls -1 *.ods | grep $norm | wc -l`
-
+    @ nfiles = `ls -1 *.tar.gz | wc -l`
     echo "Fetched  files for ... $norm, $adate = $nfiles"
 
-    set adate = `advance_time $adate +24h`
+    foreach tarball ( `ls -1 *.tar.gz` )
+        tar -xzvf $tarball
+    end
+
+    set adate = `advance_time $adate +6h`
 
 end
 
