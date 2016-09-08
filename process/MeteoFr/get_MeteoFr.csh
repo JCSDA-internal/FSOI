@@ -8,10 +8,10 @@
 ###############################################################
 
 set center = "MeteoFr"
-set norm = "dry"
+set norm = "moist"
 set bdate = "2014120100"
 set edate = "2015030100"
-set remote_datadir = "DRY/WINTER"
+set remote_datadir = "MOIST/WINTER"
 set datadir = "$data/FSOI/data/$center"
 
 # Load the FTP information from MeteoFr.txt
