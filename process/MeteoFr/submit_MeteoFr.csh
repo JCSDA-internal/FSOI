@@ -30,7 +30,7 @@ cat > job_script.csh << EOF
 #SBATCH --partition=serial
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=00:10:00
+#SBATCH --time=00:30:00
 #SBATCH --output=/scratch/%u/output/$center/log.$norm.$adate.%j
 
 source /etc/csh.cshrc
