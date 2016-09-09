@@ -694,6 +694,7 @@ def getPlotOpt(qty='TotImp',**kwargs):
         plotOpt['cmax'] = kwargs['cmax'] if 'cmax' in kwargs else 1.e4
     else:
         plotOpt['cmax'] = kwargs['cmax'] if 'cmax' in kwargs else 1.e6
+    plotOpt['cycle'] = ' '.join('%02dZ' % c for c in kwargs['cycle']) if 'cycle' in kwargs else '00'
 
     if plotOpt['center'] is None:
         center_name = ''
@@ -708,7 +709,7 @@ def getPlotOpt(qty='TotImp',**kwargs):
         else:
             center_name = '%s' % plotOpt['center']
 
-    plotOpt['title'] = '%s 24-h Observation Impact Summary\nGlobal Domain, 00Z DJF 2014-15' % center_name
+    plotOpt['title'] = '%s 24-h Observation Impact Summary\nGlobal Domain, %s DJF 2014-15' % (center_name, plotOpt['cycle'])
     plotOpt['figname'] = '%s_%s' % (fig_pref,qty)
 
     if qty == 'TotImp':
