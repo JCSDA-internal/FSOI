@@ -32,7 +32,7 @@ import lib_utils as lutils
 if __name__ == '__main__':
 
     parser = ArgumentParser(description = 'Create and Plot Observation Impacts Statistics',formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET'])
+    parser.add_argument('--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET','MeteoFr'])
     parser.add_argument('--norm',help='metric norm',type=str,default='dry',choices=['dry','moist'],required=False)
     parser.add_argument('--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',required=False)
     parser.add_argument('--platform',help='platform to plot',type=str,default='',required=False)

@@ -31,12 +31,12 @@ import lib_utils as lutils
 def main():
 
     parser = ArgumentParser(description = 'Create Observation Impacts database',formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-c','--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET'])
-    parser.add_argument('-n','--norm',help='norm',type=str,default='dry',choices=['dry','moist'],required=False)
-    parser.add_argument('-r','--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',required=False)
-    parser.add_argument('-b','--begin_date',help='dataset begin date',type=str,default='2014120100',required=False)
-    parser.add_argument('-e','--end_date',help='dataset end date',type=str,default='2015022800',required=False)
-    parser.add_argument('-i','--interval',help='dataset interval',type=int,default=6,required=False)
+    parser.add_argument('--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET','MeteoFr'])
+    parser.add_argument('--norm',help='norm',type=str,default='dry',choices=['dry','moist'],required=False)
+    parser.add_argument('--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',required=False)
+    parser.add_argument('--begin_date',help='dataset begin date',type=str,default='2014120100',required=False)
+    parser.add_argument('--end_date',help='dataset end date',type=str,default='2015022818',required=False)
+    parser.add_argument('--interval',help='dataset interval',type=int,default=6,required=False)
 
     args = parser.parse_args()
 

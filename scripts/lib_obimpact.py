@@ -471,6 +471,41 @@ def MET_platforms():
 
     return platforms
 
+def MeteoFr_platforms():
+
+    platforms = {
+    'Radiosonde':['Radiosonde'],
+    'Dropsonde':['Dropsonde'],
+    'Ship':['Ship'],
+    'Buoy':['Drifting_Buoy'],
+    'Land Surface':['Land_Surface','RADOME'],
+    'Aircraft':['AIREP','AMDAR','ACARS'],
+    'PIBAL':['Pilot'],
+    'GPSRO':['GPSRO'],
+    'Profiler Wind':['Profiler'],
+    'GOES Wind':['Imgr_GOES13','Imgr_GOES15'],
+    'GMS Wind':['Imgr_GMS'],
+    'Misc SatWind':['Misc_SatWind'],
+    'METEOSAT Wind':['Imgr_METEOSAT7','Imgr_METEOSAT10'],
+    'MODIS Wind':['MODIS_TERRA','MODIS_AQUA'],
+    'AVHRR Wind':['AVHRR_NOAA15','AVHRR_NOAA16','AVHRR_NOAA18','AVHRR_NOAA19'],
+    'ASCAT Wind':['ASCAT_METOP-A','ASCAT_METOP-B'],
+    'Synthetic':['TCBogus'],
+    'AIRS':['AIRS_AQUA'],
+    'AMSUA':['AMSUA_AQUA','AMSUA_NOAA15','AMSUA_NOAA16','AMSUA_NOAA18','AMSUA_NOAA19','AMSUA_METOP-A','AMSUA_METOP-B'],
+    'MHS':['MHS_NOAA19','MHS_METOP-A','MHS_METOP-B'],
+    'ATMS':['ATMS_NPP'],
+    'CrIS':['CRIS_NPP'],
+    'HIRS':['HIRS_METOP-A','HIRS_METOP-B'],
+    'IASI':['IASI_METOP-A','IASI_METOP-B'],
+    'GOES':['GOESIMG_GOES13','GOESIMG_GOES15'],
+    'Seviri':['SEVIRI_METEOSAT10'],
+    'SSMIS':['SSMIS_DMSP16','SSMIS_DMSP17','SSMIS_DMSP18'],
+    'Ground GPS':['GPSZTD']
+    }
+
+    return platforms
+
 def add_dicts(dicts,unique=False):
     '''
     Add dictionaries and result is a common dictionary with common keys and values from both dictionaries. The unique keys are preserved
@@ -552,7 +587,7 @@ def select(df,dates=None,platforms=None,obtypes=None,channels=None,latitudes=Non
 
     return df
 
-def BulkStats(DF):
+def BulkStats(DF,threshold=1.e-10):
 
     print '... computing bulk statistics ...'
 
@@ -571,8 +606,8 @@ def BulkStats(DF):
                     TotImp = tmp4['IMPACT'].sum()
                     ObCnt = _np.float(tmp4['IMPACT'].count())
                     ImpPerOb = TotImp / ObCnt
-                    FracBenObs = len(_np.where(tmp4['IMPACT']<-1.e-10)[0]) / ObCnt * 100.0
-                    FracDetObs = len(_np.where(tmp4['IMPACT']> 1.e-10)[0]) / ObCnt * 100.0
+                    FracBenObs = len(_np.where(tmp4['IMPACT']<-threshold)[0]) / ObCnt * 100.0
+                    FracDetObs = len(_np.where(tmp4['IMPACT']> threshold)[0]) / ObCnt * 100.0
                     FracNeuObs = 100. - FracBenObs - FracDetObs
                     df.loc[(idate,iplat,iobtype,ichan),:] = [TotImp,ObCnt,ImpPerOb,FracBenObs,FracNeuObs]
 
@@ -703,13 +738,15 @@ def getPlotOpt(qty='TotImp',**kwargs):
         fig_pref = '%s' % plotOpt['center']
         if plotOpt['center'] is 'MET':
             center_name = 'Met Office'
+        elif plotOpt['center'] in ['MeteoFr']:
+            center_name = 'Meteo France'
         elif plotOpt['center'] in ['JMA_adj', 'JMA_ens']:
             algorithm = plotOpt['center'].split('_')[-1]
             center_name = 'JMA (%s)' % ('Adjoint' if algorithm == 'adj' else 'Ensemble')
         else:
             center_name = '%s' % plotOpt['center']
 
-    plotOpt['title'] = '%s 24-h Observation Impact Summary\nGlobal Domain, %s DJF 2014-15' % (center_name, plotOpt['cycle'])
+    plotOpt['title'] = '%s 24-h Observation Impact Summary\nGlobal Domain, %s DJF 2014-15' % (unicode(center_name), plotOpt['cycle'])
     plotOpt['figname'] = '%s_%s' % (fig_pref,qty)
 
     if qty == 'TotImp':
