@@ -287,7 +287,7 @@ def GMAO_platforms():
     'GPSRO':['GPSRO'],
     'Profiler Wind':['Profiler_Wind'],
     'NEXRAD Wind':['NEXRAD_Wind'],
-    'Geo Wind':['GEO_Wind'],
+    'Geo Wind':['Geo_Wind'],
     'MODIS Wind':['MODIS_Wind'],
     'AVHRR Wind':['AVHRR_Wind'],
     'ASCAT Wind':['ASCAT_Wind'],
