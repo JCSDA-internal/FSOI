@@ -49,6 +49,8 @@ endif
 cd $dir_scripts
 ./process_$center.py -i \$input -o \$output
 
+if ( -e \$output ) gzip \$output
+
 echo "Job ended at \`date\`"
 exit 0
 EOF

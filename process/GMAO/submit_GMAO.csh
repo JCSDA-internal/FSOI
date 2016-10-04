@@ -42,6 +42,8 @@ set output = $outdir/$center.$norm.$adate.txt
 cd $dir_scripts
 ./process_$center.py -i $indir -o \$output -a $adate -n $norm
 
+if ( -e \$output ) gzip \$output
+
 echo "Job ended at \`date\`"
 exit 0
 EOF
