@@ -22,7 +22,7 @@ class ODS(object):
         except RuntimeError,e:
             raise IOError(e.message + ' ' + filename)
 
-    def read(self,only_good=True):
+    def read(self,only_good=True,platform=None):
         for vname in self.file_.variables:
             if vname in ['days','syn_beg','syn_len']: continue
             tmp = self.file_.variables[vname][:]
@@ -37,6 +37,13 @@ class ODS(object):
             indx = self.qcexcl == 0
         else:
             indx = np.ma.logical_and(self.qcexcl >= 0,self.qcexcl <= 255)
+
+        # Skip radiance observations that were rejected in 1st outer loop
+        # but assimilated in the 2nd outer loop.
+        # These observations are assigned ZERO impact value.
+        # See email correspondence with Ron.Gelaro dated September 27, 2016
+        if platform not in ['CONV']:
+            indx = np.ma.logical_and(indx,np.abs(self.xvec)>1.e-30)
 
         for name in ['lat','lon','lev','time','kt','kx','ks','xm','obs','omf','oma','xvec','qcexcl','qchist']:
             exec('self.%s = self.%s[indx]'%(name,name))
@@ -170,7 +177,7 @@ def main():
 
         fname = os.path.join(datadir,fname)
         ods = ODS(fname)
-        ods = ods.read(only_good=True)
+        ods = ods.read(only_good=True,platform=platform)
         ods.close()
 
         nobs += ods.nobs

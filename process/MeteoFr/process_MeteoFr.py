@@ -142,11 +142,11 @@ def parse_gpsro(fname):
 
     data = read_file(fname)
 
-    data.drop(['obstype@hdr','codetype@hdr','instrument_type@hdr','vertco_reference_2@body','statid@hdr'],axis=1,inplace=True)
+    data.drop(['obstype@hdr','codetype@hdr','instrument_type@hdr','vertco_reference_1@body','statid@hdr'],axis=1,inplace=True)
 
     data['varno@body'].replace(to_replace=var_ids,value=var_names,inplace=True)
 
-    old_names = ['lat@hdr','lon@hdr','varno@body','vertco_reference_1@body','fg_depar@body','fc_sens_obs@body','obs_error@errstat']
+    old_names = ['lat@hdr','lon@hdr','varno@body','vertco_reference_2@body','fg_depar@body','fc_sens_obs@body','obs_error@errstat']
     new_names = ['latitude','longitude','variable','level','omf','impact','obserr']
     data.rename(columns=dict(zip(old_names,new_names)), inplace=True)
 
@@ -160,7 +160,6 @@ def read_file(fname):
     Read a file into a dataframe
     Drop the useless columns
     Convert latitude, longitude from radians to degrees
-    Calculate observation impact as the product of sensitivity and OmF
     '''
 
     try:
@@ -172,7 +171,6 @@ def read_file(fname):
 
     data['lat@hdr'] = data['lat@hdr'] * 180./np.pi
     data['lon@hdr'] = data['lon@hdr'] * 180./np.pi
-    data['fc_sens_obs@body'] = data['fc_sens_obs@body'] * data['fg_depar@body']
 
     return data
 
@@ -217,12 +215,14 @@ def get_satwindid_satwindname():
                783,784,
                172,
                257,259,
-               54,57]
+               54,57,
+               55]
     sat_names = ['AVHRR_NOAA15','AVHRR_NOAA16','AVHRR_NOAA18','AVHRR_NOAA19',
                  'MODIS_TERRA','MODIS_AQUA',
-                 'Imager_GMS',
-                 'Imager_GOES13','Imager_GOES15',
-                 'Imager_METEOSAT7','Imager_METEOSAT10']
+                 'Imgr_GMS',
+                 'Imgr_GOES13','Imgr_GOES15',
+                 'Imgr_METEOSAT7','Imgr_METEOSAT10',
+                 'Misc_SatWind']
 
     return sat_ids,sat_names
 
