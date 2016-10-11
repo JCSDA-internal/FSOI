@@ -118,10 +118,6 @@ def parse_satwind(fname):
 
     data.drop(['obstype@hdr','codetype@hdr','comp_method@satob'],axis=1,inplace=True)
 
-    data['lat@hdr'] = data['lat@hdr'] * 180./np.pi
-    data['lon@hdr'] = data['lon@hdr'] * 180./np.pi
-    data['fc_sens_obs@body'] = data['fc_sens_obs@body'] * data['fg_depar@body']
-
     data['statid@hdr'].replace(to_replace=sat_ids,value=sat_names,inplace=True)
     data['varno@body'].replace(to_replace=var_ids,value=var_names,inplace=True)
 
@@ -160,6 +156,7 @@ def read_file(fname):
     Read a file into a dataframe
     Drop the useless columns
     Convert latitude, longitude from radians to degrees
+    Rescale impact by 1.e5 because units in the file are JPa/kg
     '''
 
     try:
@@ -171,6 +168,7 @@ def read_file(fname):
 
     data['lat@hdr'] = data['lat@hdr'] * 180./np.pi
     data['lon@hdr'] = data['lon@hdr'] * 180./np.pi
+    data['fc_sens_obs@body'] = data['fc_sens_obs@body'] * 1.e-5
 
     return data
 
