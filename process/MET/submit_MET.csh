@@ -40,7 +40,7 @@ echo "Job started at \`date\`"
 set yyyymmdd = \`echo $adate | cut -c1-8\`
 set hh = \`echo $adate | cut -c9-10\`
 
-set input = $indir/\${yyyymmdd}T\${hh}00Z.FSO
+set input = $indir/\${yyyymmdd}T\${hh}00Z.FSO.gz
 set output = $outdir/$center.$norm.$adate.txt
 
 if ( ! -e \$input ) then

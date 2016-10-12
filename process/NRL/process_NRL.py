@@ -8,6 +8,7 @@
 ###############################################################
 
 import sys
+import gzip
 import numpy as np
 from Scientific.IO import FortranFormat as ff
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
@@ -267,7 +268,7 @@ def main():
     nobs = 0
 
     try:
-        fh = open(fname,'rb')
+        fh = gzip.open(fname,'rb')
     except RuntimeError,e:
         raise IOError(e.messaage + ' ' + fname)
 

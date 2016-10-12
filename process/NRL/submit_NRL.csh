@@ -38,9 +38,9 @@ source /etc/csh.cshrc
 echo "Job started at \`date\`"
 
 if ( $norm == "dry" ) then
-    set input = $indir/obs_sens_run1_$adate.txt
+    set input = $indir/obs_sens_run1_$adate.txt.gz
 else if ( $norm == "moist" ) then
-    set input = $indir/obs_sens_run2_$adate.txt
+    set input = $indir/obs_sens_run2_$adate.txt.gz
 endif
 set output = $outdir/$center.$norm.$adate.txt
 
