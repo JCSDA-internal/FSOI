@@ -10,19 +10,11 @@
 import os
 import sys
 import glob
+import tempfile
+import tarfile
 import numpy as np
 import pandas as pd
-from time import time
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
-
-def get_files(datadir):
-    '''
-    Get a list of files in a directory
-    '''
-
-    files = glob.glob('%s/fic_odb.*.bg.lst' % datadir)
-
-    return files
 
 def parse_file(fname):
     '''
@@ -287,7 +279,13 @@ def main():
 
     if os.path.isfile(fname_out): os.remove(fname_out)
 
-    flist = get_files(os.path.join(datapth,norm,adate))
+    datadir = os.path.join(datapth,norm,adate)
+    tmpdir = tempfile.mkdtemp()
+
+    tf = tarfile.open('%s/fic_odb.all_obs.bg.tar.gz' % datadir)
+    tf.extractall(path=tmpdir)
+    flist = glob.glob('%s/fic_odb.*.bg.lst' % tmpdir)
+
     nobs = 0
     for fname in flist:
 
