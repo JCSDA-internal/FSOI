@@ -10,27 +10,23 @@
 import os
 import sys
 import glob
+import tempfile
+import tarfile
 import numpy as np
 import pandas as pd
 from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 
-def get_files(datadir):
-    '''
-    Get a list of files in a directory
-    '''
-
-    files = glob.glob('%s/deltaJ.*.bg.lst' % datadir)
-
-    return files
-
 def parse_date(datadir,adate):
     '''
     Call the appropriate file parser depending on platform
     '''
 
-    flist = get_files(datadir)
+    tmpdir = tempfile.mkdtemp()
+    tf = tarfile.open('%s/deltaJ.all_obs.bg.tar.gz' % datadir)
+    tf.extractall(path=tmpdir)
+    flist = glob.glob('%s/deltaJ.*.bg.lst' % tmpdir)
     tmpdf = []
     for fname in flist:
         if os.stat(fname).st_size == 0:
@@ -43,9 +39,10 @@ def parse_date(datadir,adate):
     'satem_amsub', 'satem_atms', 'satem_cris', 'satem_goesimg', 'satem_hirs', 'satem_iasi',
     'satem_mhs', 'satem_seviri', 'satem_ssmis', 'satwind', 'scatt', 'synop_gpssol', 'synop_insitu',
     'temp']
-    new_platform_names = ['Aircraft', 'Buoy', 'GPSRO', 'Pilot', 'AIRS', 'AMSUA', 'AMSUB', 'ATMS',
-    'CrIS', 'GOES', 'HIRS', 'IASI', 'MHS', 'Seviri', 'SSMIS', 'SatWind', 'Scat', 'GPSSOL', 'Surface',
-    'Radiosonde']
+    new_platform_names = ['aircraft', 'buoy', 'gpsro', 'pilot', 'airs', 'amsua',
+    'amsub', 'atms', 'cris', 'goesimg', 'hirs', 'iasi',
+    'mhs', 'seviri', 'ssmis', 'satwind', 'scatt', 'gpssol', 'insitu',
+    'temp']
     data['PLATFORM'].replace(to_replace=old_platform_names,value=new_platform_names,inplace=True)
 
     data['DATETIME'] = adate
@@ -90,30 +87,37 @@ def main():
     bdate = datetime.strptime(args.begin_date,('%Y%m%d%H'))
     edate = datetime.strptime(args.end_date,('%Y%m%d%H'))
 
-    tmpdata = []
-    for adate in pd.date_range(bdate,edate,freq='6H'):
-
-        adatestr = adate.strftime('%Y%m%d%H')
-        print 'processing %s' % adatestr
-
-        datadir = os.path.join(datapthin,norm,adatestr)
-
-        tmpdata.append(parse_date(datadir,adate))
-
-    df = pd.concat(tmpdata,axis=0)
-
-    # Write to a file
     fname_out = os.path.join(datapthout,'deltaJ.%s.h5'%norm)
-    if os.path.isfile(fname_out): os.remove(fname_out)
-    hdf = pd.HDFStore(fname_out)
-    hdf.put('df',df,format='table',append=True)
-    hdf.close()
+    if os.path.isfile(fname_out):
+        overwrite = raw_input('%s exists, OVERWRITE [y/N]: ' % fname_out)
+    else:
+        overwrite = 'Y'
+
+    if overwrite.upper() in ['Y','YES']:
+        tmpdata = []
+        for adate in pd.date_range(bdate,edate,freq='6H'):
+            adatestr = adate.strftime('%Y%m%d%H')
+            print 'processing %s' % adatestr
+            datadir = os.path.join(datapthin,norm,adatestr)
+            tmpdata.append(parse_date(datadir,adate))
+        df = pd.concat(tmpdata,axis=0)
+
+        # Write to a file
+        if os.path.isfile(fname_out): os.remove(fname_out)
+        hdf = pd.HDFStore(fname_out)
+        hdf.put('df',df,format='table',append=True)
+        hdf.close()
+
+    else:
+        df = pd.read_hdf(fname_out)
 
     # Compute time-mean and plot
     dfm = df.mean(level='PLATFORM')
     dfm.sort_values(by='TotImp',inplace=True,ascending=False)
     dfs = df.std(level='PLATFORM')
     ax = dfm['TotImp'].plot(kind='barh',xerr=dfs,width=1.,alpha=0.6,title='Meteo France Total Impact')
+    ax.set_xlabel('Total Impact (J/kg)')
+    ax.set_ylabel('')
     ax.figure.tight_layout()
     plt.show()
 
