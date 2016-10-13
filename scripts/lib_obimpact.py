@@ -588,10 +588,11 @@ def select(df,dates=None,platforms=None,obtypes=None,channels=None,latitudes=Non
     return df
 
 def BulkStats(DF,threshold=1.e-10):
+    '''Collapse PRESSURE, LATITUDE, LONGITUDE'''
 
     print '... computing bulk statistics ...'
 
-    columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs']
+    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
     names = ['DATETIME','PLATFORM','OBTYPE','CHANNEL']
     df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
@@ -605,20 +606,22 @@ def BulkStats(DF,threshold=1.e-10):
                     tmp4 = tmp3.xs(ichan,level='CHANNEL',drop_level=False)
                     TotImp = tmp4['IMPACT'].sum()
                     ObCnt = _np.float(tmp4['IMPACT'].count())
-                    ImpPerOb = TotImp / ObCnt
-                    FracBenObs = len(_np.where(tmp4['IMPACT']<-threshold)[0]) / ObCnt * 100.0
-                    FracDetObs = len(_np.where(tmp4['IMPACT']> threshold)[0]) / ObCnt * 100.0
-                    FracNeuObs = 100. - FracBenObs - FracDetObs
-                    df.loc[(idate,iplat,iobtype,ichan),:] = [TotImp,ObCnt,ImpPerOb,FracBenObs,FracNeuObs]
+                    ObCntBen = len(_np.where(tmp4['IMPACT']<-threshold)[0])
+                    ObCntDet = len(_np.where(tmp4['IMPACT']> threshold)[0])
+                    ObCntNeu = ObCnt - ObCntBen - ObCntDet
+                    df.loc[(idate,iplat,iobtype,ichan),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
 
-    df['ObCnt'] = df['ObCnt'].astype(_np.int)
+    for col in ['ObCnt','ObCntBen','ObCntNeu']:
+        df[col] = df[col].astype(_np.int)
+
     return df
 
 def accumBulkStats(DF):
+    '''Collapse OBTYPE and CHANNEL'''
 
     print '... accumulating bulk statistics ...'
 
-    columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs']
+    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
     names = ['DATETIME','PLATFORM']
     df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
@@ -628,19 +631,21 @@ def accumBulkStats(DF):
             tmp2 = tmp1.xs(iplat,level='PLATFORM',drop_level=False)
             TotImp = tmp2['TotImp'].sum()
             ObCnt = _np.float(tmp2['ObCnt'].sum())
-            ImpPerOb = TotImp / ObCnt
-            FracBenObs = (tmp2['FracBenObs']*tmp2['ObCnt']).sum() / ObCnt
-            FracNeuObs = (tmp2['FracNeuObs']*tmp2['ObCnt']).sum() / ObCnt
-            df.loc[(idate,iplat),:] = [TotImp,ObCnt,ImpPerOb,FracBenObs,FracNeuObs]
+            ObCntBen = _np.float(tmp2['ObCntBen'].sum())
+            ObCntNeu = _np.float(tmp2['ObCntNeu'].sum())
+            df.loc[(idate,iplat),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
 
-    df['ObCnt'] = df['ObCnt'].astype(_np.int)
+    for col in ['ObCnt','ObCntBen','ObCntNeu']:
+        df[col] = df[col].astype(_np.int)
+
     return df
 
 def groupBulkStats(DF,Platforms):
+    '''Group accumulated bulk statistics by aggregated platforms'''
 
     print '... grouping bulk statistics ...'
 
-    columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs']
+    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
     names = ['DATETIME','PLATFORM']
     df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
@@ -655,11 +660,12 @@ def groupBulkStats(DF,Platforms):
             if not tmp2.empty:
                 TotImp = tmp2['TotImp'].sum()
                 ObCnt = _np.float(tmp2['ObCnt'].sum())
-                ImpPerOb = TotImp / ObCnt
-                FracBenObs = (tmp2['FracBenObs']*tmp2['ObCnt']).sum() / ObCnt
-                FracNeuObs = (tmp2['FracNeuObs']*tmp2['ObCnt']).sum() / ObCnt
-                df.loc[(idate,Platform),:] = [TotImp,ObCnt,ImpPerOb,FracBenObs,FracNeuObs]
-    df['ObCnt'] = df['ObCnt'].astype(_np.int)
+                ObCntBen = _np.float(tmp2['ObCntBen'].sum())
+                ObCntNeu = _np.float(tmp2['ObCntNeu'].sum())
+                df.loc[(idate,Platform),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
+
+    for col in ['ObCnt','ObCntBen','ObCntNeu']:
+        df[col] = df[col].astype(_np.int)
 
     return df
 
@@ -667,7 +673,7 @@ def tavg_PLATFORM(DF):
 
     print '... time-averaging bulk statistics over platforms ...'
 
-    columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']
+    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
     names = ['PLATFORM']
     df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
@@ -677,13 +683,12 @@ def tavg_PLATFORM(DF):
         tmp = DF.xs(Platform,level='PLATFORM',drop_level=False)
         TotImp = tmp['TotImp'].sum() / ntimes
         ObCnt = _np.float(tmp['ObCnt'].sum()) / ntimes
-        ImpPerOb = TotImp / ObCnt
-        FracBenObs = (tmp['FracBenObs'] * tmp['ObCnt'].astype(_np.float)).sum() / tmp['ObCnt'].astype(_np.float).sum()
-        FracNeuObs = (tmp['FracNeuObs'] * tmp['ObCnt'].astype(_np.float)).sum() / tmp['ObCnt'].astype(_np.float).sum()
-        df.loc[(Platform),:] = [TotImp,ObCnt,ImpPerOb,FracBenObs,FracNeuObs,TotImp]
+        ObCntBen = _np.float(tmp['ObCntBen'].sum()) / ntimes
+        ObCntNeu = _np.float(tmp['ObCntNeu'].sum()) / ntimes
+        df.loc[(Platform),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
 
-    df['ObCnt'] = df['ObCnt'].astype(_np.int)
-    df['FracImp'] = df['FracImp'] / df['TotImp'].sum() * 100.
+    for col in ['ObCnt','ObCntBen','ObCntNeu']:
+        df[col] = df[col].astype(_np.int)
 
     return df
 
@@ -691,7 +696,7 @@ def tavg_CHANNEL(DF):
 
     print '... time-averaging bulk statistics over channels ...'
 
-    columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']
+    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
     names = ['CHANNEL']
     df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
@@ -701,13 +706,29 @@ def tavg_CHANNEL(DF):
         tmp = DF.xs(channel,level='CHANNEL',drop_level=False)
         TotImp = tmp['TotImp'].sum() / ntimes
         ObCnt = _np.float(tmp['ObCnt'].sum()) / ntimes
-        ImpPerOb = TotImp / ObCnt
-        FracBenObs = (tmp['FracBenObs'] * tmp['ObCnt'].astype(_np.float)).sum() / tmp['ObCnt'].astype(_np.float).sum()
-        FracNeuObs = (tmp['FracNeuObs'] * tmp['ObCnt'].astype(_np.float)).sum() / tmp['ObCnt'].astype(_np.float).sum()
-        df.loc[(channel),:] = [TotImp,ObCnt,ImpPerOb,FracBenObs,FracNeuObs,TotImp]
+        ObCntBen = _np.float(tmp['ObCntBen'].sum()) / ntimes
+        ObCntNeu = _np.float(tmp['ObCntNeu'].sum()) / ntimes
+        df.loc[(channel),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
 
-    df['ObCnt'] = df['ObCnt'].astype(_np.int)
-    df['FracImp'] = df['FracImp'] / df['TotImp'].sum() * 100.
+    for col in ['ObCnt','ObCntBen','ObCntNeu']:
+        df[col] = df[col].astype(_np.int)
+
+    return df
+
+def summarymetrics(DF):
+
+    columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']
+    names = ['PLATFORM']
+    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
+
+    df[['TotImp','ObCnt']] = DF[['TotImp','ObCnt']]
+    df['ImpPerOb'] = df['TotImp'] / df['ObCnt']
+    df['FracBenObs'] = DF['ObCntBen'] / (DF['ObCnt'] - DF['ObCntNeu'] ) * 100.
+    df['FracNeuObs'] = DF['ObCntNeu'] / (DF['ObCnt'] - DF['ObCntBen'] ) * 100.
+    df['FracImp'] = df['TotImp'] / df['TotImp'].sum() * 100.
+
+    for col in ['ObCnt']:
+        df[col] = df[col].astype(_np.int)
 
     return df
 
@@ -759,8 +780,8 @@ def getPlotOpt(qty='TotImp',**kwargs):
         plotOpt['sortAscending'] = True
     elif qty == 'ImpPerOb':
         plotOpt['name'] = 'Impact per Observation'
-        plotOpt['xlabel'] = '%s (%%)' % plotOpt['name']
-        plotOpt['sortAscending'] = True
+        plotOpt['xlabel'] = '%s (J/kg)' % plotOpt['name']
+        plotOpt['sortAscending'] = False
     elif qty == 'FracBenNeuObs':
         plotOpt['name'] = 'Fraction of Ben. & Neu. Observations'
         plotOpt['xlabel'] = '%s (%%)' % plotOpt['name']
@@ -843,29 +864,34 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
     else:
         df[qty].plot.barh(width=width,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)
 
-    if qty == 'FracBenNeuObs':
+    # For FracBenObs/FracBenNeuObs, draw a vline at 50% and hatch for FracBenNeuObs
+    if qty in ['FracBenObs','FracBenNeuObs']:
         _plt.axvline(50.,color='k',linestyle='--',linewidth=1.25)
-        bars = bax.patches
-        for b,bar in enumerate(bars):
-            if b >= len(bars)/2:
-                if _np.mod(b,2):
-                    bar.set_hatch('//')
-                else:
-                    bar.set_hatch('\\\\')
+        if qty in ['FracBenNeuObs']:
+            bars = bax.patches
+            for b,bar in enumerate(bars):
+                if b >= len(bars)/2:
+                    if _np.mod(b,2):
+                        bar.set_hatch('//')
+                    else:
+                        bar.set_hatch('\\\\')
 
-    if qty == 'FracBenNeuObs':
+    # Get a handle on the plot axis
+    ax = _plt.gca()
+
+    # Set title
+    ax.set_title(plotOpt['title'],fontsize=18)
+
+    # Set x-limits on the plot
+    if qty in ['FracBenNeuObs']:
         xmin,xmax = df['FracBenObs'].min(), (df['FracBenObs'] + df['FracNeuObs']).max()
     else:
         df = df[qty]
         xmin,xmax = df.min(),df.max()
     dx = xmax - xmin
-
-    ax = _plt.gca()
-
-    ax.set_title(plotOpt['title'],fontsize=18)
-
     xmin, xmax = xmin-0.1*dx,xmax+0.1*dx
     _plt.xlim(xmin,xmax)
+
     #xticks = _np.arange(-3,0.1,0.5)
     #ax.set_xticks(xticks)
     #x.set_xticklabels(_np.ndarray.tolist(xticks),fontsize=12)
@@ -881,6 +907,7 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
     ax.autoscale(enable=True,axis='y',tight=True)
     ax.grid(False)
 
+    # Colorbar properties
     cbar.solids.set_edgecolor("face")
     cbar.outline.set_visible(True)
     cbar.outline.set_linewidth(1.25)

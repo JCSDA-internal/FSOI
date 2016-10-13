@@ -95,10 +95,9 @@ if __name__ == '__main__':
         print ", ".join('%s'% x for x in exclude)
         df.drop(exclude,inplace=True)
 
-    df['ImpPerOb'] = df['ImpPerOb'] / df['TotImp'].sum() * 100.
-    df['FracBenNeuObs'] = pd.Series(df['FracBenObs']+df['FracNeuObs'],index=df.index)
+    df = loi.summarymetrics(df)
 
-    for qty in ['TotImp','ImpPerOb','FracBenObs','FracNeuObs','FracBenNeuObs','FracImp','ObCnt']:
+    for qty in ['TotImp','ImpPerOb','FracBenObs','FracNeuObs','FracImp','ObCnt']:
         plotOpt = loi.getPlotOpt(qty,cycle=cycle,center=center,savefigure=savefig,platform=platform)
         plotOpt['figname'] = '%s/plots/summary/%s/%s_%s' % (rootdir,center,plotOpt.get('figname'),cyclestr)
         loi.summaryplot(df,qty=qty,plotOpt=plotOpt)

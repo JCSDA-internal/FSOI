@@ -57,7 +57,7 @@ def main():
     for adate in pd.date_range(bdate,edate,freq='%dH'%interval):
         adatestr = adate.strftime('%Y%m%d%H')
         if adate in skip_dates: continue
-        fname = '%s/ascii/%s/%s.%s.%s.txt' % (rootdir,center,center,norm,adatestr)
+        fname = '%s/ascii/%s/%s.%s.%s.txt.gz' % (rootdir,center,center,norm,adatestr)
         if not os.path.isfile(fname):
             print '%s : %s does not exist, SKIPPING ...' % (adatestr, fname)
             continue
