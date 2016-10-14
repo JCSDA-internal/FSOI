@@ -14,6 +14,11 @@ from netCDF4 import Dataset
 from datetime import datetime,timedelta
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
+import lib_utils as lutils
+
+sys.path.append('../../scripts')
+import lib_obimpact as loi
+
 class ODS(object):
 
     def __init__(self,filename):
@@ -139,13 +144,12 @@ def get_files(datadir,adate):
 
 def main():
 
-    BUFFER_LINES = 100000
 
     parser = ArgumentParser(description = 'Process GMAO data',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i','--indir',help='path to ODS directory',type=str,required=True)
     parser.add_argument('-o','--output',help='Processed GMAO file',type=str,required=True)
     parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
-    parser.add_argument('-n','--norm',help='norm to process',type=str,required=True)
+    parser.add_argument('-n','--norm',help='norm to process',type=str,default='dry',choices=['dry','moist'],required=False)
     args = parser.parse_args()
 
     datapth = args.indir
@@ -160,12 +164,10 @@ def main():
     kx = kx_def()
     kt = kt_def()
 
-    fascii = open(fname_out,'w')
-
     datadir = os.path.join(datapth,adate.strftime('Y%Y'),adate.strftime('M%m'),adate.strftime('D%d'))
     flist = get_files(datadir,adate)
     nobs = 0
-    bufr,lbufr = '',0
+    bufr = []
     for fname in flist:
 
         if norm not in fname:
@@ -201,19 +203,14 @@ def main():
             omf = ods.omf[o]
             oberr = -999. # GMAO does not provide obs. error in the impact ODS files
 
-            # PLATFORM OBTYPE LONGITUDE LATITUDE LEVEL IMPACT OMF OBERR
-            line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e %15.8e\n' % (plat,obtype,channel,lon,lat,lev,imp,omf,oberr)
+            line = [plat,obtype,channel,lon,lat,lev,imp,omf,oberr]
 
-            bufr += line
-            lbufr += 1
-            if lbufr >= BUFFER_LINES:
-                fascii.writelines(bufr)
-                bufr,lbufr = '',0
+            bufr.append(line)
 
-        if lbufr != 0:
-            fascii.writelines(line)
-
-    fascii.close()
+    if bufr != []:
+        df = loi.list_to_dataframe(adate,bufr)
+        if os.path.isfile(fname_out): os.remove(fname_out)
+        lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
     print 'Total obs used in %s = %d' % (adate.strftime('%Y%m%d%H'),nobs)
 
