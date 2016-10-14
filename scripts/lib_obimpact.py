@@ -545,6 +545,32 @@ def read_ascii(adate,fname):
 
     return df
 
+def list_to_dataframe(adate,data):
+    '''
+    INPUT:  data = list of lists. Each list is a row e.g. [[...],[...],...,[...]]
+           adate = date to append to the dataframe
+    OUTPUT:   df = convert list data into a pandas dataframe
+    '''
+
+    columns = ['PLATFORM','OBTYPE','CHANNEL','LONGITUDE','LATITUDE','PRESSURE','IMPACT','OMF','OBERR']
+    index_cols = columns[0:3]
+
+    # read data into a DataFrame object
+    try:
+        df = _pd.DataFrame.from_records(data,columns=columns,index=index_cols)
+    except RuntimeError:
+        raise
+
+    # Append the DateTime as the 1st level
+    df['DATETIME'] = adate
+    df.set_index('DATETIME', append=True, inplace=True)
+    df = df.reorder_levels(['DATETIME']+index_cols)
+
+    for col in ['LONGITUDE','LATITUDE','PRESSURE','IMPACT','OMF','OBERR']:
+         df[col] = df[col].astype(_np.float)
+
+    return df
+
 def select(df,dates=None,platforms=None,obtypes=None,channels=None,latitudes=None,longitudes=None,pressures=None):
     '''
         Successively slice a dataframe given ranges of dates, platforms, obtypes, channels, latitudes, longitudes and pressures
