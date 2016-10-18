@@ -9,8 +9,8 @@
 
 set center = "GMAO"
 set dir_scripts="$data/FSOI/process/$center"
-set indir = "$data/FSOI/data/$center"
-set outdir = "$data/FSOI/ascii/$center"
+set indir = "$data/FSOI/raw_data/$center"
+set outdir = "$data/FSOI/data/$center"
 set bdate = "2014120100"
 set edate = "2015030100"
 set norm = "dry"

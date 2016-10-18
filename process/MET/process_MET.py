@@ -7,11 +7,18 @@
 # $Id$
 ###############################################################
 
+import os
 import sys
 import gzip
 import numpy as np
+from datetime import datetime
 from Scientific.IO import FortranFormat as ff
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
+
+import lib_utils as lutils
+
+sys.path.append('../../scripts')
+import lib_obimpact as loi
 
 def kt_def():
     kt = {
@@ -223,19 +230,15 @@ def skip_ob(obtyp,instyp,oberr,impact):
 
 def main():
 
-    BUFFER_LINES = 100000
-
     parser = ArgumentParser(description = 'Process UKMet file',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i','--input',help='Raw UKMet file',type=str,required=True)
     parser.add_argument('-o','--output',help='Processed UKMet file',type=str,required=True)
+    parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
     args = parser.parse_args()
 
     fname = args.input
     fname_out = args.output
-
-    fascii = open(fname_out,'w')
-
-    nobs = 0
+    adate = datetime.strptime(args.adate,'%Y%m%d%H')
 
     try:
         fh = gzip.open(fname,'rb')
@@ -245,9 +248,11 @@ def main():
     kt = kt_def()
 
     lines = fh.readlines()
-    lbufr = 0
-    bufr = ''
-    for line in reversed(lines):
+    fh.close()
+
+    bufr = []
+    nobs = 0
+    for line in lines:
 
         data = parse_line(line,kt)
 
@@ -266,21 +271,14 @@ def main():
         omf = data['omf']
         oberr = data['oberr']
 
-        # PLATFORM OBTYPE CHANNEL LONGITUDE LATITUDE LEVEL IMPACT OMF
-        line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e %15.8e\n' % (plat,obtype,channel,lon,lat,lev,imp,omf,oberr)
+        line = [plat,obtype,channel,lon,lat,lev,imp,omf,oberr]
 
-        bufr += line
-        lbufr += 1
-        if lbufr >= BUFFER_LINES:
-            fascii.writelines(bufr)
-            bufr = ''
-            lbufr = 0
+        bufr.append(line)
 
-    if lbufr != 0:
-        fascii.writelines(bufr)
-
-    fh.close()
-    fascii.close()
+    if bufr != []:
+        df = loi.list_to_dataframe(adate,bufr)
+        if os.path.isfile(fname_out): os.remove(fname_out)
+        lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
     print 'Total obs = %d' % (nobs)
 

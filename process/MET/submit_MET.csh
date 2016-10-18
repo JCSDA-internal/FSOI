@@ -9,8 +9,8 @@
 
 set center = "MET"
 set dir_scripts = "$data/FSOI/process/$center"
-set indir = "$data/FSOI/data/$center"
-set outdir = "$data/FSOI/ascii/$center"
+set indir = "$data/FSOI/raw_data/$center"
+set outdir = "$data/FSOI/data/$center"
 set bdate = "2014120100"
 set edate = "2015030100"
 set norm = "dry"
@@ -41,7 +41,7 @@ set yyyymmdd = \`echo $adate | cut -c1-8\`
 set hh = \`echo $adate | cut -c9-10\`
 
 set input = $indir/\${yyyymmdd}T\${hh}00Z.FSO.gz
-set output = $outdir/$center.$norm.$adate.txt
+set output = $outdir/$center.$norm.$adate.h5
 
 if ( ! -e \$input ) then
     echo "ERROR: \$input does not exist, nothing to process, EXITING"
@@ -50,9 +50,7 @@ if ( ! -e \$input ) then
 endif
 
 cd $dir_scripts
-./process_$center.py -i \$input -o \$output
-
-if ( -e \$output ) gzip \$output
+./process_$center.py -i \$input -o \$output -a $adate
 
 echo "Job ended at \`date\`"
 exit 0

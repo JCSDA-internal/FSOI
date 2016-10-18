@@ -9,8 +9,8 @@
 
 set center = "NRL"
 set dir_scripts = "$data/FSOI/process/$center"
-set indir = "$data/FSOI/data/$center"
-set outdir = "$data/FSOI/ascii/$center"
+set indir = "$data/FSOI/raw_data/$center"
+set outdir = "$data/FSOI/data/$center"
 set bdate = "2014120100"
 set edate = "2015030100"
 set norm = "dry"
@@ -25,7 +25,7 @@ while ( $adate < $edate )
     rm -f job_script.csh
 cat > job_script.csh << EOF
 #!/bin/csh
-#SBATCH --job-name=$center$adate
+#SBATCH --job-name=$center.$norm.$adate
 #SBATCH --account=star
 #SBATCH --partition=serial
 #SBATCH --ntasks=1
@@ -42,7 +42,7 @@ if ( $norm == "dry" ) then
 else if ( $norm == "moist" ) then
     set input = $indir/obs_sens_run2_$adate.txt.gz
 endif
-set output = $outdir/$center.$norm.$adate.txt
+set output = $outdir/$center.$norm.$adate.h5
 
 if ( ! -e \$input ) then
     echo "ERROR: \$input does not exist, nothing to process, EXITING"
@@ -51,9 +51,7 @@ if ( ! -e \$input ) then
 endif
 
 cd $dir_scripts
-./process_$center.py -i \$input -o \$output
-
-if ( -e \$output ) gzip \$output
+./process_$center.py -i \$input -o \$output -a $adate
 
 echo "Job ended at \`date\`"
 exit 0

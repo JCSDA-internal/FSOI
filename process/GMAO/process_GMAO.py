@@ -144,10 +144,9 @@ def get_files(datadir,adate):
 
 def main():
 
-
     parser = ArgumentParser(description = 'Process GMAO data',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i','--indir',help='path to ODS directory',type=str,required=True)
-    parser.add_argument('-o','--output',help='Processed GMAO file',type=str,required=True)
+    parser.add_argument('-o','--output',help='Processed GMAO HDF file',type=str,required=True)
     parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
     parser.add_argument('-n','--norm',help='norm to process',type=str,default='dry',choices=['dry','moist'],required=False)
     args = parser.parse_args()

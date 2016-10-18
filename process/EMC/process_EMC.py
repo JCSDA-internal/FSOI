@@ -7,11 +7,17 @@
 # $Id$
 ###############################################################
 
+import os
 import sys
 import numpy as np
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 from emc import emc
+
+import lib_utils as lutils
+
+sys.path.append('../../scripts')
+import lib_obimpact as loi
 
 def kt_def():
     kt = {
@@ -111,24 +117,21 @@ def get_platform_con(plat):
 
 def main():
 
-    BUFFER_LINES = 1000000
-
     parser = ArgumentParser(description = 'Process EMC file',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i','--input',help='Raw EMC file',type=str,required=True)
-    parser.add_argument('-o','--output',help='Processed EMC file',type=str,required=True)
+    parser.add_argument('-o','--output',help='Processed EMC HDF file',type=str,required=True)
+    parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
     args = parser.parse_args()
 
     fname = args.input
     fname_out = args.output
-
-    fascii = open(fname_out,'w')
+    adate = datetime.strptime(args.adate,'%Y%m%d%H')
 
     idate,nobscon,nobsoz,nobssat,npred,nens = emc.get_header(fname,endian='big')
     nobs = nobscon + nobsoz + nobssat
     obtype,platform,chan,lat,lon,lev,omf,oberr,imp = emc.get_data(fname,nobs,npred,nens,endian='big')
 
-    lbufr = 0
-    bufr = ''
+    bufr = []
     for o in range(nobs):
 
         obtyp = ''.join(obtype[o]).strip()
@@ -142,19 +145,14 @@ def main():
 
         lon[o] = lon[o] if lon[o] >= 0.0 else lon[o] + 360.0
 
-        line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e %15.8e\n' % (plat,obtyp,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o])
+        line = [plat,obtype,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o]]
 
-        bufr += line
-        lbufr += 1
-        if lbufr >= BUFFER_LINES:
-            fascii.writelines(bufr)
-            bufr = ''
-            lbufr = 0
+        bufr.append(line)
 
-    if lbufr != 0:
-        fascii.writelines(bufr)
-
-    fascii.close()
+    if bufr != []:
+        df = loi.list_to_dataframe(adate,bufr)
+        if os.path.isfile(fname_out): os.remove(fname_out)
+        lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
     print 'Total obs = %d' % (nobs)
 

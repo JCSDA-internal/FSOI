@@ -9,8 +9,8 @@
 
 set center = "MeteoFr"
 set dir_scripts="$data/FSOI/process/$center"
-set indir = "$data/FSOI/data/$center"
-set outdir = "$data/FSOI/ascii/$center"
+set indir = "$data/FSOI/raw_data/$center"
+set outdir = "$data/FSOI/data/$center"
 set bdate = "2014120100"
 set edate = "2015030100"
 set norm = "dry"
@@ -25,7 +25,7 @@ while ( $adate < $edate )
     rm -f job_script.csh
 cat > job_script.csh << EOF
 #!/bin/csh
-#SBATCH --job-name=$center$adate
+#SBATCH --job-name=$center.$norm.$adate
 #SBATCH --account=star
 #SBATCH --partition=serial
 #SBATCH --ntasks=1
@@ -37,12 +37,10 @@ source /etc/csh.cshrc
 
 echo "Job started at \`date\`"
 
-set output = $outdir/$center.$norm.$adate.txt
+set output = $outdir/$center.$norm.$adate.h5
 
 cd $dir_scripts
 ./process_$center.py -i $indir -o \$output -a $adate -n $norm
-
-if ( -e \$output ) gzip \$output
 
 echo "Job ended at \`date\`"
 exit 0

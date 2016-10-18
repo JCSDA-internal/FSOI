@@ -7,29 +7,34 @@
 # $Id$
 ###############################################################
 
+import os
 import sys
+from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 from jma import jma
 
-def main():
+import lib_utils as lutils
 
-    BUFFER_LINES = 1000000
+sys.path.append('../../scripts')
+import lib_obimpact as loi
+
+def main():
 
     parser = ArgumentParser(description = 'Process JMA file',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i','--input',help='Raw JMA file',type=str,required=True)
-    parser.add_argument('-o','--output',help='Processed JMA file',type=str,required=True)
+    parser.add_argument('-o','--output',help='Processed JMA HDF file',type=str,required=True)
+    parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
     args = parser.parse_args()
 
     fname = args.input
     fname_out = args.output
-
-    fascii = open(fname_out,'w')
+    adate = datetime.strptime(args.adate,'%Y%m%d%H')
 
     formulation,idate,nobstot,nmetric = jma.get_header(fname,endian='big')
     obtype,platform,chan,lat,lon,lev,omf,oberr,imp = jma.get_data(fname,nobstot,nmetric,endian='big')
 
-    bufr, lbufr = '', 0
+    bufr = []
     for o in range(nobstot):
 
         obtyp = ''.join(obtype[o]).strip()
@@ -37,19 +42,14 @@ def main():
 
         lon[o] = lon[o] if lon[o] >= 0.0 else lon[o] + 360.0
 
-        line = '%-15s %-10s %5d %10.4f %10.4f %10.4f %15.8e %15.8e %15.8e\n' % (plat,obtyp,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o])
+        line = [plat,obtype,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o]]
 
-        bufr += line
-        lbufr += 1
-        if lbufr >= BUFFER_LINES:
-            fascii.writelines(bufr)
-            bufr = ''
-            lbufr = 0
+        bufr.append(line)
 
-    if lbufr != 0:
-        fascii.writelines(bufr)
-
-    fascii.close()
+    if bufr != []:
+        df = loi.list_to_dataframe(adate,bufr)
+        if os.path.isfile(fname_out): os.remove(fname_out)
+        lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
     print 'Total obs = %d' % (nobstot)
 

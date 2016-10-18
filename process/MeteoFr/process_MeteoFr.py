@@ -14,9 +14,12 @@ import tempfile
 import tarfile
 import numpy as np
 import pandas as pd
+from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
-def parse_file(fname):
+import lib_utils as lutils
+
+def parse_file(adate,fname):
     '''
     Call the appropriate file parser depending on platform
     '''
@@ -38,6 +41,7 @@ def parse_file(fname):
     else:
         return None
 
+    data['DATETIME'] = adate
     data = reorder_columns(data)
 
     return data
@@ -58,10 +62,10 @@ def parse_conv(fname):
     data['codetype@hdr'].replace(to_replace=plat_ids,value=plat_names,inplace=True)
 
     old_names = ['lat@hdr','lon@hdr','codetype@hdr','varno@body','vertco_reference_1@body','fg_depar@body','fc_sens_obs@body','obs_error@errstat']
-    new_names = ['latitude','longitude','platform','variable','level','omf','impact','obserr']
+    new_names = ['LATITUDE','LONGITUDE','PLATFORM','OBTYPE','PRESSURE','OMF','IMPACT','OBERR']
     data.rename(columns=dict(zip(old_names,new_names)), inplace=True)
 
-    data['channel'] = 999
+    data['CHANNEL'] = 999
 
     return data
 
@@ -89,11 +93,11 @@ def parse_satem(fname):
 
     old_names = ['lat@hdr','lon@hdr','varno@body','vertco_reference_1@body','fg_depar@body','fc_sens_obs@body','obs_error@errstat','statid@hdr']
     if instrument == 'scatt':
-        new_names = ['latitude','longitude','variable','level','omf','impact','obserr','platform']
-        data['channel'] = 999
+        new_names = ['LATITUDE','LONGITUDE','OBTYPE','PRESSURE','OMF','IMPACT','OBERR','PLATFORM']
+        data['CHANNEL'] = 999
     else:
-        new_names = ['latitude','longitude','variable','channel','omf','impact','obserr','platform']
-        data['level'] = 999
+        new_names = ['LATITUDE','LONGITUDE','OBTYPE','CHANNEL','OMF','IMPACT','OBERR','PLATFORM']
+        data['PRESSURE'] = 999
     data.rename(columns=dict(zip(old_names,new_names)), inplace=True)
 
     return data
@@ -114,10 +118,10 @@ def parse_satwind(fname):
     data['varno@body'].replace(to_replace=var_ids,value=var_names,inplace=True)
 
     old_names = ['lat@hdr','lon@hdr','varno@body','vertco_reference_1@body','fg_depar@body','fc_sens_obs@body','obs_error@errstat','statid@hdr']
-    new_names = ['latitude','longitude','variable','level','omf','impact','obserr','platform']
+    new_names = ['LATITUDE','LONGITUDE','OBTYPE','PRESSURE','OMF','IMPACT','OBERR','PLATFORM']
     data.rename(columns=dict(zip(old_names,new_names)), inplace=True)
 
-    data['channel'] = 999
+    data['CHANNEL'] = 999
 
     return data
 
@@ -135,11 +139,11 @@ def parse_gpsro(fname):
     data['varno@body'].replace(to_replace=var_ids,value=var_names,inplace=True)
 
     old_names = ['lat@hdr','lon@hdr','varno@body','vertco_reference_2@body','fg_depar@body','fc_sens_obs@body','obs_error@errstat']
-    new_names = ['latitude','longitude','variable','level','omf','impact','obserr']
+    new_names = ['LATITUDE','LONGITUDE','OBTYPE','PRESSURE','OMF','IMPACT','OBERR']
     data.rename(columns=dict(zip(old_names,new_names)), inplace=True)
 
-    data['channel'] = 999
-    data['platform'] = 'GPSRO'
+    data['CHANNEL'] = 999
+    data['PLATFORM'] = 'GPSRO'
 
     return data
 
@@ -147,7 +151,7 @@ def read_file(fname):
     '''
     Read a file into a dataframe
     Drop the useless columns
-    Convert latitude, longitude from radians to degrees
+    Convert latitude, LONGITUDE from radians to degrees
     Rescale impact by 1.e5 because units in the file are JPa/kg
     '''
 
@@ -166,8 +170,9 @@ def read_file(fname):
 
 def reorder_columns(df):
 
-    new_order = ['platform','variable','channel','longitude','latitude','level','impact','omf','obserr']
+    new_order = ['DATETIME','PLATFORM','OBTYPE','CHANNEL','LONGITUDE','LATITUDE','PRESSURE','IMPACT','OMF','OBERR']
     df = df[new_order]
+    df.set_index(new_order[0:4],inplace=True)
 
     return df
 
@@ -239,47 +244,21 @@ def get_satid_satname():
 
     return sat_ids,sat_names
 
-def write_data(df,fname):
-    '''
-    Convert dataframe into string and write to file
-    '''
-
-    def _fmts15(x): return '{0:<15}'.format(x)
-    def _fmts10(x): return '{0:<10}'.format(x)
-    def _fmti(  x): return '%5d'    % x
-    def _fmtf10(x): return '%10.4f' % x
-    def _fmtf15(x): return '%15.8e' % x
-
-    fh = open(fname,'a')
-
-    formatters = [_fmts15,_fmts10,_fmti,_fmtf10,_fmtf10,_fmtf10,_fmtf15,_fmtf15,_fmtf15]
-    try:
-        df.to_string(buf=fh,header=False,index=False,formatters=formatters)
-    except RuntimeError:
-        raise
-
-    fh.writelines('\n')
-    fh.close()
-
-    return
-
 def main():
 
     parser = ArgumentParser(description = 'Process Meteo France data',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i','--indir',help='path to data directory',type=str,required=True)
-    parser.add_argument('-o','--output',help='Processed Meteo France file',type=str,required=True)
+    parser.add_argument('-o','--output',help='Processed Meteo France HDF file',type=str,required=True)
     parser.add_argument('-a','--adate',help='analysis date to process',metavar='YYYYMMDDHH',required=True)
     parser.add_argument('-n','--norm',help='norm to process',type=str,required=True)
     args = parser.parse_args()
 
     datapth = args.indir
     fname_out = args.output
-    adate = args.adate
+    adate = datetime.strptime(args.adate,'%Y%m%d%H')
     norm = args.norm
 
-    if os.path.isfile(fname_out): os.remove(fname_out)
-
-    datadir = os.path.join(datapth,norm,adate)
+    datadir = os.path.join(datapth,norm,args.adate)
     tmpdir = tempfile.mkdtemp()
 
     tf = tarfile.open('%s/fic_odb.all_obs.bg.tar.gz' % datadir)
@@ -287,6 +266,7 @@ def main():
     flist = glob.glob('%s/fic_odb.*.bg.lst' % tmpdir)
 
     nobs = 0
+    bufr = []
     for fname in flist:
 
         ffname = os.path.basename(fname)
@@ -297,14 +277,18 @@ def main():
             print '%s is an empty file ... skipping' % ffname
             continue
 
-        data = parse_file(fname)
+        data = parse_file(adate,fname)
         print 'number of observations in %s = %d ' % (ffname,len(data))
 
         nobs += len(data)
+        bufr.append(data)
 
-        write_data(data,fname_out)
+    if bufr != []:
+        df = pd.concat(bufr)
+        if os.path.isfile(fname_out): os.remove(fname_out)
+        lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
-    print 'total number of observations for %s = %d' % (adate, nobs)
+    print 'total number of observations for %s = %d' % (args.adate, nobs)
 
     sys.exit(0)
 
