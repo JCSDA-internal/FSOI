@@ -10,7 +10,7 @@
 import os
 import sys
 import glob
-import tempfile
+import shutil
 import tarfile
 import numpy as np
 import pandas as pd
@@ -24,7 +24,8 @@ def parse_file(adate,fname):
     Call the appropriate file parser depending on platform
     '''
 
-    platform = fname.split('.')[1]
+    ffname = os.path.basename(fname)
+    platform = ffname.split('.')[1]
 
     if platform in ['aircraft', 'buoy' , 'pilot', 'synop_gpssol', 'synop_insitu', 'temp']:
         data = parse_conv(fname)
@@ -74,7 +75,8 @@ def parse_satem(fname):
     Parse satellite radiances and scatterometer file
     '''
 
-    instrument = fname.split('.')[1].split('_')[-1]
+    ffname = os.path.basename(fname)
+    instrument = ffname.split('.')[1].split('_')[-1]
 
     var_ids,var_names = get_varid_varname()
     sat_ids,sat_names = get_satid_satname()
@@ -211,13 +213,13 @@ def get_satwindid_satwindname():
                172,
                257,259,
                54,57,
-               55]
+               55,224]
     sat_names = ['AVHRR_NOAA15','AVHRR_NOAA16','AVHRR_NOAA18','AVHRR_NOAA19',
                  'MODIS_TERRA','MODIS_AQUA',
                  'Imgr_GMS',
                  'Imgr_GOES13','Imgr_GOES15',
                  'Imgr_METEOSAT7','Imgr_METEOSAT10',
-                 'Misc_SatWind']
+                 'Misc_SatWind','Misc_SatWind']
 
     return sat_ids,sat_names
 
@@ -259,11 +261,13 @@ def main():
     norm = args.norm
 
     datadir = os.path.join(datapth,norm,args.adate)
-    tmpdir = tempfile.mkdtemp()
+    workdir = os.path.join(datadir,'work')
+    if os.path.isdir(workdir): shutil.rmtree(workdir)
+    os.makedirs(workdir)
 
     tf = tarfile.open('%s/fic_odb.all_obs.bg.tar.gz' % datadir)
-    tf.extractall(path=tmpdir)
-    flist = glob.glob('%s/fic_odb.*.bg.lst' % tmpdir)
+    tf.extractall(path=workdir)
+    flist = glob.glob('%s/fic_odb.*.bg.lst' % workdir)
 
     nobs = 0
     bufr = []
@@ -289,6 +293,8 @@ def main():
         lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
     print 'total number of observations for %s = %d' % (args.adate, nobs)
+
+    shutil.rmtree(workdir)
 
     sys.exit(0)
 
