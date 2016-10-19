@@ -191,7 +191,7 @@ def get_platid_platname():
                 21,24,
                 110,
                 141,144,145,
-                165,
+                165,63,
                 35,36,135,37,
                 32,
                 34,134]
@@ -199,7 +199,7 @@ def get_platid_platname():
                   'Ship','Ship',
                   'GPSZTD',
                   'AIREP','AMDAR','ACARS',
-                  'Drifting_Buoy',
+                  'Drifting_Buoy','Misc_Buoy',
                   'Radiosonde','Radiosonde','Dropsonde','Radiosonde',
                   'Pilot',
                   'Profiler','Profiler']
@@ -246,7 +246,7 @@ def get_satid_satname():
 
     return sat_ids,sat_names
 
-def main():
+if __name__ == '__main__':
 
     parser = ArgumentParser(description = 'Process Meteo France data',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i','--indir',help='path to data directory',type=str,required=True)
@@ -297,5 +297,3 @@ def main():
     shutil.rmtree(workdir)
 
     sys.exit(0)
-
-if __name__ == '__main__': main()
