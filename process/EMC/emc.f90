@@ -17,6 +17,10 @@ module emc
     public :: get_header
     public :: get_data
 
+    public :: strtoarr
+    public :: arrtostr
+    public :: open_file
+
     integer(4),parameter :: iunit = 10
     logical,parameter :: lverbose = .false.
 
@@ -69,31 +73,10 @@ subroutine get_header(ifile,x_idate,x_nobscon,x_nobsoz,x_nobssat,x_npred,x_nens,
 
     character(len=50),parameter :: myname = 'GET_HEADER'
     type(diag_header) :: oheader
-    character(len=6) :: convert_endian
-    logical :: fexist
+
     integer(4) :: iflag
 
-    if ( present(endian) ) then
-        convert_endian = endian
-    else
-        convert_endian = 'big'
-    endif
-
-    inquire(file=ifile,exist=fexist)
-    if ( .not. fexist ) stop
-
-    if ( trim(convert_endian) == 'big' ) then
-        open(iunit,file=trim(ifile),action='read',form='unformatted',convert='big_endian',iostat=iflag)
-    elseif ( trim(convert_endian) == 'little' ) then
-        open(iunit,file=trim(ifile),action='read',form='unformatted',convert='little_endian',iostat=iflag)
-        open(iunit,file=trim(ifile),action='read',form='unformatted',convert='little_endian',iostat=iflag)
-    elseif ( trim(convert_endian) == 'native' ) then
-        open(iunit,file=trim(ifile),action='read',form='unformatted',iostat=iflag)
-    endif
-    if ( iflag /= 0 ) then
-        write(6,'(a,a,i5)') trim(myname),': ***ERROR*** cannot open, iostat = ', iflag
-        stop
-    endif
+    call open_file(ifile,endian)
 
     read(iunit,iostat=iflag) oheader
     if ( iflag /= 0 ) then
@@ -124,15 +107,15 @@ subroutine get_data(ifile,nobstot,npred,nens,x_obtype,x_platform,x_channel,x_lat
     integer(4),intent(in) :: npred
     integer(4),intent(in) :: nens
     character(len=6),intent(in),optional :: endian
-    character(len=20),intent(out) :: x_obtype(nobstot)
-    character(len=20),intent(out) :: x_platform(nobstot)
-    integer(4),intent(out) :: x_channel(nobstot)
-    real(4),intent(out) :: x_lat(nobstot)
-    real(4),intent(out) :: x_lon(nobstot)
-    real(4),intent(out) :: x_lev(nobstot)
-    real(4),intent(out) :: x_omb(nobstot)
-    real(4),intent(out) :: x_oberr(nobstot)
-    real(4),intent(out) :: x_impact(nobstot,3)
+    integer(4),dimension(nobstot,21),intent(out) :: x_obtype
+    integer(4),dimension(nobstot,21),intent(out) :: x_platform
+    integer(4),dimension(nobstot),intent(out) :: x_channel
+    real(4),dimension(nobstot),intent(out) :: x_lat
+    real(4),dimension(nobstot),intent(out) :: x_lon
+    real(4),dimension(nobstot),intent(out) :: x_lev
+    real(4),dimension(nobstot),intent(out) :: x_omb
+    real(4),dimension(nobstot),intent(out) :: x_oberr
+    real(4),dimension(nobstot,3),intent(out) :: x_impact
 
     character(len=50),parameter :: myname = 'GET_DATA'
     type(diag_header) :: oheader
@@ -144,30 +127,8 @@ subroutine get_data(ifile,nobstot,npred,nens,x_obtype,x_platform,x_channel,x_lat
     integer(4) :: iobs,iflag
     real(4) :: tmpanal(nens)
     real(4) :: tmppred(npred+1)
-    character(len=6) :: convert_endian
-    logical :: fexist
 
-    if ( present(endian) ) then
-        convert_endian = endian
-    else
-        convert_endian = 'big'
-    endif
-
-    inquire(file=ifile,exist=fexist)
-    if ( .not. fexist ) stop
-
-    if ( trim(convert_endian) == 'big' ) then
-        open(iunit,file=trim(ifile),action='read',form='unformatted',convert='big_endian',iostat=iflag)
-    elseif ( trim(convert_endian) == 'little' ) then
-        open(iunit,file=trim(ifile),action='read',form='unformatted',convert='little_endian',iostat=iflag)
-        open(iunit,file=trim(ifile),action='read',form='unformatted',convert='little_endian',iostat=iflag)
-    elseif ( trim(convert_endian) == 'native' ) then
-        open(iunit,file=trim(ifile),action='read',form='unformatted',iostat=iflag)
-    endif
-    if ( iflag /= 0 ) then
-        write(6,'(a,a,i5)') trim(myname),': ***ERROR*** cannot open, iostat = ', iflag
-        stop
-    endif
+    call open_file(ifile,endian)
 
     read(iunit,iostat=iflag) oheader
     if ( iflag /= 0 ) then
@@ -203,8 +164,8 @@ subroutine get_data(ifile,nobstot,npred,nens,x_obtype,x_platform,x_channel,x_lat
             platform = trim(adjustl(odata%obtype))
         endif
 
-        x_obtype(iobs)   = obtype
-        x_platform(iobs) = platform
+        call strtoarr(obtype,x_obtype(iobs,:),20)
+        call strtoarr(platform,x_platform(iobs,:),20)
         x_channel(iobs)  = channel
         x_lat(iobs)      = odata%lat
         x_lon(iobs)      = odata%lon
@@ -222,5 +183,83 @@ subroutine get_data(ifile,nobstot,npred,nens,x_obtype,x_platform,x_channel,x_lat
     return
 
 end subroutine get_data
+
+subroutine strtoarr(strin, chararr, n_str)
+
+    implicit none
+
+    integer(4),intent(in) :: n_str
+    character(len=n_str),intent(in) :: strin
+    integer(4),intent(out) :: chararr(n_str+1)
+
+    integer(4) :: j
+
+    chararr = 32 ! space
+    do j=1,n_str
+        chararr(j) = ichar(strin(j:j))
+    enddo
+    chararr(n_str+1) = 124 ! '|'
+   
+    return
+
+end subroutine strtoarr
+
+subroutine arrtostr(chararr, strout, n_str)
+
+    implicit none
+
+
+    integer(4),intent(in) :: n_str
+    integer(4),intent(in) :: chararr(n_str+1)
+    character(len=n_str),intent(out) :: strout
+
+    integer(4) :: j
+
+    do j=1,n_str
+        strout(j:j) = char(chararr(j))
+    enddo
+   
+    return
+
+end subroutine arrtostr
+
+subroutine open_file(filename,endian)
+
+    implicit none
+
+    character(len=*), intent(in) :: filename
+    character(len=*), intent(in), optional :: endian
+
+    character(len=6) :: convert_endian
+    character(len=50), parameter :: myname = 'OPEN_FILE'
+
+    logical :: fexist
+    integer(4) :: iflag
+
+    if ( present(endian) ) then
+        convert_endian = endian
+    else
+        convert_endian = 'big'
+    endif
+
+    inquire(file=trim(adjustl(filename)),exist=fexist)
+    if ( .not. fexist ) then
+        write(6,'(a,a,a)') trim(myname),': ***ERROR*** file does not exist', trim(adjustl(filename))
+        stop
+    endif
+
+    if ( trim(convert_endian) == 'big' ) then
+        open(iunit,file=trim(filename),action='read',form='unformatted',convert='big_endian',iostat=iflag)
+    elseif ( trim(convert_endian) == 'little' ) then
+        open(iunit,file=trim(filename),action='read',form='unformatted',convert='little_endian',iostat=iflag)
+    elseif ( trim(convert_endian) == 'native' ) then
+        open(iunit,file=trim(filename),action='read',form='unformatted',iostat=iflag)
+    endif
+    if ( iflag /= 0 ) then
+        write(6,'(a,a,i5)') trim(myname),': ***ERROR*** cannot open, iostat = ', iflag
+        stop
+    endif
+
+end subroutine open_file
 
 end module emc

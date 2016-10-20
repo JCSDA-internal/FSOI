@@ -10,6 +10,7 @@
 import os
 import sys
 import numpy as np
+from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 from emc import emc
@@ -131,6 +132,9 @@ def main():
     nobs = nobscon + nobsoz + nobssat
     obtype,platform,chan,lat,lon,lev,omf,oberr,imp = emc.get_data(fname,nobs,npred,nens,endian='big')
 
+    obtype = (obtype.tostring()).replace('\x00','')[:-1].split('|')
+    platform = (platform.tostring()).replace('\x00','')[:-1].split('|')
+
     bufr = []
     for o in range(nobs):
 
@@ -145,7 +149,7 @@ def main():
 
         lon[o] = lon[o] if lon[o] >= 0.0 else lon[o] + 360.0
 
-        line = [plat,obtype,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o]]
+        line = [plat,obtyp,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o]]
 
         bufr.append(line)
 

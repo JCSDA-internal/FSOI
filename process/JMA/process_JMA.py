@@ -19,7 +19,7 @@ import lib_utils as lutils
 sys.path.append('../../scripts')
 import lib_obimpact as loi
 
-def main():
+if __name__ == '__main__':
 
     parser = ArgumentParser(description = 'Process JMA file',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i','--input',help='Raw JMA file',type=str,required=True)
@@ -34,6 +34,9 @@ def main():
     formulation,idate,nobstot,nmetric = jma.get_header(fname,endian='big')
     obtype,platform,chan,lat,lon,lev,omf,oberr,imp = jma.get_data(fname,nobstot,nmetric,endian='big')
 
+    obtype = (obtype.tostring()).replace('\x00','')[:-1].split('|')
+    platform = (platform.tostring()).replace('\x00','')[:-1].split('|')
+
     bufr = []
     for o in range(nobstot):
 
@@ -42,7 +45,7 @@ def main():
 
         lon[o] = lon[o] if lon[o] >= 0.0 else lon[o] + 360.0
 
-        line = [plat,obtype,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o]]
+        line = [plat,obtyp,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o]]
 
         bufr.append(line)
 
@@ -54,6 +57,3 @@ def main():
     print 'Total obs = %d' % (nobstot)
 
     sys.exit(0)
-
-if __name__ == '__main__':
-    main()

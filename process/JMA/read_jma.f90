@@ -8,7 +8,7 @@
 
 program read_jma
 
-    use jma, only: get_header, get_data
+    use jma, only: get_header, get_data, arrtostr
 
     implicit none
 
@@ -17,6 +17,7 @@ program read_jma
     integer(4) :: nobstot,nmetric
     real(4),allocatable,dimension(:) :: lat,lon,lev,omb,oberr
     integer(4),allocatable,dimension(:) :: channel
+    integer(4),allocatable,dimension(:,:) :: iobtype,iplatform
     character(len=20),allocatable,dimension(:) :: obtype,platform
     real(4),allocatable,dimension(:,:) :: impact
 
@@ -39,6 +40,8 @@ program read_jma
        stop
     endif
 
+    allocate(iplatform(nobstot,21))
+    allocate(iobtype(nobstot,21))
     allocate(platform(nobstot))
     allocate(obtype(nobstot))
     allocate(channel(nobstot))
@@ -49,11 +52,13 @@ program read_jma
     allocate(oberr(nobstot))
     allocate(impact(nobstot,3))
 
-    call get_data(ifile,nobstot,nmetric,obtype,platform,channel,lat,lon,lev,omb,oberr,impact)
+    call get_data(ifile,nobstot,nmetric,iobtype,iplatform,channel,lat,lon,lev,omb,oberr,impact)
 
     write(6,'(A,A)') &
     & 'OBNUM     PLATFORM        OBTYPE     CHAN   LAT    LON    LEV      OmF        Impact'
     do i=1,nobstot
+        call arrtostr(iobtype(i,:),obtype(i),20)
+        call arrtostr(iplatform(i,:),platform(i),20)
         write(6,'(I8,1X,A15,1X,A10,1X,I5,1X,3(F7.2,1X),2(E10.3,1X))') &
     & i,trim(platform(i)),trim(obtype(i)),channel(i),lat(i),lon(i),lev(i),omb(i),impact(i,1)
     enddo

@@ -4,8 +4,8 @@
 python module jma ! in 
     interface  ! in :jma
         module jma ! in :jma:jma.f90
-            integer(kind=4), private,parameter,optional :: iunit=10
             logical, private,parameter,optional :: lverbose=.false.
+            integer(kind=4), private,parameter,optional :: iunit=10
             type diag_header ! in :jma:jma.f90:jma
                 character(len=8) :: formulation
                 integer(kind=4) dimension(5) :: idate
@@ -41,8 +41,8 @@ python module jma ! in
                 character*255 intent(in) :: ifile
                 integer(kind=4) intent(in) :: nobstot
                 integer(kind=4) intent(in) :: nmetric
-                character*20 dimension(nobstot),intent(out),depend(nobstot) :: x_obtype
-                character*20 dimension(nobstot),intent(out),depend(nobstot) :: x_platform
+                integer(kind=4) dimension(nobstot,21),intent(out),depend(nobstot) :: x_obtype
+                integer(kind=4) dimension(nobstot,21),intent(out),depend(nobstot) :: x_platform
                 integer(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_channel
                 real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_lat
                 real(kind=4) dimension(nobstot),intent(out),depend(nobstot) :: x_lon
@@ -52,6 +52,16 @@ python module jma ! in
                 real(kind=4) dimension(nobstot,nmetric),intent(out),depend(nobstot,nmetric) :: x_impact
                 character*6, optional,intent(in) :: endian
             end subroutine get_data
+            subroutine strtoarr(strin,chararr,n_str) ! in :jma:jma.f90:jma
+                character*n_str intent(in) :: strin
+                integer(kind=4) dimension(n_str + 1),intent(out),depend(n_str) :: chararr
+                integer(kind=4) intent(in) :: n_str
+            end subroutine strtoarr
+            subroutine arrtostr(chararr,strout,n_str) ! in :jma:jma.f90:jma
+                integer(kind=4) dimension(n_str + 1),intent(in) :: chararr
+                character*n_str intent(out) :: strout
+                integer(kind=4), optional,intent(in),check((len(chararr)-1)>=n_str),depend(chararr) :: n_str=(len(chararr)-1)
+            end subroutine arrtostr
         end module jma
     end interface 
 end python module jma
