@@ -25,10 +25,11 @@ import pandas as pd
 from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
-import lib_obimpact as loi
 import lib_utils as lutils
 
-def main():
+import lib_obimpact as loi
+
+if __name__ == '__main__':
 
     parser = ArgumentParser(description = 'Create Observation Impacts database',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET','MeteoFr'])
@@ -49,23 +50,18 @@ def main():
 
     skip_dates = []
 
-    fname_raw = '%s/h5data/%s/raw_data.%s.h5' % (rootdir,center,norm)
-    if os.path.isfile(fname_raw): os.remove(fname_raw)
-    fname_bulk = '%s/h5data/%s/bulk_stats.%s.h5' % (rootdir,center,norm)
+    fname_bulk = '%s/work/%s/bulk_stats.%s.h5' % (rootdir,center,norm)
     if os.path.isfile(fname_bulk): os.remove(fname_bulk)
 
     for adate in pd.date_range(bdate,edate,freq='%dH'%interval):
         adatestr = adate.strftime('%Y%m%d%H')
         if adate in skip_dates: continue
-        fname = '%s/ascii/%s/%s.%s.%s.txt.gz' % (rootdir,center,center,norm,adatestr)
+        fname = '%s/data/%s/%s.%s.%s.h5' % (rootdir,center,center,norm,adatestr)
         if not os.path.isfile(fname):
             print '%s : %s does not exist, SKIPPING ...' % (adatestr, fname)
             continue
-        df = loi.read_ascii(adate,fname)
-        lutils.writeHDF(fname_raw,'df',df)
+        df = lutils.readHDF(fname,'df')
         df = loi.BulkStats(df)
-        lutils.writeHDF(fname_bulk,'df',df)
+        lutils.writeHDF(fname_bulk,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
     sys.exit(0)
-
-if __name__ == '__main__': main()
