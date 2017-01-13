@@ -741,6 +741,46 @@ def tavg_CHANNEL(DF):
 
     return df
 
+def bin_df(DF, dlat=5., dlon=5., dpres=None):
+    '''
+    Bin a dataframe given dlat, dlon and dpres using Pandas method
+    INPUT:
+          DF : dataframe that needs to be binned
+        dlat : latitude box in degrees (default: 5.)
+        dlon : longitude box in degrees (default: 5.)
+       dpres : pressure box in hPa (default: None, column sum)
+    OUTPUT:
+          df : binned dataframe
+    '''
+
+    tmp = DF.reset_index()
+
+    columns = ['TotImp','ObCnt']
+    names = ['DATETIME','PLATFORM','OBTYPE','CHANNEL','LONGITUDE','LATITUDE']
+
+    if dpres is None:
+        tmp.drop('PRESSURE', axis=1, inplace=True)
+    else:
+        names += ['PRESSURE']
+
+    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
+
+    tmp['LONGITUDE'] = tmp['LONGITUDE'].apply(lambda x: [e for e in _np.arange(  0.,360.+dlon,dlon) if e <= x][-1])
+    tmp['LATITUDE' ] = tmp['LATITUDE' ].apply(lambda x: [e for e in _np.arange(-90., 90.+dlat,dlat) if e <= x][-1])
+    if not dpres is None:
+        tmp['PRESSURE' ] = tmp['PRESSURE' ].apply(lambda x: [e for e in _np.arange(1000.,0.,-dpres) if e >= x][-1])
+
+    df[['TotImp','ObCnt']] = tmp.groupby(names)['IMPACT'].agg(['sum','count'])
+    df['ObCnt'] = df['ObCnt'].astype(_np.int)
+
+    return df
+
+def scipy_bin_df(DF,dlat=5.,dlon=5.,dpres=None):
+
+    raise NotImplementedError('lib_obimpact.py - scipy_bin_df is not yet active')
+
+    return df
+
 def summarymetrics(DF):
 
     columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']
