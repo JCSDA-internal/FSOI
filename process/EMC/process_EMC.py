@@ -107,7 +107,7 @@ def get_platform_con(plat):
         platform = 'ASCAT_Wind'
     elif plat in map(str,[296]):
         platform = 'RAPIDSCAT_Wind'
-    elif plat in map(str,[3,4,41,42,722,723,740,741,742,743,744,745]):
+    elif plat in map(str,[3,4,41,42,43,722,723,740,741,742,743,744,745]):
         platform = 'GPSRO'
     elif plat in map(str,list(np.arange(701,722)))+map(str,list(np.arange(723,739))):
         platform = 'Ozone'
