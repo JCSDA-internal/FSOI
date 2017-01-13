@@ -52,8 +52,8 @@ if __name__ == '__main__':
 
     cyclestr = ''.join('%02dZ' % c for c in cycle)
 
-    fname = '%s/work/%s/bulk_stats.%s.h5' % (rootdir,center,norm)
-    fpkl = '%s/work/%s/group_stats.%s.pkl' % (rootdir,center,norm)
+    fname = '%s/work/%s/%s/bulk_stats.h5' % (rootdir,center,norm)
+    fpkl = '%s/work/%s/%s/group_stats.pkl' % (rootdir,center,norm)
 
     if os.path.isfile(fpkl):
         overwrite = raw_input('%s exists, OVERWRITE [y/N]: ' % fpkl)
