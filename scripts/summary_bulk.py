@@ -9,7 +9,7 @@
 ###############################################################
 
 '''
-csv2h5.py - converts ASCII txt files into H5 files
+summary_bulk.py - reads raw data and writes out accumulated bulk statistics
 '''
 
 __author__ = "Rahul Mahajan"
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     skip_dates = []
 
-    fname_bulk = '%s/work/%s/bulk_stats.%s.h5' % (rootdir,center,norm)
+    fname_bulk = '%s/work/%s/%s/bulk_stats.h5' % (rootdir,center,norm)
     if os.path.isfile(fname_bulk): os.remove(fname_bulk)
 
     for adate in pd.date_range(bdate,edate,freq='%dH'%interval):
