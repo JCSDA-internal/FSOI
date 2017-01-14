@@ -22,25 +22,27 @@ __version__ = "0.1"
 
 import sys
 import pandas as pd
+import numpy as np
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 
 import lib_obimpact as loi
 import lib_utils as lutils
 
-def load_centers(rootdir,centers,platform=''):
+def load_centers(rootdir,centers,norm,cycle):
 
     DF = []
     for center in centers:
 
-        if platform:
-            search_str = 'PLATFORM == \"%s\"' % platform
-            fname = '%s/work/%s/bulk_stats.h5' % (rootdir,center)
-            df = lutils.readHDF(fname,'df',where=search_str)
-            df = loi.tavg_CHANNEL(df)
-        else:
-            fname = '%s/work/%s/tavg_stats.pkl' % (rootdir,center)
-            df = lutils.unpickle(fname)
+        fpkl = '%s/work/%s/%s/group_stats.pkl' % (rootdir,center,norm)
+        df = lutils.unpickle(fpkl)
+        indx = df.index.get_level_values('DATETIME').hour == -1
+        for c in cycle:
+            indx = np.ma.logical_or(indx,df.index.get_level_values('DATETIME').hour == c)
+        df = df[indx]
+
+        df = loi.tavg(df,level='PLATFORM')
+        df = loi.summarymetrics(df)
 
         DF.append(df)
 
@@ -59,38 +61,43 @@ def sort_centers(DF,pref):
 def main():
 
     parser = ArgumentParser(description = 'Create and Plot Comparison Observation Impact Statistics',formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-r','--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',required=False)
-    parser.add_argument('-p','--platform',help='platforms to plot',type=str,default='full',choices=['full','conv','rad'],required=False)
-    parser.add_argument('-s','--savefigure',help='save figures',action='store_true',required=False)
+    parser.add_argument('--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',required=False)
+    parser.add_argument('--platform',help='platforms to plot',type=str,default='full',choices=['full','conv','rad'],required=False)
+    parser.add_argument('--cycle',help='cycle to process',nargs='+',type=int,default=[0],choices=[0,6,12,18],required=False)
+    parser.add_argument('--norm',help='metric norm',type=str,default='dry',choices=['dry','moist'],required=False)
+    parser.add_argument('--savefigure',help='save figures',action='store_true',required=False)
 
     args = parser.parse_args()
 
     rootdir = args.rootdir
     platform = args.platform
+    cycle = sorted(list(set(args.cycle)))
+    norm = args.norm
     savefig = args.savefigure
 
-    centers = ['JMA_adj','GMAO','NRL','MET','JMA_ens','EMC']
+    cyclestr = ''.join('%02dZ' % c for c in cycle)
+
+    centers = ['GMAO','NRL','MET','JMA_adj','JMA_ens','MeteoFr','EMC']
     platforms = loi.RefPlatform(platform)
 
-    DF = load_centers(rootdir,centers)
+    DF = load_centers(rootdir,centers,norm,cycle)
     DF = sort_centers(DF,platforms)
 
-    for qty in ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']:
-    #for qty in ['ImpPerOb']:
-        plotOpt = loi.getPlotOpt(qty,savefigure=savefig)
-        plotOpt['figname'] = '%s/plots/compare/%s/%s' % (rootdir,platform,plotOpt.get('figname'))
+    for qty in ['TotImp','ImpPerOb','FracBenObs','FracNeuObs','FracImp','ObCnt']:
+        plotOpt = loi.getPlotOpt(qty,savefigure=savefig,center=None,cycle=cycle)
+        plotOpt['figname'] = '%s/plots/compare/%s/%s_%s' % (rootdir,platform,plotOpt.get('figname'),cyclestr)
         tmpdf = []
         for c,center in enumerate(centers):
             tmp = DF[c][qty]
-            if qty is 'ImpPerOb':
-                tmp = DF[c][qty] / DF[c]['TotImp'].sum() * 100.
             tmp.name = center
             tmpdf.append(tmp)
         df = pd.concat(tmpdf,axis=1)
         df = df.reindex(reversed(platforms))
         loi.comparesummaryplot(df,qty=qty,plotOpt=plotOpt)
 
-    if not savefig:
+    if savefig:
+        plt.close('all')
+    else:
         plt.show()
 
     sys.exit(0)

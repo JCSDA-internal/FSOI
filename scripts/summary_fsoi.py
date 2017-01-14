@@ -80,7 +80,7 @@ if __name__ == '__main__':
     df = df[indx]
 
     # Do time-averaging on the data
-    df = loi.tavg_PLATFORM(df)
+    df = loi.tavg(df,level='PLATFORM')
 
     if exclude is not None:
         if platform:
@@ -102,7 +102,9 @@ if __name__ == '__main__':
         plotOpt['figname'] = '%s/plots/summary/%s/%s_%s' % (rootdir,center,plotOpt.get('figname'),cyclestr)
         loi.summaryplot(df,qty=qty,plotOpt=plotOpt)
 
-    if not savefig:
+    if savefig:
+        plt.close('all')
+    else:
         plt.show()
 
     sys.exit(0)

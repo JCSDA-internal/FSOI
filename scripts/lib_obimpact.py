@@ -622,20 +622,12 @@ def BulkStats(DF,threshold=1.e-10):
     names = ['DATETIME','PLATFORM','OBTYPE','CHANNEL']
     df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
-    for idate in DF.index.get_level_values('DATETIME').unique():
-        tmp1 = DF.xs(idate,level='DATETIME',drop_level=False)
-        for iplat in tmp1.index.get_level_values('PLATFORM').unique():
-            tmp2 = tmp1.xs(iplat,level='PLATFORM',drop_level=False)
-            for iobtype in tmp2.index.get_level_values('OBTYPE').unique():
-                tmp3 = tmp2.xs(iobtype,level='OBTYPE',drop_level=False)
-                for ichan in tmp3.index.get_level_values('CHANNEL').unique():
-                    tmp4 = tmp3.xs(ichan,level='CHANNEL',drop_level=False)
-                    TotImp = tmp4['IMPACT'].sum()
-                    ObCnt = _np.float(tmp4['IMPACT'].count())
-                    ObCntBen = len(_np.where(tmp4['IMPACT']<-threshold)[0])
-                    ObCntDet = len(_np.where(tmp4['IMPACT']> threshold)[0])
-                    ObCntNeu = ObCnt - ObCntBen - ObCntDet
-                    df.loc[(idate,iplat,iobtype,ichan),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
+    tmp = DF.reset_index()
+    tmp.drop(['LONGITUDE','LATITUDE','PRESSURE','OMF','OBERR'], axis=1, inplace=True)
+
+    df[['TotImp','ObCnt']] = tmp.groupby(names)['IMPACT'].agg(['sum','count'])
+    df[['ObCntBen']] = tmp.groupby(names)['IMPACT'].apply(lambda c: (c < -1.e-10).sum())
+    df[['ObCntNeu']] = tmp.groupby(names)['IMPACT'].apply(lambda c: ((-1.e-10 < c) & (c < 1.e-10)).sum())
 
     for col in ['ObCnt','ObCntBen','ObCntNeu']:
         df[col] = df[col].astype(_np.int)
@@ -651,15 +643,10 @@ def accumBulkStats(DF):
     names = ['DATETIME','PLATFORM']
     df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
 
-    for idate in DF.index.get_level_values('DATETIME').unique():
-        tmp1 = DF.xs(idate,level='DATETIME',drop_level=False)
-        for iplat in tmp1.index.get_level_values('PLATFORM').unique():
-            tmp2 = tmp1.xs(iplat,level='PLATFORM',drop_level=False)
-            TotImp = tmp2['TotImp'].sum()
-            ObCnt = _np.float(tmp2['ObCnt'].sum())
-            ObCntBen = _np.float(tmp2['ObCntBen'].sum())
-            ObCntNeu = _np.float(tmp2['ObCntNeu'].sum())
-            df.loc[(idate,iplat),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
+    tmp = DF.reset_index()
+    tmp.drop(['OBTYPE','CHANNEL'], axis=1, inplace=True)
+
+    df[['TotImp','ObCnt','ObCntBen','ObCntNeu']] = tmp.groupby(names).agg('sum')
 
     for col in ['ObCnt','ObCntBen','ObCntNeu']:
         df[col] = df[col].astype(_np.int)
@@ -671,70 +658,28 @@ def groupBulkStats(DF,Platforms):
 
     print '... grouping bulk statistics ...'
 
-    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
+    tmp = DF.reset_index()
+
+    for key in Platforms:
+        tmp.replace(to_replace=Platforms[key],value=key,inplace=True)
+
     names = ['DATETIME','PLATFORM']
-    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
-
-    for idate in DF.index.get_level_values('DATETIME').unique():
-        tmp1 = DF.xs(idate,level='DATETIME',drop_level=False)
-        for Platform in Platforms:
-            Instruments = Platforms[Platform]
-            indx = tmp1.index.get_level_values('PLATFORM') == ''
-            for Instrument in Instruments:
-                indx = _np.ma.logical_or(indx,tmp1.index.get_level_values('PLATFORM') == Instrument)
-            tmp2 = tmp1.loc[indx]
-            if not tmp2.empty:
-                TotImp = tmp2['TotImp'].sum()
-                ObCnt = _np.float(tmp2['ObCnt'].sum())
-                ObCntBen = _np.float(tmp2['ObCntBen'].sum())
-                ObCntNeu = _np.float(tmp2['ObCntNeu'].sum())
-                df.loc[(idate,Platform),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
+    df = tmp.groupby(names).agg('sum')
 
     for col in ['ObCnt','ObCntBen','ObCntNeu']:
         df[col] = df[col].astype(_np.int)
 
     return df
 
-def tavg_PLATFORM(DF):
+def tavg(DF,level=None):
 
-    print '... time-averaging bulk statistics over platforms ...'
+    if level is None:
+        print 'A level is needed to do averaging over, e.g. PLATFORM or CHANNEL'
+        raise
 
-    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
-    names = ['PLATFORM']
-    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
+    print '... time-averaging bulk statistics over level = %s' % level
 
-    ntimes = _np.float(len(DF.index.get_level_values('DATETIME').unique()))
-    Platforms = DF.index.get_level_values('PLATFORM').unique()
-    for Platform in Platforms:
-        tmp = DF.xs(Platform,level='PLATFORM',drop_level=False)
-        TotImp = tmp['TotImp'].sum() / ntimes
-        ObCnt = _np.float(tmp['ObCnt'].sum()) / ntimes
-        ObCntBen = _np.float(tmp['ObCntBen'].sum()) / ntimes
-        ObCntNeu = _np.float(tmp['ObCntNeu'].sum()) / ntimes
-        df.loc[(Platform),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
-
-    for col in ['ObCnt','ObCntBen','ObCntNeu']:
-        df[col] = df[col].astype(_np.int)
-
-    return df
-
-def tavg_CHANNEL(DF):
-
-    print '... time-averaging bulk statistics over channels ...'
-
-    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
-    names = ['CHANNEL']
-    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
-
-    ntimes = _np.float(len(DF.index.get_level_values('DATETIME').unique()))
-    channels = DF.index.get_level_values('CHANNEL').unique()
-    for channel in channels:
-        tmp = DF.xs(channel,level='CHANNEL',drop_level=False)
-        TotImp = tmp['TotImp'].sum() / ntimes
-        ObCnt = _np.float(tmp['ObCnt'].sum()) / ntimes
-        ObCntBen = _np.float(tmp['ObCntBen'].sum()) / ntimes
-        ObCntNeu = _np.float(tmp['ObCntNeu'].sum()) / ntimes
-        df.loc[(channel),:] = [TotImp,ObCnt,ObCntBen,ObCntNeu]
+    df = DF.mean(level=level)
 
     for col in ['ObCnt','ObCntBen','ObCntNeu']:
         df[col] = df[col].astype(_np.int)
@@ -820,21 +765,18 @@ def getPlotOpt(qty='TotImp',**kwargs):
 
     if plotOpt['center'] is None:
         center_name = ''
-        fig_pref = 'compare'
+    elif plotOpt['center'] in ['MET']:
+        center_name = 'Met Office'
+    elif plotOpt['center'] in ['MeteoFr']:
+        center_name = 'Meteo France'
+    elif plotOpt['center'] in ['JMA_adj', 'JMA_ens']:
+        algorithm = plotOpt['center'].split('_')[-1]
+        center_name = 'JMA (%s)' % ('Adjoint' if algorithm == 'adj' else 'Ensemble')
     else:
-        fig_pref = '%s' % plotOpt['center']
-        if plotOpt['center'] is 'MET':
-            center_name = 'Met Office'
-        elif plotOpt['center'] in ['MeteoFr']:
-            center_name = 'Meteo France'
-        elif plotOpt['center'] in ['JMA_adj', 'JMA_ens']:
-            algorithm = plotOpt['center'].split('_')[-1]
-            center_name = 'JMA (%s)' % ('Adjoint' if algorithm == 'adj' else 'Ensemble')
-        else:
-            center_name = '%s' % plotOpt['center']
+        center_name = '%s' % plotOpt['center']
 
     plotOpt['title'] = '%s 24-h Observation Impact Summary\nGlobal Domain, %s DJF 2014-15' % (unicode(center_name), plotOpt['cycle'])
-    plotOpt['figname'] = '%s_%s' % (fig_pref,qty)
+    plotOpt['figname'] = '%s' % qty if plotOpt['center'] is None else '%s_%s' % (plotOpt['center'],qty)
 
     if qty == 'TotImp':
         plotOpt['name'] = 'Total Impact'
@@ -866,6 +808,8 @@ def getPlotOpt(qty='TotImp',**kwargs):
         plotOpt['sortAscending'] = True
 
     plotOpt['title'] = '%s\n%s %s' % (plotOpt['title'],plotOpt['platform'],plotOpt['name'])
+
+    plotOpt['legend'] = None
 
     return plotOpt
 
