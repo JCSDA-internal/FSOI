@@ -31,6 +31,30 @@ import itertools as _itertools
 import lib_plotting as _lplotting
 import lib_utils as _lutils
 
+class FSOI(object):
+
+    def __init__(self):
+
+        self.center_name = {
+                'GMAO':'GMAO',
+                'NRL':'NRL',
+                'MET':'Met Office',
+                'MeteoFr':'Meteo France',
+                'JMA_adj':'JMA',
+                'JMA_ens':'JMA (Ens.)',
+                'EMC':'EMC (Ens.)'}
+
+        all_centers = ['GMAO','NRL','MET','MeteoFr','JMA_adj','JMA_ens','EMC']
+        # colors obtained from www.colorbrewer.org
+        # chose qualitative, 7 class Set
+        all_colors = ['#66c2a5','#fc8d62','#8da0cb','#e78ac3','#a6d854','#ffd92f','#e5c494'] # Set 2
+        all_colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628'] # Set 1
+        self.center_color = {}
+        for c,center in enumerate(all_centers):
+            self.center_color[center] = all_colors[c]
+
+        return
+
 def RefPlatform(plat_type):
 
     if plat_type not in ['full', 'conv', 'rad']:
@@ -571,10 +595,15 @@ def list_to_dataframe(adate,data):
 
     return df
 
-def select(df,dates=None,platforms=None,obtypes=None,channels=None,latitudes=None,longitudes=None,pressures=None):
+def select(df,cycles=None,dates=None,platforms=None,obtypes=None,channels=None,latitudes=None,longitudes=None,pressures=None):
     '''
-        Successively slice a dataframe given ranges of dates, platforms, obtypes, channels, latitudes, longitudes and pressures
+        Successively slice a dataframe given ranges of cycles, dates, platforms, obtypes, channels, latitudes, longitudes and pressures
     '''
+    if cycles is not None:
+        indx = df.index.get_level_values('DATETIME') == ''
+        for cycle in cycles:
+            indx = _np.ma.logical_or(indx,df.index.get_level_values('DATETIME').hour == cycle)
+        df = df.iloc[indx]
     if dates is not None:
         indx = df.index.get_level_values('DATETIME') == ''
         for date in dates:
@@ -704,11 +733,23 @@ def bin_df(DF, dlat=5., dlon=5., dpres=None):
     names = ['DATETIME','PLATFORM','OBTYPE','CHANNEL','LONGITUDE','LATITUDE']
 
     if dpres is None:
-        tmp.drop('PRESSURE', axis=1, inplace=True)
+        if 'PRESSURE' in tmp.columns:
+            tmp.drop('PRESSURE', axis=1, inplace=True)
     else:
-        names += ['PRESSURE']
+        if 'PRESSURE' in tmp.columns:
+            names += ['PRESSURE']
 
     df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
+
+    lons = tmp['LONGITUDE'].values
+    if _np.min(lons) < 0.:
+        lons[lons<0.] = lons[lons<0.] + 360.
+        tmp['LONGITUDE'] = lons
+
+    lats = tmp['LATITUDE'].values
+    if _np.min(lats) < -90.:
+        lats[lats<-90.] = -90.
+        tmp['LATITUDE'] = lats
 
     tmp['LONGITUDE'] = tmp['LONGITUDE'].apply(lambda x: [e for e in _np.arange(  0.,360.+dlon,dlon) if e <= x][-1])
     tmp['LATITUDE' ] = tmp['LATITUDE' ].apply(lambda x: [e for e in _np.arange(-90., 90.+dlat,dlat) if e <= x][-1])
@@ -748,6 +789,7 @@ def getPlotOpt(qty='TotImp',**kwargs):
     plotOpt = {}
 
     plotOpt['center'] = kwargs['center'] if 'center' in kwargs else None
+    plotOpt['domain'] = kwargs['domain'] if 'domain' in kwargs else None
     plotOpt['savefigure'] = kwargs['savefigure'] if 'savefigure' in kwargs else False
     plotOpt['logscale'] = kwargs['logscale'] if 'logscale' in kwargs else True
     plotOpt['finite'] = kwargs['finite'] if 'finite' in kwargs else True
@@ -764,18 +806,20 @@ def getPlotOpt(qty='TotImp',**kwargs):
     plotOpt['cycle'] = ' '.join('%02dZ' % c for c in kwargs['cycle']) if 'cycle' in kwargs else '00'
 
     if plotOpt['center'] is None:
-        center_name = ''
+        plotOpt['center_name'] = ''
     elif plotOpt['center'] in ['MET']:
-        center_name = 'Met Office'
+        plotOpt['center_name'] = 'Met Office'
     elif plotOpt['center'] in ['MeteoFr']:
-        center_name = 'Meteo France'
+        plotOpt['center_name'] = 'Meteo France'
     elif plotOpt['center'] in ['JMA_adj', 'JMA_ens']:
         algorithm = plotOpt['center'].split('_')[-1]
-        center_name = 'JMA (%s)' % ('Adjoint' if algorithm == 'adj' else 'Ensemble')
+        plotOpt['center_name'] = 'JMA (%s)' % ('Adjoint' if algorithm == 'adj' else 'Ensemble')
     else:
-        center_name = '%s' % plotOpt['center']
+        plotOpt['center_name'] = '%s' % plotOpt['center']
 
-    plotOpt['title'] = '%s 24-h Observation Impact Summary\nGlobal Domain, %s DJF 2014-15' % (unicode(center_name), plotOpt['cycle'])
+    domain_str = '' if plotOpt['domain'] is None else '%s,' % plotOpt['domain']
+
+    plotOpt['title'] = '%s 24h Observation Impact Summary\n%s %s DJF 2014-15' % (unicode(plotOpt['center_name']), domain_str,plotOpt['cycle'])
     plotOpt['figname'] = '%s' % qty if plotOpt['center'] is None else '%s_%s' % (plotOpt['center'],qty)
 
     if qty == 'TotImp':
@@ -807,7 +851,7 @@ def getPlotOpt(qty='TotImp',**kwargs):
         plotOpt['xlabel'] = '%s (%%)' % plotOpt['name']
         plotOpt['sortAscending'] = True
 
-    plotOpt['title'] = '%s\n%s %s' % (plotOpt['title'],plotOpt['platform'],plotOpt['name'])
+    plotOpt['title'] = '%s\n%s %s' % (plotOpt['title'],plotOpt['platform'],plotOpt['xlabel'])
 
     plotOpt['legend'] = None
 
