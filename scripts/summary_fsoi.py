@@ -98,7 +98,7 @@ if __name__ == '__main__':
     df = loi.summarymetrics(df)
 
     for qty in ['TotImp','ImpPerOb','FracBenObs','FracNeuObs','FracImp','ObCnt']:
-        plotOpt = loi.getPlotOpt(qty,cycle=cycle,center=center,savefigure=savefig,platform=platform)
+        plotOpt = loi.getPlotOpt(qty,cycle=cycle,center=center,savefigure=savefig,platform=platform,domain='Global')
         plotOpt['figname'] = '%s/plots/summary/%s/%s_%s' % (rootdir,center,plotOpt.get('figname'),cyclestr)
         loi.summaryplot(df,qty=qty,plotOpt=plotOpt)
 

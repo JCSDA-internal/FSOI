@@ -77,7 +77,7 @@ def main():
 
     cyclestr = ''.join('%02dZ' % c for c in cycle)
 
-    centers = ['GMAO','NRL','MET','JMA_adj','JMA_ens','MeteoFr','EMC']
+    centers = ['GMAO','NRL','MET','MeteoFr','JMA_adj','JMA_ens','EMC']
     platforms = loi.RefPlatform(platform)
 
     DF = load_centers(rootdir,centers,norm,cycle)
