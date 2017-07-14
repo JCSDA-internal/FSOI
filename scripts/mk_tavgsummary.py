@@ -23,8 +23,9 @@ import os
 import sys
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
-import lib_obimpact as loi
+sys.path.append('../lib')
 import lib_utils as lutils
+import lib_obimpact as loi
 
 def main():
 

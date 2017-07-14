@@ -26,8 +26,9 @@ import pandas as pd
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 
-import lib_obimpact as loi
+sys.path.append('../lib')
 import lib_utils as lutils
+import lib_obimpact as loi
 
 if __name__ == '__main__':
 

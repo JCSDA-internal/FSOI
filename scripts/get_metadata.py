@@ -15,6 +15,7 @@ get_metadata.py - List metadata such as platform, observation types and channels
 import sys
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
+sys.path.append('../lib')
 import lib_utils as lutils
 
 parser = ArgumentParser(description = 'Get metadata from a center',formatter_class=ArgumentDefaultsHelpFormatter)

@@ -25,8 +25,8 @@ import pandas as pd
 from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
+sys.path.append('../lib')
 import lib_utils as lutils
-
 import lib_obimpact as loi
 
 if __name__ == '__main__':

@@ -14,9 +14,8 @@ from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 from jma import jma
 
+sys.path.append('../../lib')
 import lib_utils as lutils
-
-sys.path.append('../../scripts')
 import lib_obimpact as loi
 
 if __name__ == '__main__':

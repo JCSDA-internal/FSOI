@@ -15,9 +15,8 @@ from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 from emc import emc
 
+sys.path.append('../../lib')
 import lib_utils as lutils
-
-sys.path.append('../../scripts')
 import lib_obimpact as loi
 
 def kt_def():

@@ -28,7 +28,6 @@ import matplotlib.colors as _colors
 from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 import itertools as _itertools
 
-import lib_plotting as _lplotting
 import lib_utils as _lutils
 
 class FSOI(object):
@@ -975,7 +974,7 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
     _plt.tight_layout()
 
     if plotOpt['savefigure']:
-        _lplotting.savefigure(fname=plotOpt['figname'])
+        _lutils.savefigure(fname=plotOpt['figname'])
 
     return fig
 
@@ -1012,6 +1011,6 @@ def comparesummaryplot(df,qty='TotImp',plotOpt={}):
     _plt.tight_layout()
 
     if plotOpt['savefigure']:
-        _lplotting.savefigure(fname=plotOpt['figname'])
+        _lutils.savefigure(fname=plotOpt['figname'])
 
     return

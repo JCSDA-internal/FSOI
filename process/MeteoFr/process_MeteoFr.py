@@ -17,6 +17,7 @@ import pandas as pd
 from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
+sys.path.append('../../lib')
 import lib_utils as lutils
 
 def parse_file(adate,fname):
