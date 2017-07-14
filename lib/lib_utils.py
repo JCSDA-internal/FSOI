@@ -18,7 +18,7 @@ __all__ = [
             'pickle', 'unpickle',
             'writeHDF', 'readHDF',
             'EmptyDataFrame',
-            'printcolour', 'printcolor',
+            'discrete_colors',
             'savefigure'
           ]
 
@@ -130,29 +130,21 @@ def EmptyDataFrame(columns, names, dtype=None):
     return df
 
 
-def printcolour(text, colour='red'):
-    '''
-        Print the stdout in color
-    '''
+def discrete_colors(N, base_cmap=None, colormap=False):
+    """Create an N-bin discrete colors or colormap from the specified input map"""
 
-    colours = {
-            'default': '\033[1;m',
-            'gray': '\033[1;30m',
-            'red': '\033[1;31m',
-            'green': '\033[1;32m',
-            'yellow': '\033[1;33m',
-            'blue': '\033[1;34m',
-            'magenta': '\033[1;35m',
-            'cyan': '\033[1;36m',
-            'white': '\033[1;37m',
-            'crimson': '\033[1;38m'
-            }
-    print colours[colour] + text + colours['default']
+    from matplotlib.colors import LinearSegmentedColormap as _lscmap
 
-    return
+    # Note that if base_cmap is a string or None, you can simply do
+    #    return plt.cm.get_cmap(base_cmap, N)
+    # The following works for string, None, or a colormap instance:
 
+    base = _plt.cm.get_cmap(base_cmap)
+    color_list = base(_np.linspace(0, 1, N))
+    cmap_name = base.name + str(N)
 
-printcolor = printcolour
+    #return base.from_list(cmap_name, color_list, N)
+    return _lscmap.from_list(cmap_name, color_list, N) if colormap else color_list
 
 
 def savefigure(fh=None, fname='test',
