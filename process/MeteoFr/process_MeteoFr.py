@@ -161,12 +161,17 @@ def read_file(fname):
     try:
         data = pd.read_csv(fname,header=0,delim_whitespace=True,skipinitialspace=True,index_col=False,quotechar="'")
     except RuntimeError:
+        print 'Error reading %s' % fname
         raise
 
     data.drop(['date@hdr','time@hdr','seqno@hdr','an_depar@body','fg_error@errstat'],axis=1,inplace=True)
 
-    data['lat@hdr'] = data['lat@hdr'] * 180./np.pi
-    data['lon@hdr'] = data['lon@hdr'] * 180./np.pi
+    lats = data['lat@hdr'].values * 180./np.pi
+    lons = data['lon@hdr'].values * 180./np.pi
+    lons[lons<0.] = lons[lons<0.] + 360.
+    lats[lats<-90.] = -90.
+    data['lat@hdr'] = lats
+    data['lon@hdr'] = lons
     data['fc_sens_obs@body'] = data['fc_sens_obs@body'] * 1.e-5
 
     return data
