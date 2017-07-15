@@ -7,6 +7,6 @@ The study is spearheaded by the Joint Center for Satellite Data Assimilation (JC
 1. U.K. Met Office
 2. U.S. Naval Research Laboratory, Marine Meteorology Division
 3. Global Modeling and Assimilation Office, NASA Goddard Space Flight Center
-4. Météo-France
+4. Météo France
 5. Japan Meteorological Agency
 6. NCEP Environmental Modeling Center
