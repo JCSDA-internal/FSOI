@@ -1,0 +1,9 @@
+# Do not add files with the following extentions
+*.nc
+*.nc4
+*.h5
+
+*.pyc
+
+*.mod
+*.o
