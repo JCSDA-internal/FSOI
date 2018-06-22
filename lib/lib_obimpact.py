@@ -633,23 +633,23 @@ def select(df,cycles=None,dates=None,platforms=None,obtypes=None,channels=None,l
 
     return df
 
-def BulkStats(DF,threshold=1.e-10):
+def BulkStats(DF, threshold=1.e-10):
     '''Collapse PRESSURE, LATITUDE, LONGITUDE'''
 
     print '... computing bulk statistics ...'
 
-    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
-    names = ['DATETIME','PLATFORM','OBTYPE','CHANNEL']
-    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
+    columns = ['TotImp', 'ObCnt', 'ObCntBen', 'ObCntNeu']
+    names = ['DATETIME', 'PLATFORM', 'OBTYPE', 'CHANNEL']
+    df = _lutils.EmptyDataFrame(columns, names, dtype=_np.float)
 
     tmp = DF.reset_index()
-    tmp.drop(['LONGITUDE','LATITUDE','PRESSURE','OMF','OBERR'], axis=1, inplace=True)
+    tmp.drop(['LONGITUDE', 'LATITUDE', 'PRESSURE', 'OMF', 'OBERR'], axis=1, inplace=True)
 
-    df[['TotImp','ObCnt']] = tmp.groupby(names)['IMPACT'].agg(['sum','count'])
-    df[['ObCntBen']] = tmp.groupby(names)['IMPACT'].apply(lambda c: (c < -1.e-10).sum())
-    df[['ObCntNeu']] = tmp.groupby(names)['IMPACT'].apply(lambda c: ((-1.e-10 < c) & (c < 1.e-10)).sum())
+    df[['TotImp', 'ObCnt']] = tmp.groupby(names)['IMPACT'].agg(['sum', 'count'])
+    df[['ObCntBen']] = tmp.groupby(names)['IMPACT'].apply(lambda c: (c < -threshold).sum())
+    df[['ObCntNeu']] = tmp.groupby(names)['IMPACT'].apply(lambda c: ((-threshold < c) & (c < threshold)).sum())
 
-    for col in ['ObCnt','ObCntBen','ObCntNeu']:
+    for col in ['ObCnt', 'ObCntBen', 'ObCntNeu']:
         df[col] = df[col].astype(_np.int)
 
     return df
