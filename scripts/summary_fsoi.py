@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
 '''
 summary_fsoi.py - create a summary figure of all platforms
 '''
@@ -71,7 +63,7 @@ if __name__ == '__main__':
             os.remove(fpkl)
         lutils.pickle(fpkl,df)
     else:
-        df = lutils.unpickle(fpkl)
+        df = pd.read_pickle(fpkl)
 
     # Filter by cycle
     print 'extracting data for cycle %s' % ' '.join('%02dZ' % c for c in cycle)
@@ -81,7 +73,7 @@ if __name__ == '__main__':
     df = df[indx]
 
     # Do time-averaging on the data
-    df = loi.tavg(df,level='PLATFORM')
+    df, df_std = loi.tavg(df,level='PLATFORM')
 
     if exclude is not None:
         if platform:
@@ -95,13 +87,14 @@ if __name__ == '__main__':
                 exclude = list(set(pcenter)-set(pref))
         print ", ".join('%s'% x for x in exclude)
         df.drop(exclude,inplace=True)
+        df_std.drop(exclude,inplace=True)
 
     df = loi.summarymetrics(df)
 
     for qty in ['TotImp','ImpPerOb','FracBenObs','FracNeuObs','FracImp','ObCnt']:
         plotOpt = loi.getPlotOpt(qty,cycle=cycle,center=center,savefigure=savefig,platform=platform,domain='Global')
         plotOpt['figname'] = '%s/plots/summary/%s/%s_%s' % (rootdir,center,plotOpt.get('figname'),cyclestr)
-        loi.summaryplot(df,qty=qty,plotOpt=plotOpt)
+        loi.summaryplot(df,qty=qty,plotOpt=plotOpt,std=df_std)
 
     if savefig:
         plt.close('all')

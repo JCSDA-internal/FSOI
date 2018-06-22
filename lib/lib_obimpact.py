@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
 '''
 lib_obimpact.py contains functions for FSOI project
 Some functions can be used elsewhere
@@ -641,23 +633,23 @@ def select(df,cycles=None,dates=None,platforms=None,obtypes=None,channels=None,l
 
     return df
 
-def BulkStats(DF,threshold=1.e-10):
+def BulkStats(DF, threshold=1.e-10):
     '''Collapse PRESSURE, LATITUDE, LONGITUDE'''
 
     print '... computing bulk statistics ...'
 
-    columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
-    names = ['DATETIME','PLATFORM','OBTYPE','CHANNEL']
-    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
+    columns = ['TotImp', 'ObCnt', 'ObCntBen', 'ObCntNeu']
+    names = ['DATETIME', 'PLATFORM', 'OBTYPE', 'CHANNEL']
+    df = _lutils.EmptyDataFrame(columns, names, dtype=_np.float)
 
     tmp = DF.reset_index()
-    tmp.drop(['LONGITUDE','LATITUDE','PRESSURE','OMF','OBERR'], axis=1, inplace=True)
+    tmp.drop(['LONGITUDE', 'LATITUDE', 'PRESSURE', 'OMF', 'OBERR'], axis=1, inplace=True)
 
-    df[['TotImp','ObCnt']] = tmp.groupby(names)['IMPACT'].agg(['sum','count'])
-    df[['ObCntBen']] = tmp.groupby(names)['IMPACT'].apply(lambda c: (c < -1.e-10).sum())
-    df[['ObCntNeu']] = tmp.groupby(names)['IMPACT'].apply(lambda c: ((-1.e-10 < c) & (c < 1.e-10)).sum())
+    df[['TotImp', 'ObCnt']] = tmp.groupby(names)['IMPACT'].agg(['sum', 'count'])
+    df[['ObCntBen']] = tmp.groupby(names)['IMPACT'].apply(lambda c: (c < -threshold).sum())
+    df[['ObCntNeu']] = tmp.groupby(names)['IMPACT'].apply(lambda c: ((-threshold < c) & (c < threshold)).sum())
 
-    for col in ['ObCnt','ObCntBen','ObCntNeu']:
+    for col in ['ObCnt', 'ObCntBen', 'ObCntNeu']:
         df[col] = df[col].astype(_np.int)
 
     return df
@@ -708,11 +700,13 @@ def tavg(DF,level=None):
     print '... time-averaging bulk statistics over level = %s' % level
 
     df = DF.mean(level=level)
+    df2 = DF.std(level=level)
 
     for col in ['ObCnt','ObCntBen','ObCntNeu']:
         df[col] = df[col].astype(_np.int)
+        df[col] = df2[col].fillna(0).astype(_np.int)
 
-    return df
+    return df, df2
 
 def bin_df(DF, dlat=5., dlon=5., dpres=None):
     '''
@@ -877,7 +871,7 @@ def getbarcolors(data,logscale,cmax,cmin,cmap):
 
     return barcolors
 
-def summaryplot(df,qty='TotImp',plotOpt={}):
+def summaryplot(df,qty='TotImp',plotOpt={},std=None):
 
     if plotOpt['finite']:
         df = df[_np.isfinite(df[qty])]
@@ -907,13 +901,15 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
     y = _np.array([1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6])
     tmp = _plt.scatter(x,y,c=y,alpha=alpha,cmap=cmap,norm=norm,vmin=cmin,vmax=cmax)
     _plt.clf()
-    cbar = _plt.colorbar(tmp,aspect=30,format='%.0e',alpha=alpha)
+    cbar = _plt.colorbar(tmp, aspect=30, ticks=y, format='%.0e', alpha=alpha)
 
     width = 1.0
     if qty == 'FracBenNeuObs':
         left = df['FracBenObs'].values
         df['FracBenObs'].plot.barh(width=width,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)
         bax = df['FracNeuObs'].plot.barh(left=left,width=width,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)
+    elif qty == 'TotImp':
+        df[qty].plot.barh(width=width,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25,xerr=std[qty],capsize=2.0,ecolor='#FF6103')
     else:
         df[qty].plot.barh(width=width,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)
 
@@ -969,7 +965,7 @@ def summaryplot(df,qty='TotImp',plotOpt={}):
     cbar.set_label('Observation Count per Analysis',
                    rotation=90, fontsize=14, labelpad=20)
     cbarytks = _plt.getp(cbar.ax.axes, 'yticklines')
-    _plt.setp(cbarytks, visible=True,alpha=alpha)
+    _plt.setp(cbarytks, visible=True, alpha=alpha)
 
     _plt.tight_layout()
 
