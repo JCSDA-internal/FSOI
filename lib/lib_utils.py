@@ -5,7 +5,7 @@ lib_utils.py contains handy utility functions
 '''
 
 import numpy as _np
-import cPickle as _pickle
+import pickle as _pickle
 import pandas as _pd
 from matplotlib import pyplot as _plt
 
@@ -63,7 +63,7 @@ def pickle(fname, data, mode='wb'):
         data  - data to pickle
         mode - mode to pickle (default: wb)
     '''
-    print 'pickling ... %s' % fname
+    print('pickling ... %s' % fname)
     try:
         _pickle.dump(data, open(fname, mode))
     except _pickle.PicklingError:
@@ -77,7 +77,7 @@ def unpickle(fname, mode='rb'):
         fname - filename to unpickle to
         mode - mode to unpickle (default: rb)
     '''
-    print 'unpickling ... %s' % fname
+    print('unpickling ... %s' % fname)
     try:
         data = _pickle.load(open(fname, mode))
     except _pickle.UnpicklingError:
@@ -89,7 +89,7 @@ def writeHDF(fname, vname, data, complevel=0, complib=None, fletcher32=False):
     '''
         Write to an pytable HDF5 file
     '''
-    print 'writing ... %s' % fname
+    print('writing ... %s' % fname)
     try:
         hdf = _pd.HDFStore(fname,
                            complevel=complevel, complib=complib,
@@ -105,7 +105,7 @@ def readHDF(fname, vname, **kwargs):
     '''
         Read from an pytable HDF5 file
     '''
-    print 'reading ... %s' % fname
+    print('reading ... %s' % fname)
     try:
         data = _pd.read_hdf(fname, vname, **kwargs)
     except RuntimeError:

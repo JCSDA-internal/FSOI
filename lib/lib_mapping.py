@@ -52,7 +52,7 @@ class Projection(object):
         plabel_int = int(plabel_int)
 
         if self.projection == 'stere':
-            print '%s projection has been implemented but not supported yet' % (self.projection)
+            print('%s projection has been implemented but not supported yet' % (self.projection))
 
         elif (self.projection in ['npstere', 'spstere']):
             self.meridians = range(-180, 180, mlabel_int)
@@ -98,17 +98,17 @@ class Projection(object):
                 parallels_labels is None) else parallels_labels
 
         elif self.projection == 'ortho':
-            print 'projection "%s" has been implemented but not supported yet' % (self.projection)
+            print('projection "%s" has been implemented but not supported yet' % (self.projection))
 
         elif self.projection == 'robin':
-            print 'projection "%s" has been implemented but not supported yet' % (self.projection)
+            print('projection "%s" has been implemented but not supported yet' % (self.projection))
 
         else:
             msg = 'Error message from : setProj(projection)\n' + \
                   '   projection %s has not been implemented yet\n' % (self.projection) + \
                   '   valid options for projection are:\n' + \
                   '   "stere" | "npstere" | "spstere" | "mill" | "merc" | "lcc" | "ortho" | "robin"'
-            print msg
+            print(msg)
             raise
 
         return
@@ -166,7 +166,7 @@ def createMap(proj, **kwargs):
               '   projection %s has not been implemented yet\n' % (proj.projection) + \
               '   valid options for projection are:\n' + \
               '   "stere" | "npstere" | "spstere" | "mill" | "merc" | "lcc" | "ortho" | "robin"'
-        print msg
+        print(msg)
         raise
 
     return bmap
