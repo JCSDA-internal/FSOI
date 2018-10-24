@@ -49,7 +49,7 @@ class FSOI(object):
 def RefPlatform(plat_type):
 
     if plat_type not in ['full', 'conv', 'rad']:
-        print 'Input to RefPlatform must be "full", "conv" or "rad", instead got %s' % plat_type
+        print('Input to RefPlatform must be "full", "conv" or "rad", instead got %s' % plat_type)
         raise
 
     conv = [
@@ -547,7 +547,7 @@ def read_ascii(adate,fname):
     dtypes = {'PLATFORM':str,'OBTYPE':str,'CHANNEL':_np.int,'LONGITUDE':_np.float,'LATITUDE':_np.float,'PRESSURE':_np.float,'IMPACT':_np.float,'OMF':_np.float,'OBERR':_np.float}
 
     # read data into a DataFrame object
-    print 'reading ... %s' % fname
+    print('reading ... %s' % fname)
     try:
         df = _pd.read_csv(fname,delim_whitespace=True,header=None,names=names,index_col=index_cols,dtype=dtypes)
     except RuntimeError:
@@ -636,7 +636,7 @@ def select(df,cycles=None,dates=None,platforms=None,obtypes=None,channels=None,l
 def BulkStats(DF, threshold=1.e-10):
     '''Collapse PRESSURE, LATITUDE, LONGITUDE'''
 
-    print '... computing bulk statistics ...'
+    print('... computing bulk statistics ...')
 
     columns = ['TotImp', 'ObCnt', 'ObCntBen', 'ObCntNeu']
     names = ['DATETIME', 'PLATFORM', 'OBTYPE', 'CHANNEL']
@@ -657,7 +657,7 @@ def BulkStats(DF, threshold=1.e-10):
 def accumBulkStats(DF):
     '''Collapse OBTYPE and CHANNEL'''
 
-    print '... accumulating bulk statistics ...'
+    print('... accumulating bulk statistics ...')
 
     columns = ['TotImp','ObCnt','ObCntBen','ObCntNeu']
     names = ['DATETIME','PLATFORM']
@@ -676,7 +676,7 @@ def accumBulkStats(DF):
 def groupBulkStats(DF,Platforms):
     '''Group accumulated bulk statistics by aggregated platforms'''
 
-    print '... grouping bulk statistics ...'
+    print('... grouping bulk statistics ...')
 
     tmp = DF.reset_index()
 
@@ -694,10 +694,10 @@ def groupBulkStats(DF,Platforms):
 def tavg(DF,level=None):
 
     if level is None:
-        print 'A level is needed to do averaging over, e.g. PLATFORM or CHANNEL'
+        print('A level is needed to do averaging over, e.g. PLATFORM or CHANNEL')
         raise
 
-    print '... time-averaging bulk statistics over level = %s' % level
+    print('... time-averaging bulk statistics over level = %s' % level)
 
     df = DF.mean(level=level)
     df2 = DF.std(level=level)
@@ -754,7 +754,7 @@ def bin_df(DF, dlat=5., dlon=5., dpres=None):
 
     return df
 
-def scipy_bin_df(DF,dlat=5.,dlon=5.,dpres=None):
+def scipy_bin_df(df,dlat=5.,dlon=5.,dpres=None):
 
     raise NotImplementedError('lib_obimpact.py - scipy_bin_df is not yet active')
 
@@ -812,7 +812,7 @@ def getPlotOpt(qty='TotImp',**kwargs):
 
     domain_str = '' if plotOpt['domain'] is None else '%s,' % plotOpt['domain']
 
-    plotOpt['title'] = '%s 24h Observation Impact Summary\n%s %s DJF 2014-15' % (unicode(plotOpt['center_name']), domain_str,plotOpt['cycle'])
+    plotOpt['title'] = '%s 24h Observation Impact Summary\n%s %s DJF 2014-15' % (str(plotOpt['center_name']), domain_str,plotOpt['cycle'])
     plotOpt['figname'] = '%s' % qty if plotOpt['center'] is None else '%s_%s' % (plotOpt['center'],qty)
 
     if qty == 'TotImp':
