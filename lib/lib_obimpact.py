@@ -19,6 +19,7 @@ from matplotlib import cm as _cm
 import matplotlib.colors as _colors
 from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 import itertools as _itertools
+import matplotlib.dates as _dates
 
 import lib_utils as _lutils
 
@@ -1007,3 +1008,95 @@ def comparesummaryplot(df,qty='TotImp',plotOpt={}):
         _lutils.savefigure(fname=plotOpt['figname'])
 
     return
+
+def timeseriesplot(df,qty='TotImp',plotOpt={}):
+
+    tmp = df.copy()
+    tmp.reset_index(inplace=True)
+    df = tmp.groupby(['DATETIME'])[df.columns].agg('sum')
+
+    if plotOpt['finite']:
+        df = df[_np.isfinite(df[qty])]
+
+    fig = _plt.figure(figsize=(10,8))
+    ax = fig.add_subplot(111, facecolor='w')
+
+    alpha = plotOpt['alpha']
+    logscale = plotOpt['logscale']
+    cmax = plotOpt['cmax']
+    cmin = plotOpt['cmin']
+    cmap = _cm.get_cmap(plotOpt['cmap'])
+
+    barcolors = getbarcolors(df['ObCnt'],logscale,cmax,cmin,cmap)
+    norm = _colors.LogNorm() if logscale else _colors.Normalize()
+
+    # dummy plot for keeping colorbar on a bar plot
+    x = _np.array([0,   1,   2,   3,   4,   5,   6])
+    y = _np.array([1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6])
+    tmp = _plt.scatter(x,y,c=y,alpha=alpha,cmap=cmap,norm=norm,vmin=cmin,vmax=cmax)
+    _plt.clf()
+    cbar = _plt.colorbar(tmp, aspect=30, ticks=y, format='%.0e', alpha=alpha)
+
+    width = 1.0
+
+    df[qty].plot.bar(width=width,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.0)
+
+    # Get a handle on the plot axis
+    ax = _plt.gca()
+
+    # Set title
+    ax.set_title(plotOpt['title'], fontsize=18)
+
+    # Set y-limits on the plot
+    df = df[qty]
+    ymin,ymax = df.min(),df.max()
+    dy = ymax - ymin
+    ymin, ymax = ymin-0.1*dy, ymax+0.1*dy
+    _plt.ylim(ymin, ymax)
+
+    labels = ax.get_xticklabels()
+    #print labels
+    #for l in labels:
+    #    print l
+
+    dates = df.index.get_level_values('DATETIME').unique()
+    ax.xaxis.set_major_locator(_dates.DayLocator(interval=7))
+    ax.xaxis.set_major_formatter(_dates.DateFormatter('%b %y'))
+    labels = ax.get_xticklabels()
+    _plt.setp(labels, rotation=85, fontsize=8)
+
+    print ax.get_xticks()
+#    #xticks = _np.arange(-3,0.1,0.5)
+#    #ax.set_xticks(xticks)
+#    ax.set_xticklabels(_np.ndarray.tolist(xticks),fontsize=12)
+#    ax.set_xlabel(plotOpt['xlabel'],fontsize=14)
+    ax.get_yaxis().get_offset_text().set_y(0)
+    yfmt = _ScalarFormatter()
+    yfmt.set_powerlimits((-3,3))
+    ax.yaxis.set_major_formatter(yfmt)
+#
+    ax.set_ylabel(plotOpt['xlabel'], fontsize=14)
+    ax.set_xlabel('', visible=False)
+#    ax.set_yticklabels(df.index,fontsize=12)
+
+    ax.autoscale(enable=True,axis='x',tight=True)
+#    ax.grid(False)
+    #ax.xaxis.grid(True)
+
+    # Colorbar properties
+    cbar.solids.set_edgecolor("face")
+    cbar.outline.set_visible(True)
+    cbar.outline.set_linewidth(1.25)
+    cbar.ax.tick_params(labelsize=12)
+
+    cbar.set_label('Observation Count per Analysis',
+                   rotation=90, fontsize=14, labelpad=20)
+    cbarytks = _plt.getp(cbar.ax.axes, 'yticklines')
+    _plt.setp(cbarytks, visible=True, alpha=alpha)
+
+    _plt.tight_layout()
+
+    if plotOpt['savefigure']:
+        _lutils.savefigure(fname=plotOpt['figname'])
+
+    return fig
