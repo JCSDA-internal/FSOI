@@ -29,11 +29,11 @@ class FSOI(object):
         self.center_name = {
                 'GMAO':'GMAO',
                 'NRL':'NRL',
-                'MET':'Met Office',
+                'MET':'UK MetOffice',
                 'MeteoFr':'Meteo France',
                 'JMA_adj':'JMA',
                 'JMA_ens':'JMA (Ens.)',
-                'EMC':'EMC (Ens.)'}
+                'EMC':'NOAA (Ens.)'}
 
         all_centers = ['GMAO','NRL','MET','MeteoFr','JMA_adj','JMA_ens','EMC']
         # colors obtained from www.colorbrewer.org
@@ -762,11 +762,8 @@ def scipy_bin_df(df,dlat=5.,dlon=5.,dpres=None):
 
 def summarymetrics(DF):
 
-    columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']
-    names = ['PLATFORM']
-    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
+    df = DF[['TotImp', 'ObCnt']].copy()
 
-    df[['TotImp','ObCnt']] = DF[['TotImp','ObCnt']]
     df['ImpPerOb'] = df['TotImp'] / df['ObCnt']
     df['FracBenObs'] = DF['ObCntBen'] / (DF['ObCnt'] - DF['ObCntNeu'] ) * 100.
     df['FracNeuObs'] = DF['ObCntNeu'] / (DF['ObCnt'] - DF['ObCntBen'] ) * 100.
@@ -885,7 +882,7 @@ def summaryplot(df,qty='TotImp',plotOpt={},std=None):
             df.sort_values(by=qty,ascending=plotOpt['sortAscending'],inplace=True,na_position='first')
 
     fig = _plt.figure(figsize=(10,8))
-    ax = fig.add_subplot(111,axisbg='w')
+    ax = fig.add_subplot(111, facecolor='w')
 
     alpha = plotOpt['alpha']
     logscale = plotOpt['logscale']
