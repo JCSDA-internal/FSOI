@@ -26,15 +26,28 @@ def read_center_bulk(rootdir,center,norm,platform,cycle,obtype,channel):
     tmp.columns = [center]
     return tmp
 
+def read_center_pkl(rootdir,center,norm,platform,cycle,obtype,channel):
+    'Read data for a center'
+    fname = '%s/work/%s/%s/group_stats.pkl' % (rootdir,center,norm)
+    tmp = lutils.unpickle(fname)
+    tmp = loi.select(tmp, cycles=cycle, platforms=[platform], channels=channel)
+    tmp.reset_index(inplace=True)
+    tmp = tmp.groupby(['DATETIME'])[['TotImp']].agg('sum')
+    tmp.columns = [center]
+    return tmp
+
 def compute_std_corr_bulk(df):
     'Compute the standard deviation and correlation from dictionary of dataframe'
 
     df2 = pd.concat(df,axis=1)
     df2.columns = df2.columns.levels[0]
+    df2 = df2.dropna(axis='columns', how='all') # drop entire column if all are NaN
+    df2 = df2.dropna() # drop entire row if any column is NaN
+    nsamp = len(df2)
     df_stdv = df2.std()
     df_corr = df2.corr()
 
-    return df_stdv,df_corr
+    return nsamp, df_stdv, df_corr
 
 def compute_std_corr_bulk_brute_force(df,centers):
     'Compute the standard deviation and correlation from dictionary of dataframe'
@@ -60,9 +73,11 @@ def compute_std_corr_bulk_brute_force(df,centers):
     df_corr.columns = ['CENTERS','CORRELATION']
     df_corr = df_corr.pivot_table(values='CORRELATION',index='CENTERS')
 
-    return df_stdv,df_corr
+    nsamp = np.NaN
 
-def plot_taylor(ref_center,stdv,corr,fig=None,full=False,norm=True,title=None,colors=None,center_names=None):
+    return nsamp, df_stdv, df_corr
+
+def plot_taylor(ref_center,stdv,corr,fig=None,full=False,norm=True,title=None,colors=None,center_names=None,nsamp=None):
     '''Plot Taylor diagram'''
 
     if colors == None: colors = lutils.discrete_colors(len(centers)-1)
@@ -76,7 +91,9 @@ def plot_taylor(ref_center,stdv,corr,fig=None,full=False,norm=True,title=None,co
 
     refstd = stdv[ref_center]
 
-    dia = TaylorDiagram(refstd, fig=fig, rect=111, label=center_names[ref_center], norm=norm, full=full)
+    ref_center_name = center_names[ref_center] + ' [n=%d]' % nsamp
+
+    dia = TaylorDiagram(refstd, fig=fig, rect=111, label=ref_center_name, norm=norm, full=full)
 
     corr = corr[ref_center]
 
@@ -106,7 +123,6 @@ def plot_taylor(ref_center,stdv,corr,fig=None,full=False,norm=True,title=None,co
 
     return fig
 
-#def main():
 if __name__ == '__main__':
 
     parser = ArgumentParser(description = 'Create and Plot Observation Impact Correlation Taylor Diagrams',formatter_class=ArgumentDefaultsHelpFormatter)
@@ -140,15 +156,17 @@ if __name__ == '__main__':
 
     df = {}
     for center in centers:
-        df[center] = read_center_bulk(rootdir,center,norm,platform,cycle,obtype,channel)
+        df[center] = read_center_pkl(rootdir,center,norm,platform,cycle,obtype,channel)
 
-    df_stdv,df_corr = compute_std_corr_bulk(df)
+    nsamp, df_stdv, df_corr = compute_std_corr_bulk(df)
+
+    centers = df_stdv.index
 
     titlestr = '%s' % (platform)
 
     for center in centers:
 
-        fig = plot_taylor(center,df_stdv,df_corr,title=titlestr,colors=fsoi.center_color,center_names=fsoi.center_name)
+        fig = plot_taylor(center,df_stdv,df_corr,title=titlestr,colors=fsoi.center_color,center_names=fsoi.center_name,nsamp=nsamp)
 
         if savefig:
             fname = 'Taylor-%s-%s' % (ref_center,platform)
