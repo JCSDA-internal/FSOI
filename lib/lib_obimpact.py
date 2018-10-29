@@ -692,6 +692,13 @@ def groupBulkStats(DF,Platforms):
 
     return df
 
+def resample(DF, level='DATETIME', frequency='D'):
+    levs = DF.index.get_level_values
+    df = DF.groupby([levs(i) for i in [1]] + [_pd.Grouper(freq=frequency, level=level)]).sum()
+
+    return df
+
+
 def tavg(DF,level=None):
 
     if level is None:

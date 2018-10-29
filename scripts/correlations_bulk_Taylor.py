@@ -26,7 +26,7 @@ def read_center_bulk(rootdir,center,norm,platform,cycle,obtype,channel):
     tmp.columns = [center]
     return tmp
 
-def read_center_pkl(rootdir,center,norm,platform,cycle,obtype,channel):
+def read_center_pkl(rootdir,center,norm,platform,cycle,obtype,channel,freq='D'):
     'Read data for a center'
     fname = '%s/work/%s/%s/group_stats.pkl' % (rootdir,center,norm)
     tmp = lutils.unpickle(fname)
