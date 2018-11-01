@@ -51,7 +51,7 @@ def RefPlatform(plat_type):
 
     if plat_type not in ['full', 'conv', 'rad']:
         print('Input to RefPlatform must be "full", "conv" or "rad", instead got %s' % plat_type)
-        raise
+        raise Exception()
 
     conv = [
         'Radiosonde',
@@ -696,7 +696,7 @@ def tavg(DF,level=None):
 
     if level is None:
         print('A level is needed to do averaging over, e.g. PLATFORM or CHANNEL')
-        raise
+        raise Exception()
 
     print('... time-averaging bulk statistics over level = %s' % level)
 
@@ -1065,7 +1065,7 @@ def timeseriesplot(df,qty='TotImp',plotOpt={}):
     labels = ax.get_xticklabels()
     _plt.setp(labels, rotation=85, fontsize=8)
 
-    print ax.get_xticks()
+    print(ax.get_xticks())
 #    #xticks = _np.arange(-3,0.1,0.5)
 #    #ax.set_xticks(xticks)
 #    ax.set_xticklabels(_np.ndarray.tolist(xticks),fontsize=12)
