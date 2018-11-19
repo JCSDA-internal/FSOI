@@ -19,6 +19,9 @@ def ftp_download_file(host, remote_file, local_file=None):
     if local_file is None:
         local_file = '/tmp/' + remote_file_only
 
+    # log info
+    print('attempting to download ftp://%s/%s' % (host, remote_file))
+
     # download the remote file
     ftp.cwd(remote_dir)
     out = open(local_file, 'wb')
@@ -57,6 +60,9 @@ def main(event, context):
         # update the CloudWatch information
         log['name'] = key
         log['size'] = os.path.getsize(local_file)
+
+        # log info
+        print('attempting to upload data to s3://%s/%s' % (bucket_name, key))
 
         # copy the file to an S3 object
         s3 = boto3.client('s3')
