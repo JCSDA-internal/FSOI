@@ -1,0 +1,2 @@
+[TYPECHECK]
+ignored-modules=lib_utils,lib_obimpact,lib_mapping,TaylorDiagram
