@@ -33,9 +33,9 @@ if __name__ == '__main__':
     fbulk = '%s/work/%s/%s/bulk_stats.h5' % (rootdir,center,norm)
     df = lutils.readHDF(fbulk,'df',where=search_str)
     if platform not in df.index.get_level_values('PLATFORM').unique():
-        print '%s does not exist in %s' % (platform,fbulk)
-        print 'ABORTING'
-        raise
+        print('%s does not exist in %s' % (platform,fbulk))
+        print('ABORTING')
+        raise Exception()
 
     df.reset_index(inplace=True)
     df.drop('PLATFORM',axis=1,inplace=True)

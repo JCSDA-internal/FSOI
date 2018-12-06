@@ -33,13 +33,13 @@ df = lutils.readHDF(fname,'df')
 
 platforms = df.index.get_level_values('PLATFORM').unique()
 for platform in sorted(platforms):
-    print '%s' % platform
+    print('%s' % platform)
     tmp = df.xs(platform,level='PLATFORM',drop_level=False)
     obtypes = tmp.index.get_level_values('OBTYPE').unique()
-    print '   | ' + ' '.join(obtypes)
+    print('   | ' + ' '.join(obtypes))
     if 'Tb' in obtypes:
         channels = tmp.index.get_level_values('CHANNEL').unique()
-        print '   | ' + ' '.join(map(str,sorted(channels)))
-    print
+        print('   | ' + ' '.join(map(str,sorted(channels))))
+    print()
 
 sys.exit(0)

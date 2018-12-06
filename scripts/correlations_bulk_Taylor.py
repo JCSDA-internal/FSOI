@@ -133,8 +133,8 @@ if __name__ == '__main__':
     cyclestr = ' '.join('%02dZ' % c for c in cycle)
     channelstr = 'all' if channel is None else ', '.join('%d' % c for c in channel)
 
-    print 'cycles to process: %s' % cyclestr
-    print 'channels to process: %s' % channelstr
+    print('cycles to process: %s' % cyclestr)
+    print('channels to process: %s' % channelstr)
 
     fsoi = loi.FSOI()
 
