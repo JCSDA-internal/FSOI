@@ -30,7 +30,7 @@ def parse_date(datadir,adate):
     tmpdf = []
     for fname in flist:
         if os.stat(fname).st_size == 0:
-            print '%s is an empty file ... skipping' % fname
+            print('%s is an empty file ... skipping' % fname)
             continue
         tmpdf.append(read_file(fname))
     data = pd.concat(tmpdf,axis=0)
@@ -89,7 +89,7 @@ def main():
 
     fname_out = os.path.join(datapthout,'deltaJ.%s.h5'%norm)
     if os.path.isfile(fname_out):
-        overwrite = raw_input('%s exists, OVERWRITE [y/N]: ' % fname_out)
+        overwrite = input('%s exists, OVERWRITE [y/N]: ' % fname_out)
     else:
         overwrite = 'Y'
 
@@ -97,7 +97,7 @@ def main():
         tmpdata = []
         for adate in pd.date_range(bdate,edate,freq='6H'):
             adatestr = adate.strftime('%Y%m%d%H')
-            print 'processing %s' % adatestr
+            print('processing %s' % adatestr)
             datadir = os.path.join(datapthin,norm,adatestr)
             tmpdata.append(parse_date(datadir,adate))
         df = pd.concat(tmpdata,axis=0)

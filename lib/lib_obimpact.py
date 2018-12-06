@@ -50,7 +50,7 @@ def RefPlatform(plat_type):
 
     if plat_type not in ['full', 'conv', 'rad']:
         print('Input to RefPlatform must be "full", "conv" or "rad", instead got %s' % plat_type)
-        raise
+        raise Exception()
 
     conv = [
         'Radiosonde',
@@ -695,7 +695,7 @@ def tavg(DF,level=None):
 
     if level is None:
         print('A level is needed to do averaging over, e.g. PLATFORM or CHANNEL')
-        raise
+        raise Exception()
 
     print('... time-averaging bulk statistics over level = %s' % level)
 
