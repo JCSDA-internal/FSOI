@@ -58,7 +58,7 @@ if __name__ == '__main__':
         if adate in skip_dates: continue
         fname = '%s/data/%s/%s.%s.%s.h5' % (rootdir,center,center,norm,adatestr)
         if not os.path.isfile(fname):
-            print '%s : %s does not exist, SKIPPING ...' % (adatestr, fname)
+            print('%s : %s does not exist, SKIPPING ...' % (adatestr, fname))
             continue
         df = lutils.readHDF(fname,'df')
         df = loi.BulkStats(df)

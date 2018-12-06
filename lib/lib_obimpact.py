@@ -50,7 +50,7 @@ def RefPlatform(plat_type):
 
     if plat_type not in ['full', 'conv', 'rad']:
         print('Input to RefPlatform must be "full", "conv" or "rad", instead got %s' % plat_type)
-        raise
+        raise Exception()
 
     conv = [
         'Radiosonde',
@@ -695,7 +695,7 @@ def tavg(DF,level=None):
 
     if level is None:
         print('A level is needed to do averaging over, e.g. PLATFORM or CHANNEL')
-        raise
+        raise Exception()
 
     print('... time-averaging bulk statistics over level = %s' % level)
 
@@ -762,11 +762,8 @@ def scipy_bin_df(df,dlat=5.,dlon=5.,dpres=None):
 
 def summarymetrics(DF):
 
-    columns = ['TotImp','ObCnt','ImpPerOb','FracBenObs','FracNeuObs','FracImp']
-    names = ['PLATFORM']
-    df = _lutils.EmptyDataFrame(columns,names,dtype=_np.float)
+    df = DF[['TotImp', 'ObCnt']].copy()
 
-    df[['TotImp','ObCnt']] = DF[['TotImp','ObCnt']]
     df['ImpPerOb'] = df['TotImp'] / df['ObCnt']
     df['FracBenObs'] = DF['ObCntBen'] / (DF['ObCnt'] - DF['ObCntNeu'] ) * 100.
     df['FracNeuObs'] = DF['ObCntNeu'] / (DF['ObCnt'] - DF['ObCntBen'] ) * 100.
@@ -885,7 +882,7 @@ def summaryplot(df,qty='TotImp',plotOpt={},std=None):
             df.sort_values(by=qty,ascending=plotOpt['sortAscending'],inplace=True,na_position='first')
 
     fig = _plt.figure(figsize=(10,8))
-    ax = fig.add_subplot(111,axisbg='w')
+    ax = fig.add_subplot(111,facecolor='w')
 
     alpha = plotOpt['alpha']
     logscale = plotOpt['logscale']

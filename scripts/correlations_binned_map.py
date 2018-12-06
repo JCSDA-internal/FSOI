@@ -113,7 +113,7 @@ ref_center = centers[0]
 
 fcorrpkl = '%s/work/%s.%s.corr.pkl' % (rootdir,platform.lower(),norm)
 if os.path.isfile(fcorrpkl):
-    overwrite = raw_input('%s exists, OVERWRITE [y/N]: ' % fcorrpkl)
+    overwrite = input('%s exists, OVERWRITE [y/N]: ' % fcorrpkl)
 else:
     overwrite = 'Y'
 

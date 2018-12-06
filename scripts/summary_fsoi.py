@@ -49,7 +49,7 @@ if __name__ == '__main__':
     fpkl = '%s/work/%s/%s/group_stats.pkl' % (rootdir,center,norm)
 
     if os.path.isfile(fpkl):
-        overwrite = raw_input('%s exists, OVERWRITE [y/N]: ' % fpkl)
+        overwrite = input('%s exists, OVERWRITE [y/N]: ' % fpkl)
     else:
         overwrite = 'Y'
 
@@ -59,14 +59,14 @@ if __name__ == '__main__':
         platforms = loi.Platforms(center)
         df = loi.groupBulkStats(df,platforms)
         if os.path.isfile(fpkl):
-            print 'OVERWRITING %s' % fpkl
+            print('OVERWRITING %s' % fpkl)
             os.remove(fpkl)
         lutils.pickle(fpkl,df)
     else:
         df = pd.read_pickle(fpkl)
 
     # Filter by cycle
-    print 'extracting data for cycle %s' % ' '.join('%02dZ' % c for c in cycle)
+    print('extracting data for cycle %s' % ' '.join('%02dZ' % c for c in cycle))
     indx = df.index.get_level_values('DATETIME').hour == -1
     for c in cycle:
         indx = np.ma.logical_or(indx,df.index.get_level_values('DATETIME').hour == c)
