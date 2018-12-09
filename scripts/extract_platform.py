@@ -54,15 +54,15 @@ if __name__ == '__main__':
         fname = '%s/data/%s/%s.%s.%s.h5' % (rootdir,
                                             center, center, norm, adatestr)
         if not os.path.isfile(fname):
-            print '%s : %s does not exist, SKIPPING ...' % (adatestr, fname)
+            print('%s : %s does not exist, SKIPPING ...' % (adatestr, fname))
             continue
 
         df = lutils.readHDF(fname, 'df', where=search_str)
 
         if platform != df.index.get_level_values('PLATFORM').unique():
-            print '%s does not exist in %s' % (platform, fname)
-            print 'ABORTING'
-            raise
+            print('%s does not exist in %s' % (platform, fname))
+            print('ABORTING')
+            raise Exception()
 
         lutils.writeHDF(fext, 'df', df, complevel=1,
                         complib='zlib', fletcher32=True)

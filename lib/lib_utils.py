@@ -7,7 +7,7 @@ lib_utils.py contains handy utility functions
 import numpy as _np
 import pickle as _pickle
 import pandas as _pd
-from matplotlib import pyplot as _plt
+import matplotlib.pyplot as _plt
 
 __author__ = "Rahul Mahajan"
 __email__ = "rahul.mahajan@nasa.gov"

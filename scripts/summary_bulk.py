@@ -29,8 +29,8 @@ sys.path.append('../lib')
 import lib_utils as lutils
 import lib_obimpact as loi
 
-if __name__ == '__main__':
 
+def summary_bulk_main():
     parser = ArgumentParser(description = 'Create Observation Impacts database',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET','MeteoFr'])
     parser.add_argument('--norm',help='norm',type=str,default='dry',choices=['dry','moist'],required=False)
@@ -50,8 +50,14 @@ if __name__ == '__main__':
 
     skip_dates = []
 
-    fname_bulk = '%s/work/%s/%s/bulk_stats.h5' % (rootdir,center,norm)
-    if os.path.isfile(fname_bulk): os.remove(fname_bulk)
+    # Create a work directory if it does not exist
+    bulkdir = '%s/work/%s/%s' % (rootdir, center, norm)
+    if not os.path.exists(bulkdir):
+        os.makedirs(bulkdir)
+
+    fname_bulk = '%s/bulk_stats.h5' % bulkdir
+    if os.path.isfile(fname_bulk):
+        os.remove(fname_bulk)
 
     for adate in pd.date_range(bdate,edate,freq='%dH'%interval):
         adatestr = adate.strftime('%Y%m%d%H')
@@ -64,4 +70,6 @@ if __name__ == '__main__':
         df = loi.BulkStats(df)
         lutils.writeHDF(fname_bulk,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
-    sys.exit(0)
+
+if __name__ == '__main__':
+    summary_bulk_main()

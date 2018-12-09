@@ -22,8 +22,8 @@ sys.path.append('../lib')
 import lib_utils as lutils
 import lib_obimpact as loi
 
-if __name__ == '__main__':
 
+def summary_fsoi_main():
     parser = ArgumentParser(description = 'Create and Plot Observation Impacts Statistics',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET','MeteoFr'])
     parser.add_argument('--norm',help='metric norm',type=str,default='dry',choices=['dry','moist'],required=False)
@@ -77,28 +77,33 @@ if __name__ == '__main__':
 
     if exclude is not None:
         if platform:
-            print 'Excluding the following platforms:'
+            print('Excluding the following platforms:')
             exclude = map(int, exclude)
         else:
-            print 'Excluding the following platforms:'
+            print('Excluding the following platforms:')
             if 'reference' in exclude:
                 pref = loi.RefPlatform('full')
                 pcenter = df.index.get_level_values('PLATFORM').unique()
                 exclude = list(set(pcenter)-set(pref))
-        print ", ".join('%s'% x for x in exclude)
+        print(", ".join('%s'% x for x in exclude))
         df.drop(exclude,inplace=True)
         df_std.drop(exclude,inplace=True)
 
     df = loi.summarymetrics(df)
 
     for qty in ['TotImp','ImpPerOb','FracBenObs','FracNeuObs','FracImp','ObCnt']:
-        plotOpt = loi.getPlotOpt(qty,cycle=cycle,center=center,savefigure=savefig,platform=platform,domain='Global')
-        plotOpt['figname'] = '%s/plots/summary/%s/%s_%s' % (rootdir,center,plotOpt.get('figname'),cyclestr)
-        loi.summaryplot(df,qty=qty,plotOpt=plotOpt,std=df_std)
+        try:
+            plotOpt = loi.getPlotOpt(qty,cycle=cycle,center=center,savefigure=savefig,platform=platform,domain='Global')
+            plotOpt['figname'] = '%s/plots/summary/%s/%s_%s' % (rootdir,center,plotOpt.get('figname'),cyclestr)
+            loi.summaryplot(df,qty=qty,plotOpt=plotOpt,std=df_std)
+        except Exception as e:
+            print(e)
 
     if savefig:
         plt.close('all')
     else:
         plt.show()
 
-    sys.exit(0)
+
+if __name__ == '__main__':
+    summary_fsoi_main()

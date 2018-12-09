@@ -1,0 +1,67 @@
+{
+  "others": [
+    {
+      "comment": "This request produces an error: 'Failed to generate plots'",
+      "centers": "EMC",
+      "cycles": "6,12",
+      "end_date": "20150220",
+      "interval": "24",
+      "norm": "dry",
+      "platforms": "Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN",
+      "start_date": "20150220"
+    },
+    {
+      "comment": "This request produces an error: 'Missing data from S3'",
+      "centers": "EMC",
+      "cycles": "18",
+      "end_date": "20150201",
+      "interval": "24",
+      "norm": "moist",
+      "platforms": "Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN",
+      "start_date": "20150201"
+    }
+
+  ],
+  "requests": [
+    {
+      "comment": "This request should be successful",
+      "centers": "EMC,GMAO",
+      "cycles": "18",
+      "end_date": "20150201",
+      "interval": "24",
+      "norm": "dry",
+      "platforms": "Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN",
+      "start_date": "20150201"
+    },
+    {
+      "comment": "This request should be successful",
+      "centers": "GMAO",
+      "cycles": "00",
+      "end_date": "20150228",
+      "interval": "24",
+      "norm": "dry",
+      "platforms": "Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS",
+      "start_date": "20150220"
+    },
+    {
+      "comment": "This request should be successful",
+      "start_date": "20150222",
+      "end_date": "20150228",
+      "cycles": "18",
+      "centers": "EMC",
+      "norm": "dry",
+      "interval": "24",
+      "platforms": "Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN"
+    },
+    {
+      "comment": "This request should be successful",
+      "start_date": "20150222",
+      "end_date": "20150228",
+      "cycles": "00",
+      "centers": "GMAO",
+      "norm": "dry",
+      "interval": "24",
+      "platforms": "Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN"
+    }
+  ]
+}
