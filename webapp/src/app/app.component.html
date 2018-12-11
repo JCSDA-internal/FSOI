@@ -1,0 +1,15 @@
+<router-outlet></router-outlet>
+<div id="header" class="header-div">
+  <img width="100" src="../assets/jcsda_logo.png">
+  <div>
+    <h1 style="margin:0 0 10px 0;padding:0;">JCSDA IOS</h1>
+    <h2 style="margin:10px 0 0 0;padding:0;">Forecast Sensitivity - Observation Impact</h2>
+  </div>
+</div>
+<div id="controls" class="control-div control-div-{{viewMode}} divider-color">
+  <div class="collapse-icon collapse-icon-{{viewMode}}" (click)="toggleViewMode()"></div>
+  <app-controls class="control-components control-components-{{viewMode}}"></app-controls>
+</div>
+<div id="display" class="display-div display-div-{{viewMode}} divider-color">
+  <app-display></app-display>
+</div>

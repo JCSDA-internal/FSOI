@@ -1,0 +1,57 @@
+<div class="controls-grid">
+
+  <div class="control-label" style="margin-top:20px;">
+    DATE RANGE
+  </div>
+  <div class="control-grid-item">
+    <div style="padding:0 5px 0 0;display:inline-block;">
+      <mat-form-field>
+        <input matInput [matDatepicker]="picker1" [value]="startDate" placeholder="Start Date" (dateChange)="changeDate($event)">
+        <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+        <mat-datepicker #picker1></mat-datepicker>
+      </mat-form-field>
+    </div>
+    <div style="padding:0 0 0 5px;display:inline-block;">
+      <mat-form-field>
+        <input matInput [matDatepicker]="picker2" [value]="endDate" placeholder="End Date" (dateChange)="changeDate($event)">
+        <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+        <mat-datepicker #picker2></mat-datepicker>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="control-label">CYCLES</div>
+  <div class="control-cycles-grid">
+    <img class="cycle-hint" id="cycle_hint" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="/>
+    <mat-checkbox [(ngModel)]="c00z" (click)="timeout(validateRequest, 50)" (mouseenter)="showCycleHint(0)" (mouseleave)="clearCycleHint()" labelPosition="after">00</mat-checkbox>
+    <mat-checkbox [(ngModel)]="c06z" (click)="timeout(validateRequest, 50)" (mouseenter)="showCycleHint(6)" (mouseleave)="clearCycleHint()" labelPosition="after">06</mat-checkbox>
+    <mat-checkbox [(ngModel)]="c12z" (click)="timeout(validateRequest, 50)" (mouseenter)="showCycleHint(12)" (mouseleave)="clearCycleHint()" labelPosition="after">12</mat-checkbox>
+    <mat-checkbox [(ngModel)]="c18z" (click)="timeout(validateRequest, 50)" (mouseenter)="showCycleHint(18)" (mouseleave)="clearCycleHint()" labelPosition="after">18</mat-checkbox>
+  </div>
+
+  <div class="control-label">NORM</div>
+  <div class="control-option-list">
+    <button class="control-option-button" mat-stroked-button (click)="showOptionDialog('norm', false)">{{normSummary}}</button>
+  </div>
+
+  <div class="control-label">CENTERS</div>
+  <div class="control-option-list">
+    <button class="control-option-button" mat-stroked-button (click)="showOptionDialog('center', false)">{{centersSummary}}</button>
+  </div>
+
+  <div class="control-label">PLATFORMS</div>
+  <div class="control-option-list">
+    <button class="control-option-button" mat-stroked-button (click)="showOptionDialog('platform', true)">{{platformsSummary}}</button>
+  </div>
+
+  <div class="progress-bar progress-bar-{{progressBarMode}}">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
+  <div class="submit-button-container submit-button-container-{{submitButtonMode}}">
+    <button mat-raised-button color="primary" (click)="submitRequest()" [disabled]="invalidRequest">Submit</button>
+  </div>
+
+  <div class="error-container">
+    <div *ngFor="let item of errorMessages" class="error-item">{{item}}</div>
+  </div>
+</div>
