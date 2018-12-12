@@ -645,7 +645,7 @@ export class ControlsComponent implements OnInit
     else
     {
       this.display.setImages(event['images']);
-      this.display.setShareUrl('http://ios.jcsda.org/?cached_id=' + event['cache_id']);
+      this.display.setShareUrl('http://ios.jcsda.org/?cache_id=' + event['cache_id']);
       this.errorMessages = [];
     }
   }

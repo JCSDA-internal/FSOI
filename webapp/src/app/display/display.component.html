@@ -9,7 +9,6 @@
       </button>
     </div>
     <div *ngIf="allImages.length > 0" class="display-button-container"><button mat-stroked-button (click)="selectAll()">All</button></div>
-    <div *ngIf="allImages.length > 0" class="display-button-container"><button mat-stroked-button (click)="selectNone()">None</button></div>
     <div class="display-button-container" *ngFor="let center of uniqueCenters">
       <button mat-stroked-button (click)="selectOnlyCenter(center)">{{center}} Only</button>
     </div>

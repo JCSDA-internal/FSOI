@@ -148,15 +148,6 @@ export class DisplayComponent implements OnInit
     this.setImages(this.allImages);
   }
 
-  selectNone(): void
-  {
-    for (let i = 0; i < this.allImages.length; i++)
-    {
-      this.allImages[i].selected = false;
-    }
-    this.setImages(this.allImages);
-  }
-
   toggleSingleImage(event): void
   {
     if (this.images.length === 1)
