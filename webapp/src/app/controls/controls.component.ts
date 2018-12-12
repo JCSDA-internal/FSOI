@@ -317,25 +317,49 @@ export class ControlsComponent implements OnInit
     ]
   };
 
+  /* default summaries */
   normSummary = '(0) No selections made';
   centersSummary = '(0) No selections made';
   platformsSummary = '(0) No selections made';
 
+  /* progress bar normally hidden */
   submitButtonMode = 'open';
   progressBarMode = 'closed';
 
+  /* reference to display component */
   display: DisplayComponent;
+
+  /* referense to app component */
   app: AppComponent;
 
-  constructor(private dialog: MatDialog, private http: HttpClient, private route: ActivatedRoute) {}
-
+  /* URL to request with cached images, used for sharing URL */
   private requestUrl: string;
 
+  /**
+   * Constructor
+   *
+   * @param dialog dependency injection
+   * @param http dependency injection
+   * @param route dependency injection
+   */
+  constructor(private dialog: MatDialog, private http: HttpClient, private route: ActivatedRoute)
+  {
+  }
+
+  /**
+   * Convert a date to a string
+   *
+   * @param date in the format yyyyMMdd
+   */
   static dateToString(date): string
   {
     return date.getFullYear() + '' + ('0' + (date.getMonth() + 1)).slice(-2) + ('0' + date.getDate()).slice(-2);
   }
 
+
+  /**
+   * Initialize the component
+   */
   ngOnInit()
   {
     this.updateSummaries();
@@ -343,28 +367,54 @@ export class ControlsComponent implements OnInit
     this.route.queryParams.subscribe(this.queryParamsChanged.bind(this));
   }
 
+
+  /**
+   * Set a reference to the display component
+   *
+   * @param display Reference to the display component
+   */
   setDisplay(display: DisplayComponent): void
   {
     this.display = display;
   }
 
+
+  /**
+   * Set a reference to the app component
+   *
+   * @param app Reference to the app component
+   */
   setApp(app: AppComponent): void
   {
     this.app = app;
   }
 
+
+  /**
+   * Update summaries for all choice options (i.e., string label based on selected choices)
+   */
   updateSummaries(): void
   {
-    this.normSummary      = this.createSummary(this.norm);
-    this.centersSummary   = this.createSummary(this.centers);
+    this.normSummary = this.createSummary(this.norm);
+    this.centersSummary = this.createSummary(this.centers);
     this.platformsSummary = this.createSummary(this.platforms);
   }
 
+
+  /**
+   * Show day/night maps when mouse moves into a cycle checkbox
+   *
+   * @param cycle The cycle to show
+   */
   showCycleHint(cycle): void
   {
     document.getElementById('cycle_hint').setAttribute('src', 'assets/hint-' + cycle + 'z.jpg');
   }
 
+
+  /**
+   * Hide day/night maps when mouse moves out of a cycle checkbox
+   */
   clearCycleHint(): void
   {
     document.getElementById('cycle_hint').setAttribute(
@@ -372,6 +422,7 @@ export class ControlsComponent implements OnInit
       'data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
     );
   }
+
 
   /**
    * Look through the data object and create a summary including the number
@@ -381,14 +432,17 @@ export class ControlsComponent implements OnInit
    */
   createSummary(data: object): string
   {
+    /* init string and count variables */
     let summary = '';
     let count = 0;
 
+    /* if no selections are made */
     if (data['options'] === undefined)
     {
       return '(0)';
     }
 
+    /* build a string and count the number of options selected */
     for (let j = 0; j < data['options'].length; j++)
     {
       const item = data['options'][j];
@@ -457,6 +511,10 @@ export class ControlsComponent implements OnInit
     );
   }
 
+
+  /**
+   * Validate the request based on current selections
+   */
   validateRequest(): void
   {
     this.errorMessages = [];
@@ -465,8 +523,7 @@ export class ControlsComponent implements OnInit
     if (this.startDate === undefined || this.endDate === undefined)
     {
       this.errorMessages[this.errorMessages.length] = 'start and end dates are required';
-    }
-    else if (this.startDate.getTime() > this.endDate.getTime())
+    } else if (this.startDate.getTime() > this.endDate.getTime())
     {
       this.errorMessages[this.errorMessages.length] = 'end date must not be earlier than start date';
     }
@@ -489,8 +546,7 @@ export class ControlsComponent implements OnInit
     if (norms > 1)
     {
       this.errorMessages[this.errorMessages.length] = 'only one norm may be selected';
-    }
-    else if (norms === 0)
+    } else if (norms === 0)
     {
       this.errorMessages[this.errorMessages.length] = 'at least one norm must be selected';
     }
@@ -529,22 +585,33 @@ export class ControlsComponent implements OnInit
     this.invalidRequest = this.errorMessages.length > 0;
   }
 
+
+  /**
+   * TODO: Is this necessary?
+   *
+   * @param func The function to call
+   * @param ms After this delay in milliseconds
+   */
   timeout(func, ms): void
   {
     setTimeout(func.bind(this), ms);
   }
 
+
+  /**
+   * Change the date
+   *
+   * @param event Details including target and value
+   */
   changeDate(event): void
   {
     if (event['targetElement']['placeholder'] === 'Start Date')
     {
       this.startDate = event['value'];
-    }
-    else if (event['targetElement']['placeholder'] === 'End Date')
+    } else if (event['targetElement']['placeholder'] === 'End Date')
     {
       this.endDate = event['value'];
-    }
-    else
+    } else
     {
       console.log('Date change event ignored.');
       console.log(event);
@@ -553,20 +620,27 @@ export class ControlsComponent implements OnInit
     this.validateRequest();
   }
 
+
+  /**
+   * Send a request to the API
+   */
   submitRequest(): void
   {
+    /* show the progress bar and hide the button */
     this.progressBarMode = 'open';
     this.submitButtonMode = 'closed';
 
+    /* API URL */
     let url = 'https://xy4tm62l1a.execute-api.us-east-1.amazonaws.com/b1/chart';
 
+    /* Query string parameters */
     const startDate = '?start_date=' + ControlsComponent.dateToString(this.startDate);
-    const endDate   = '&end_date=' + ControlsComponent.dateToString(this.endDate);
-    let centers   = '&centers=';
-    let norm      = '&norm=';
-    const interval  = '&interval=24';
+    const endDate = '&end_date=' + ControlsComponent.dateToString(this.endDate);
+    let centers = '&centers=';
+    let norm = '&norm=';
+    const interval = '&interval=24';
     let platforms = '&platforms=';
-    let cycles    = '&cycles=';
+    let cycles = '&cycles=';
 
     /* add centers */
     for (let i = 0; i < this.centers['options'].length; i++)
@@ -599,28 +673,57 @@ export class ControlsComponent implements OnInit
     platforms = platforms.slice(0, -1);
 
     /* add the cycles */
-    if (this.c00z) { cycles += '0,'; }
-    if (this.c06z) { cycles += '6,'; }
-    if (this.c12z) { cycles += '12,'; }
-    if (this.c18z) { cycles += '18,'; }
+    if (this.c00z)
+    {
+      cycles += '0,';
+    }
+    if (this.c06z)
+    {
+      cycles += '6,';
+    }
+    if (this.c12z)
+    {
+      cycles += '12,';
+    }
+    if (this.c18z)
+    {
+      cycles += '18,';
+    }
     cycles = cycles.slice(0, -1);
 
+    /* construct the full URL and send request */
     url += startDate + endDate + centers + norm + interval + platforms + cycles;
     this.requestUrl = url;
     this.sendRequest();
   }
 
+
+  /**
+   * Send a request for a cached result
+   *
+   * @param cacheId The cache ID (i.e., hash of the request)
+   */
   submitCachedRequest(cacheId: string): void
   {
     this.requestUrl = 'https://xy4tm62l1a.execute-api.us-east-1.amazonaws.com/b1/chart?cache_id=' + cacheId;
     this.sendRequest();
   }
 
+
+  /**
+   * Send a request and register for the response
+   */
   sendRequest(): void
   {
     this.http.get(this.requestUrl).subscribe(this.responseReceived.bind(this), this.responseReceived.bind(this));
   }
 
+
+  /**
+   * Handle a response event
+   *
+   * @param event Contains a list of errors, or list of images and cache ID
+   */
   responseReceived(event): void
   {
     if (event['error'] !== undefined)
@@ -641,8 +744,7 @@ export class ControlsComponent implements OnInit
     if (event['errors'] !== undefined)
     {
       this.errorMessages = event['errors'];
-    }
-    else
+    } else
     {
       this.display.setImages(event['images']);
       this.display.setShareUrl('http://ios.jcsda.org/?cache_id=' + event['cache_id']);
@@ -650,6 +752,12 @@ export class ControlsComponent implements OnInit
     }
   }
 
+
+  /**
+   * Called by the Angular Router when query string parameters in the URL change
+   *
+   * @param params A list of query string parameters in the URL
+   */
   queryParamsChanged(params): void
   {
     if (params['cache_id'] !== undefined)

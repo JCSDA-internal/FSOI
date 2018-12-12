@@ -8,17 +8,33 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 })
 export class OptionsComponent implements OnInit
 {
+  /* The options title */
   title = '';
 
+
+  /**
+   * default constructor
+   *
+   * @param dialogRef dependency injection
+   * @param data Contains title and options
+   */
   constructor(public dialogRef: MatDialogRef<OptionsComponent>, @Inject(MAT_DIALOG_DATA) public data: object)
   {
     this.title = this.data['title'];
   }
 
+
+  /**
+   * Initialize the component
+   */
   ngOnInit()
   {
   }
 
+
+  /**
+   * Select all options
+   */
   selectAll(): void
   {
     for (let i = 0; i < this.data['list']['options'].length; i++)
@@ -27,6 +43,10 @@ export class OptionsComponent implements OnInit
     }
   }
 
+
+  /**
+   * Unselect all options
+   */
   unselectAll(): void
   {
     for (let i = 0; i < this.data['list']['options'].length; i++)
@@ -35,6 +55,10 @@ export class OptionsComponent implements OnInit
     }
   }
 
+
+  /**
+   * Invert the current selection
+   */
   invertSelection(): void
   {
     for (let i = 0; i < this.data['list']['options'].length; i++)
@@ -43,6 +67,10 @@ export class OptionsComponent implements OnInit
     }
   }
 
+
+  /**
+   * Close the dialog
+   */
   closeDialog(): void
   {
     this.dialogRef.close();

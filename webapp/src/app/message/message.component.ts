@@ -8,25 +8,46 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 })
 export class MessageComponent implements OnInit
 {
-
+  /* message title */
   title = '';
+
+  /* message text */
   message = '';
 
+
+  /**
+   * Constructor
+   *
+   * @param dialogRef dependency injection
+   * @param data Includes title and message
+   */
   constructor(public dialogRef: MatDialogRef<MessageComponent>, @Inject(MAT_DIALOG_DATA) public data: object)
   {
     this.title = data['title'];
     this.message = data['message'];
   }
 
+
+  /**
+   * Initialize the component
+   */
   ngOnInit()
   {
   }
 
+
+  /**
+   * Close the dialog
+   */
   closeDialog(): void
   {
     this.dialogRef.close();
   }
 
+
+  /**
+   * Copy message to clipboard
+   */
   copyToClipboard(): void
   {
     const selBox = document.createElement('textarea');
