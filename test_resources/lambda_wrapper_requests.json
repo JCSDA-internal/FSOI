@@ -25,6 +25,10 @@
   "requests": [
     {
       "comment": "This request should be successful",
+      "cache_id": "FE285E54AEDAA6A19DA15C3C6392F0F969DF3779AB94B734AE30520257370CEB"
+    },
+    {
+      "comment": "This request should be successful",
       "centers": "EMC,GMAO",
       "cycles": "18",
       "end_date": "20150201",

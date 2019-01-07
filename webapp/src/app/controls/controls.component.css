@@ -1,0 +1,101 @@
+.controls-grid
+{
+  display            : grid;
+  grid-template-rows : auto;
+}
+
+.control-grid-item
+{
+  padding : 20px;
+}
+
+.control-label
+{
+  font-family : "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size   : 1em;
+  margin      : 25px 0 0 0;
+}
+
+.control-cycles-grid
+{
+  display               : grid;
+  grid-gap              : 10px;
+  margin                : 10px 0 auto 20px;
+  grid-template-columns : auto auto auto auto;
+}
+
+.cycle-hint
+{
+  width       : 124px;
+  height      : 62px;
+  grid-column : 3 / span 2;
+  grid-row    : 1 / span 2;
+}
+
+.control-option-list
+{
+  display : grid;
+  margin  : 10px 0 auto 15px;
+}
+
+.control-option-button
+{
+  font-size   : 0.9em;
+  font-family : "Avenir Next", "Helvetica Neue", sans-serif;
+  font-weight : normal;
+  overflow    : hidden;
+  text-align  : left;
+}
+
+.submit-button-container
+{
+  display               : grid;
+  grid-template-columns : auto;
+  margin                : 50px auto 10px auto;
+  width                 : 100%;
+  overflow              : hidden;
+}
+
+.submit-button-container-open
+{
+  height : 50px;
+}
+
+.submit-button-container-closed
+{
+  height  : 0;
+  margin  : 0;
+  padding : 0;
+}
+
+.progress-bar
+{
+  display               : grid;
+  grid-template-columns : auto;
+  margin                : 50px auto 10px auto;
+  width                 : 100%;
+  overflow              : hidden;
+}
+
+.progress-bar-open
+{
+  height : 50px;
+}
+
+.progress-bar-closed
+{
+  height  : 0;
+  margin  : 0;
+  padding : 0;
+}
+
+.error-container
+{
+  color : #f44336;
+}
+
+
+.error-item
+{
+  margin : 3px 0 3px 30px;
+}

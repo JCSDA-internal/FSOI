@@ -51,7 +51,7 @@ def lambda_gen_fsoi_chart(event, context):
         request['centers'] = centers
 
     if not errors:
-        body = create_response_body(key_list)
+        body = create_response_body(key_list, hash_value)
         response = create_response(body)
         print(json.dumps(response))
         return response
@@ -73,6 +73,9 @@ def validate_request(request):
     # TODO: Validate the request
 
     try:
+        if 'cache_id' in request:
+            return request
+
         request['centers'] = request['centers'].split(',')
         cycles = []
         for item in request['cycles'].split(','):
@@ -338,8 +341,6 @@ def create_response(body):
     :param body: The body of the response message
     :return: An HTTP response message
     """
-    import base64
-
     response = dict()
     response['isBase64Encoded'] = False
     response['headers'] = {}
@@ -373,10 +374,11 @@ def create_error_response(error_list):
     return response
 
 
-def create_response_body(key_list):
+def create_response_body(key_list, hash_value):
     """
     Create a response body with URLs to all created images
     :param key_list: {list} A list of S3 keys to images
+    :param hash_value: {str} Hash value of the request
     :return: {str} A JSON string to be used for a response body
     """
     import os
@@ -387,12 +389,16 @@ def create_response_body(key_list):
     region = os.environ['REGION']
 
     # create an empty response
-    response = {'images': []}
+    response = {'images': [], 'cache_id': hash_value}
 
     # add each key in the list to the response
     for key in key_list:
-        center = key.split('/')[1].split('_')[0]
-        typ = key.split('/')[1].split('_')[1]
+        tokens = key.split('/')[1].split('_')
+        center = tokens[0]
+        typ = tokens[1]
+        if len(tokens) == 4:
+            center = tokens[0] + '_' + tokens[1]
+            typ = tokens[2]
         url = 'http://%s.s3-website-%s.amazonaws.com/%s' % (bucket, region, key)
         response['images'].append({'center': center, 'type': typ, 'url': url})
 
@@ -456,6 +462,9 @@ def hash_request(request):
     import json
     import base64
     import hashlib
+
+    if 'cache_id' in request:
+        return request['cache_id']
 
     req_str = json.dumps(request)
     hasher = hashlib.sha256()

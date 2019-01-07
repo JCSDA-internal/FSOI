@@ -1,0 +1,87 @@
+.header-div
+{
+  display               : grid;
+  grid-template-columns : 120px auto;
+}
+
+.control-div
+{
+  border-width  : 1px;
+  border-style  : solid;
+  border-radius : 6px;
+  padding       : 8px;
+  margin        : 10px;
+  position      : absolute;
+  top           : 98px;
+  left          : 0;
+  overflow-y    : scroll;
+  height        : calc(100% - 20px - 16px - 98px); /* 100% - 2*margin - 2*padding - header */
+  transition    : all 0.7s ease-in;
+}
+
+.control-div-open
+{
+  width : 455px;
+}
+
+.control-div-collapsed
+{
+  width : 24px;
+}
+
+.control-components-open
+{
+  visibility : visible;
+}
+
+.control-components-collapsed
+{
+  visibility : hidden;
+}
+
+.collapse-icon
+{
+  position            : relative;
+  left                : calc(100% - 8px - 16px);
+  width               : 24px;
+  height              : 24px;
+  background-size     : 100%;
+  background-repeat   : no-repeat;
+  background-position : center center;
+}
+
+.collapse-icon-open
+{
+  background-image : url("../assets/open.svg");
+}
+
+.collapse-icon-collapsed
+{
+  background-image : url("../assets/collapse.svg");
+}
+
+.display-div
+{
+  border-width  : 1px;
+  border-style  : solid;
+  border-radius : 6px;
+  padding       : 8px;
+  margin        : 10px;
+  position      : absolute;
+  overflow      : scroll;
+  top           : 98px;
+  height        : calc(100% - 20px - 16px - 98px);
+  transition    : all 0.7s ease-in;
+}
+
+.display-div-open
+{
+  left  : calc(455px + 16px + 20px);
+  width : calc(100% - (455px + 32px + 40px));
+}
+
+.display-div-collapsed
+{
+  left  : calc(24px + 20px + 16px); /* control-div-collapsed-width - control-div-margin*2 - control-div-padding*2 */
+  width : calc(100% - 24px - 55px - 16px);
+}
