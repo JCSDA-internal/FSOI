@@ -5,21 +5,17 @@ H5 files from S3 and create plots using existing functions.
 import sys
 from process_request import process_request
 
-# Add various paths for
-sys.path.extend(['../lib', 'lib', '.'])
+# Add various paths
+sys.path.extend(['/'])
 
 
-def lambda_gen_fsoi_chart(event, context):
+def main(request):
     """
     Create a chart as a PNG based on the input parameters
-    :param event: Contains the HTTP request
-    :param context: Contains details of the lambda function
-    :return: The HTTP response, including Base64-encoded PNG
+    :param request: Contains request details (not validated)
+    :return: None - result will be sent via API Gateway Websocket Connection URL
     """
     import json
-
-    # request is all query string parameters
-    request = event['queryStringParameters']
 
     # process the request
     response_body = process_request(request)
@@ -79,16 +75,14 @@ if __name__ == '__main__':
     import json
 
     global_event = {
-        'queryStringParameters': {
-            'start_date': '20150220',
-            'end_date': '20150222',
-            'centers': 'EMC',
-            'norm': 'dry',
-            'interval': '24',
-            'platforms': 'ASCAT Wind,Satellite Wind,MODIS Wind',
-            'cycles': '18'
-        }
+        'start_date': '20150220',
+        'end_date': '20150222',
+        'centers': 'EMC',
+        'norm': 'dry',
+        'interval': '24',
+        'platforms': 'ASCAT Wind,Satellite Wind,MODIS Wind',
+        'cycles': '18'
     }
 
-    global_response = lambda_gen_fsoi_chart(global_event, None)
+    global_response = main(global_event)
     print(json.dumps(global_response, indent='  '))
