@@ -1,0 +1,182 @@
+---
+Description: JCSDA's IOS FSOI Web Application
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+
+  #
+  # Create the necessary IAM roles
+  #
+
+  # Role for the lambda function
+  fsoi_lambda_role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: fsoi_lambda_role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Role for the batch jobs
+  fsoi_batch_role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: fsoi_batch_role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
+
+  #
+  # Create the necessary IAM policies
+  #
+
+  # Policy to allow read access to s3://fsoi
+  allow_read_s3_fsoi:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: allow_read_s3_fsoi
+      Roles:
+        - fsoi_batch_role
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+            - s3:GetObjectAcl
+            - s3:GetObject
+            - s3:ListBucket
+          Resource:
+            - arn:aws:s3:::fsoi/*
+            - arn:aws:s3:::fsoi
+        - Effect: Allow
+          Action: s3:HeadBucket
+          Resource: *
+
+  # Policy to allow CRUD operations on the DynamoDB table for requests
+  allow_crud_dynamodb_fsoi_requests:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: allow_crud_dynamodb_fsoi_requests
+      Roles:
+        - fsoi_batch_role
+        - fsoi_lambda_role
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:BatchWriteItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:PutItem
+          - dynamodb:DescribeTable
+          - dynamodb:DeleteItem
+          - dynamodb:GetItem
+          - dynamodb:Scan
+          - dynamodb:Query
+          - dynamodb:UpdateItem
+          - dynamodb:UpdateTable
+          - dynamodb:GetRecords
+          Resource:
+            - arn:aws:dynamodb:us-east-1:469205354006:table/fsoi_requests
+            - arn:aws:dynamodb:us-east-1:469205354006:table/fsoi_requests/stream/*
+        - Effect: Allow
+          Action: dynamodb:ListTables
+          Resource: *
+
+  # Policy to allow read/write to s3://fsoi-image-cache
+  allow_rw_s3_fsoi_image_cache:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: allow_rw_s3_fsoi_image_cache
+      Roles:
+        - fsoi_batch_role
+        - fsoi_lambda_role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:PutAnalyticsConfiguration
+              - s3:GetObjectVersionTagging
+              - s3:CreateBucket
+              - s3:ReplicateObject
+              - s3:GetObjectAcl
+              - s3:DeleteBucketWebsite
+              - s3:PutLifecycleConfiguration
+              - s3:GetObjectVersionAcl
+              - s3:PutObjectTagging
+              - s3:DeleteObject
+              - s3:DeleteObjectTagging
+              - s3:GetBucketPolicyStatus
+              - s3:GetBucketWebsite
+              - s3:PutReplicationConfiguration
+              - s3:DeleteObjectVersionTagging
+              - s3:GetBucketNotification
+              - s3:PutBucketCORS
+              - s3:GetReplicationConfiguration
+              - s3:ListMultipartUploadParts
+              - s3:PutObject
+              - s3:GetObject
+              - s3:PutBucketNotification
+              - s3:PutBucketLogging
+              - s3:GetAnalyticsConfiguration
+              - s3:GetObjectVersionForReplication
+              - s3:GetLifecycleConfiguration
+              - s3:ListBucketByTags
+              - s3:GetInventoryConfiguration
+              - s3:GetBucketTagging
+              - s3:PutAccelerateConfiguration
+              - s3:DeleteObjectVersion
+              - s3:GetBucketLogging
+              - s3:ListBucketVersions
+              - s3:ReplicateTags
+              - s3:RestoreObject
+              - s3:ListBucket
+              - s3:GetAccelerateConfiguration
+              - s3:GetBucketPolicy
+              - s3:PutEncryptionConfiguration
+              - s3:GetEncryptionConfiguration
+              - s3:GetObjectVersionTorrent
+              - s3:AbortMultipartUpload
+              - s3:PutBucketTagging
+              - s3:GetBucketRequestPayment
+              - s3:GetObjectTagging
+              - s3:GetMetricsConfiguration
+              - s3:DeleteBucket
+              - s3:PutBucketVersioning
+              - s3:GetBucketPublicAccessBlock
+              - s3:ListBucketMultipartUploads
+              - s3:PutMetricsConfiguration
+              - s3:PutObjectVersionTagging
+              - s3:GetBucketVersioning
+              - s3:GetBucketAcl
+              - s3:PutInventoryConfiguration
+              - s3:GetObjectTorrent
+              - s3:PutBucketWebsite
+              - s3:PutBucketRequestPayment
+              - s3:GetBucketCORS
+              - s3:GetBucketLocation
+              - s3:ReplicateDelete
+              - s3:GetObjectVersion
+            Resource:
+              - arn:aws:s3:::*/*
+              - arn:aws:s3:::fsoi-image-cache
+          - Effect: Allow
+            Action:
+              - s3:GetAccountPublicAccessBlock
+              - s3:ListAllMyBuckets
+              - s3:HeadBucket
+            Resource: '*'
+
+  # Policy to allow updates to API Gateway websocket clients
+  allow_post_execute_api:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: allow_post_execute_api
+      Roles:
+        - fsoi_batch_role
+        - fsoi_lambda_role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: execute-api:*
+            Resource: arn:aws:execute-api:us-east-1:469205354006:*/*/*/*
