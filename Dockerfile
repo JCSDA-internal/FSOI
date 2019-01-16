@@ -14,11 +14,13 @@ ENV DATA_BUCKET "fsoi"
 ENV FSOI_ROOT_DIR "/tmp/fsoi"
 ENV OBJECT_PREFIX "intercomp/hdf5"
 ENV REGION "us-east-1"
+ENV AWS_DEFAULT_REGION "us-east-1"
 
 RUN pip install matplotlib
 RUN pip install boto3
 RUN pip install numpy
 RUN pip install pandas
 RUN pip install tables
+RUN pip install requests
 
 CMD [ "python", "./batch_wrapper.py" ]

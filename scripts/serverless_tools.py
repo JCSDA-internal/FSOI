@@ -1,7 +1,7 @@
 """
-This module contains classes and methods to assist with request management
-and sending messages back to clients asynchronously through API Gateway websockets.
+These are functions commonly shared between Lambda and Batch processes
 """
+
 import sys
 import os
 import datetime
@@ -10,6 +10,83 @@ import hmac
 import urllib.parse
 import requests
 import boto3
+
+
+def hash_request(request):
+    """
+    Create a hash of the request data
+    :param request: {dict} A validated and sanitized request object
+    :return:
+    """
+    import json
+    import base64
+    import hashlib
+
+    if 'cache_id' in request:
+        return request['cache_id']
+
+    req_str = json.dumps(request)
+    hasher = hashlib.sha256()
+    hasher.update(req_str.encode('utf-8'))
+    return base64.b16encode(hasher.digest()).decode()
+
+
+def get_reference_id(request):
+    """
+    Get a reference ID - unique marker can be used in a log
+    file and passed to user in case of an error
+    :param request: The request value
+    :return:
+    """
+    from datetime import datetime as dt
+    import time
+    d = dt.utcfromtimestamp(time.time())
+    hash_bit = hash_request(request)[:6]
+    date_bit = '%04d-%02d-%02dT%02d:%02d:%02d' % \
+               (d.year, d.month, d.day, d.hour, d.minute, d.second)
+
+    return '%s_%s' % (hash_bit, date_bit)
+
+
+def create_error_response_body(error_list):
+    """
+    Create a response with errors
+    :param error_list: List of error messages to return to the user
+    :return: List of error messages
+    """
+    return {'errors': error_list}
+
+
+def create_response_body(key_list, hash_value):
+    """
+    Create a response body with URLs to all created images
+    :param key_list: {list} A list of S3 keys to images
+    :param hash_value: {str} Hash value of the request
+    :return: {str} A JSON string to be used for a response body
+    """
+    import os
+    import json
+
+    # get values from the environment
+    bucket = os.environ['CACHE_BUCKET']
+    region = os.environ['REGION']
+
+    # create an empty response
+    response = {'images': [], 'cache_id': hash_value}
+
+    # add each key in the list to the response
+    for key in key_list:
+        tokens = key.split('/')[1].split('_')
+        center = tokens[0]
+        typ = tokens[1]
+        if len(tokens) == 4:
+            center = tokens[0] + '_' + tokens[1]
+            typ = tokens[2]
+        url = 'http://%s.s3-website-%s.amazonaws.com/%s' % (bucket, region, key)
+        response['images'].append({'center': center, 'type': typ, 'url': url})
+
+    # return the response body as a string
+    return json.dumps(response)
 
 
 class RequestDao:
@@ -56,14 +133,18 @@ class RequestDao:
             return None
 
         # return the item
-        return {
+
+        item = {
             'req_hash': res['Item']['req_hash']['S'],
             'status_id': res['Item']['status_id']['S'],
             'message': res['Item']['message']['S'],
-            'progress': res['Item']['progress']['N'],
-            'connections': res['Item']['connections']['SS'],
-            'req_obj': res['Item']['req_obj']['S']
+            'progress': res['Item']['progress']['N']
         }
+        if 'connections' in res['Item']:
+            item['connections'] = res['Item']['connections']['SS']
+        if 'req_obj' in res['Item']:
+            item['req_obj'] = res['Item']['req_obj']['S']
+        return item
 
     @staticmethod
     def add_client_url(req_hash, client_url):
@@ -80,6 +161,26 @@ class RequestDao:
             TableName=RequestDao.REQUEST_TABLE_NAME,
             Key=key,
             UpdateExpression='ADD connections :connections',
+            ExpressionAttributeValues={':connections': {'SS': [client_url]}}
+        )
+
+        return res['ResponseMetadata']['HTTPStatusCode'] == 200
+
+    @staticmethod
+    def remove_client_url(req_hash, client_url):
+        """
+        Remove a client URL from the dynamodb table for this request
+        :param req_hash: The request hash to identify a specific request
+        :param client_url: Client url to remove
+        :return: True if successful, False if failed
+        """
+        dynamo = boto3.client('dynamodb')
+
+        key = {'req_hash': {'S': req_hash}}
+        res = dynamo.update_item(
+            TableName=RequestDao.REQUEST_TABLE_NAME,
+            Key=key,
+            UpdateExpression='DELETE connections :connections',
             ExpressionAttributeValues={':connections': {'SS': [client_url]}}
         )
 
@@ -105,7 +206,7 @@ class RequestDao:
             ExpressionAttributeValues={
                 ':status_id': {'S': status_id},
                 ':message': {'S': message},
-                ':progress': {'N': progress}
+                ':progress': {'N': str(progress)}
             }
         )
 
@@ -159,16 +260,19 @@ class ApiGatewaySender:
         service = 'execute-api'
         host = tokens[2]
         region = host.split('.')[2]
+        stage = tokens[3]
         endpoint = 'https://' + host
         connection_id = tokens[5]
 
         # get AWS credentials
-        access_key = os.environ.get('AWS_ACCESS_KEY_ID')
-        secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+        session = boto3.Session()
+        credentials = session.get_credentials()
+        credentials = credentials.get_frozen_credentials()
+        access_key = credentials.access_key
+        secret_key = credentials.secret_key
+        aws_token = credentials.token
         if access_key is None or secret_key is None:
-            print('No access key is available.')
-            print('  setenv AWS_ACCESS_KEY_ID XXX')
-            print('  setenv AWS_SECRET_ACCESS_KEY YYY')
+            print('No credentials are available.')
             sys.exit()
 
         # create a date for headers and the credential string
@@ -177,9 +281,12 @@ class ApiGatewaySender:
         datestamp = timenow.strftime('%Y%m%d')
 
         # create the canonical request
-        canonical_uri = '/v2/@connections/' + connection_id
+        canonical_uri = '/%s/@connections/%s' % (stage, connection_id)
         canonical_headers = 'host:' + host + '\n' + 'x-amz-date:' + amzdate + '\n'
         signed_headers = 'host;x-amz-date'
+        if aws_token:
+            canonical_headers += 'x-amz-security-token:' + aws_token + '\n'
+            signed_headers += ';x-amz-security-token'
         payload_hash = hashlib.sha256(request_data.encode('utf-8')).hexdigest()
         canonical_request = method + '\n' + urllib.parse.quote(canonical_uri) + '\n\n' + \
             canonical_headers + '\n' + signed_headers + '\n' + payload_hash
@@ -200,34 +307,19 @@ class ApiGatewaySender:
             credential_scope + ', ' + 'SignedHeaders=' + signed_headers + ', ' +\
             'Signature=' + signature
         headers = {'x-amz-date': amzdate, 'Authorization': authorization_header}
+        if aws_token:
+            headers['X-Amz-Security-Token'] = aws_token
 
         # send the request
         request_url = endpoint + canonical_uri
         response = requests.post(request_url, headers=headers, data=request_data)
 
+        # remove any URLs that give a 410 response code
+        # TODO: Need request hash here to remove the client connection URL
+
+        # check the response
         if response.status_code != 200:
-            print('Mission Failed:')
-            print('Response code: %d\n' % response.status_code)
-            print(response.text)
-            print(response.headers)
+            print('Response code: %d' % response.status_code)
             return False
 
         return True
-
-
-def message_all_clients(req_hash, message):
-    """
-    Send a message to all clients listening to the request
-    :param req_hash: The request hash
-    :param message: The message
-    :return: Number of clients notified
-    """
-    req = RequestDao.get_request(req_hash)
-
-    sent = 0
-
-    for url in req['connections']:
-        if ApiGatewaySender.send_message_to_ws_client(url, message):
-            sent += 1
-
-    return sent
