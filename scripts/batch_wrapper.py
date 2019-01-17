@@ -3,7 +3,11 @@ This script is an entry point for an AWS Lambda function to download
 H5 files from S3 and create plots using existing functions.
 """
 import sys
-from serverless_tools import hash_request, get_reference_id, create_response_body, create_error_response_body, RequestDao, ApiGatewaySender
+import os
+import json
+import boto3
+from serverless_tools import hash_request, get_reference_id, create_response_body, \
+    create_error_response_body, RequestDao, ApiGatewaySender
 
 # Add various paths
 sys.path.extend(['/'])
@@ -18,18 +22,22 @@ def main(request):
     :param request: Contains request details (validated)
     :return: None - result will be sent via API Gateway Websocket Connection URL
     """
-    import json
+    try:
+        # get the request hash
+        hash_value = hash_request(request)
 
-    # get the request hash
-    hash_value = hash_request(request)
+        # process the request
+        response = process_request(request)
 
-    # process the request
-    response = process_request(request)
-
-    # send the response to all listeners
-    print(json.dumps(response))
-    message_all_clients(hash_value, response)
-
+        # send the response to all listeners
+        print(json.dumps(response))
+        message_all_clients(hash_value, response)
+    except Exception as e:
+        print(e)
+        ref_id = get_reference_id(request)
+        errors.append('Request processing failed')
+        errors.append('Reference ID: %s' % ref_id)
+        update_all_clients(hash_request(request), 'FAIL', 'Request processing failed', 0)
 
 
 def process_request(validated_request):
@@ -38,8 +46,6 @@ def process_request(validated_request):
     :param validated_request: Contains all of the request details
     :return: JSON response
     """
-    import json
-
     # empty the list of errors
     del errors[:]
 
@@ -143,8 +149,6 @@ def prepare_working_dir(request):
     :param request: {dict} A validated and sanitized request object
     :return: {bool} True=success; False=failure
     """
-    import os
-
     try:
         root_dir = request['root_dir']
 
@@ -193,9 +197,6 @@ def download_s3_objects(request):
     :param request: {dict} A validated and sanitized request object
     :return: {bool} True=success; False=failure
     """
-    import boto3
-    import os
-
     try:
         bucket = os.environ['DATA_BUCKET']
         prefix = os.environ['OBJECT_PREFIX']
@@ -240,8 +241,6 @@ def process_bulk_stats(request):
     :param request: {dict} A validated and sanitized request object
     :return: None
     """
-    import sys
-    import os
     from summary_bulk import summary_bulk_main
 
     try:
@@ -277,7 +276,6 @@ def process_fsoi_summary(request):
     :param request: {dict} A validated and sanitized request object
     :return: None
     """
-    import sys
     from summary_fsoi import summary_fsoi_main
 
     try:
@@ -361,9 +359,6 @@ def cache_summary_plots_in_s3(hash_value, request):
     :param request: {dict} The full request
     :return: None
     """
-    import boto3
-    import os
-
     # retrieve relevant environment variables
     bucket = os.environ['CACHE_BUCKET']
     root_dir = os.environ['FSOI_ROOT_DIR']
@@ -402,9 +397,8 @@ def cache_summary_plots_in_s3(hash_value, request):
 
 
 if __name__ == '__main__':
-    import sys, json
     print('args:')
     for arg in sys.argv:
         print(arg)
-    request = json.loads(sys.argv[1])
-    main(request)
+    global_request = json.loads(sys.argv[1])
+    main(global_request)

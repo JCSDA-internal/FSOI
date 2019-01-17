@@ -3,7 +3,6 @@ This script is an entry point for an AWS Lambda function to download
 H5 files from S3 and create plots using existing functions.
 """
 import sys
-import os
 import json
 import boto3
 from serverless_tools import ApiGatewaySender, RequestDao, get_reference_id, hash_request, \
@@ -82,8 +81,8 @@ def submit_request(request, hash_value, client_url, ref_id):
     # TODO: jobQueue and jobDefinition should be environment variables
     res = batch.submit_job(
         jobName=hash_value,
-        jobQueue='fsoi_queue',
-        jobDefinition='fsoi_job:7',
+        jobQueue='fsoi-batch-queue',
+        jobDefinition='fsoi-batch:5',
         parameters={'request': json.dumps(request)}
     )
     submitted = res['ResponseMetadata']['HTTPStatusCode'] == 200
@@ -120,6 +119,8 @@ def send_status_to_client(job, client_url):
     # send the message to the client
     ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
 
+    pass
+
 
 def send_cached_response(job, client_url):
     """
@@ -149,6 +150,7 @@ def validate_request(request):
     :param request: The request from the user
     :return: A validated and sanitized request or None
     """
+    import os
     # TODO: Validate the request
 
     errors = []
@@ -176,6 +178,9 @@ def get_cached_object_keys(hash_value):
     :param hash_value: The hash value of the request
     :return: A list of object keys or None
     """
+    import boto3
+    import os
+
     # get the name of the s3 bucket used for caching results
     bucket = os.environ['CACHE_BUCKET']
 

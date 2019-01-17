@@ -6,4 +6,5 @@ cp ../FSOI/scripts/lambda_wrapper.py .
 cp ../FSOI/scripts/serverless_tools.py .
 zip -r $zip_file lambda_wrapper.py serverless_tools.py chardet requests urllib3 certifi idna
 
-aws lambda update-function-code --function-name handle_fsoi_request --zip-file fileb://$zip_file
+aws s3 cp $zip_file s3://jcsda-scratch/fsoi_lambda.zip
+aws lambda update-function-code --function-name fsoi_request_handler --zip-file fileb://$zip_file
