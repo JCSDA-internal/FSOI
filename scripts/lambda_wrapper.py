@@ -63,8 +63,6 @@ def main(event, context):
     else:
         send_response({'error': ['Error processing job.', ref_id]}, client_url)
 
-    return {'isBase64Encoded': False, 'body': 'Great work'}
-
 
 def submit_request(request, hash_value, client_url, ref_id):
     """
