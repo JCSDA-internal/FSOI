@@ -43,7 +43,7 @@ def main():
     df = loi.accumBulkStats(df)
     platforms = loi.OnePlatform()
     df = loi.groupBulkStats(df,platforms)
-    df = loi.tavg(df,level='PLATFORM')
+    df, df_std = loi.tavg(df,level='PLATFORM')
 
     fpkl = '%s/work/%s/tavg_stats.pkl' % (rootdir,center)
     if os.path.isfile(fpkl):

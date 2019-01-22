@@ -42,7 +42,7 @@ def load_centers(rootdir,centers,norm,cycle):
             indx = np.ma.logical_or(indx,df.index.get_level_values('DATETIME').hour == c)
         df = df[indx]
 
-        df = loi.tavg(df,level='PLATFORM')
+        df, df_std = loi.tavg(df,level='PLATFORM')
         df = loi.summarymetrics(df)
 
         DF.append(df)
@@ -92,7 +92,7 @@ def main():
             tmp = DF[c][qty]
             tmp.name = center
             tmpdf.append(tmp)
-        df = pd.concat(tmpdf,axis=1)
+        df = pd.concat(tmpdf, axis=1, sort=True)
         df = df.reindex(reversed(platforms))
         loi.comparesummaryplot(df,qty=qty,plotOpt=plotOpt)
 
