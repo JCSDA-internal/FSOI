@@ -704,7 +704,7 @@ def tavg(DF,level=None):
 
     for col in ['ObCnt','ObCntBen','ObCntNeu']:
         df[col] = df[col].astype(_np.int)
-        df[col] = df2[col].fillna(0).astype(_np.int)
+        df2[col] = df2[col].fillna(0).astype(_np.int)
 
     return df, df2
 
