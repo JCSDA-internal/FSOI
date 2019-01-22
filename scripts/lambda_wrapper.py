@@ -3,64 +3,142 @@ This script is an entry point for an AWS Lambda function to download
 H5 files from S3 and create plots using existing functions.
 """
 import sys
+import os
+import json
+import boto3
+from serverless_tools import ApiGatewaySender, RequestDao, get_reference_id, hash_request, \
+    create_response_body
 
 # Add various paths for
 sys.path.extend(['../lib', 'lib', '.'])
 
-# List to hold errors encountered during processing
-errors = []
 
-
-def lambda_gen_fsoi_chart(event, context):
+def main(event, context):
     """
     Create a chart as a PNG based on the input parameters
     :param event: Contains the HTTP request
     :param context: Contains details of the lambda function
-    :return: The HTTP response, including Base64-encoded PNG
+    :return: None
     """
-    import json
+    # request is all query string parameters
+    request = json.loads(event['body'])
 
-    # empty the list of errors
-    del errors[:]
+    # get the reference ID and put a marker in the CloudWatch Logs
+    ref_id = 'RefId: %s' % get_reference_id(request)
+    print(ref_id)
 
-    request = validate_request(event['queryStringParameters'])
+    # build the client's connection url
+    domain_name = event['requestContext']['domainName']
+    stage = event['requestContext']['stage']
+    connection_id = event['requestContext']['connectionId']
+    client_url = 'https://%s/%s/@connections/%s' % (domain_name, stage, connection_id)
+    print(client_url)
+
+    # validate the request
+    request = validate_request(request)
+    if request is None:
+        send_response('Request is invalid', client_url)
+        return
+
+    # get the request hash value
     hash_value = hash_request(request)
-    reference_id = get_reference_id(request)
 
-    print('Request hash: ' + hash_value)
-    print('Request:\n' + json.dumps(request))
+    # get the status of the request
+    job = RequestDao.get_request(hash_value)
 
-    key_list = get_cached_object_keys(hash_value)
+    # if the job has not previously been requested, or it failed, then submit a new request
+    if job is None or 'status_id' not in job or job['status_id'] == 'FAIL':
+        submit_request(request, hash_value, client_url, ref_id)
 
-    if key_list is None:
-        centers = request['centers']
-        for center in centers:
-            request['centers'] = [center]
-            clean_up(request)
-            if not errors:
-                prepare_working_dir(request)
-            if not errors:
-                download_s3_objects(request)
-            if not errors:
-                process_bulk_stats(request)
-            if not errors:
-                process_fsoi_summary(request)
-            if not errors:
-                key_list = cache_summary_plots_in_s3(hash_value, request)
-            clean_up(request)
-        request['centers'] = centers
+    # if the job is currently running or pending, notify the client and add their URL to the DB
+    elif job['status_id'] in ['PENDING', 'RUNNING']:
+        send_status_to_client(job, client_url)
+        RequestDao.add_client_url(hash_value, client_url)
 
-    if not errors:
-        body = create_response_body(key_list, hash_value)
-        response = create_response(body)
-        print(json.dumps(response))
-        return response
+    # if the job has previously completed successfully, send a cached response
+    elif job['status_id'] == 'SUCCESS':
+        send_cached_response(job, client_url)
 
-    errors.append('Reference ID: ' + reference_id)
+    # if we get here, we've missed some cases and need to fix code
+    else:
+        send_response({'error': ['Error processing job.', ref_id]}, client_url)
 
-    response = create_error_response(errors)
-    print(json.dumps(response))
-    return response
+
+def submit_request(request, hash_value, client_url, ref_id):
+    """
+    Submit a new request to run in AWS batch
+    :param request: All of the request parameters
+    :param hash_value: A hash of the request
+    :param client_url: A URL to contact the client
+    :param ref_id: A text marker in the CloudWatch Logs, user can include as ref for debugging
+    :return: None
+    """
+    # get a batch client
+    batch = boto3.client('batch')
+
+    # attempt to submit the batch job
+    # TODO: jobQueue and jobDefinition should be environment variables
+    res = batch.submit_job(
+        jobName=hash_value,
+        jobQueue='fsoi_queue',
+        jobDefinition='fsoi_job:7',
+        parameters={'request': json.dumps(request)}
+    )
+    submitted = res['ResponseMetadata']['HTTPStatusCode'] == 200
+
+    # if submitted successfully, add the request to the DB and send status to client
+    if submitted:
+        job = {
+            'req_hash': hash_value,
+            'status_id': 'PENDING',
+            'message': 'Pending',
+            'progress': '0',
+            'connections': [client_url],
+            'req_obj': json.dumps(request)
+        }
+        RequestDao.add_request(job)
+        ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
+
+    # otherwise, notify the client of an error
+    else:
+        error_message = 'Error processing request. %s' % ref_id
+        ApiGatewaySender.send_message_to_ws_client(client_url, error_message)
+
+
+def send_status_to_client(job, client_url):
+    """
+    Send the current status of the job to a client
+    :param job: A job status object from the DB
+    :param client_url: POST data to this URL
+    :return: None
+    """
+    # remove the client connection URLs from the status
+    job.pop('connections')
+
+    # send the message to the client
+    ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
+
+
+def send_cached_response(job, client_url):
+    """
+    Send a response with cached data values
+    :param job: The job status
+    :param client_url: The URL to contact the client
+    :return: None
+    """
+    key_list = get_cached_object_keys(job['req_hash'])
+    response = create_response_body(key_list, job['req_hash'])
+    send_response(response, client_url)
+
+
+def send_response(message, client_url):
+    """
+    Send a response to the client
+    :param message: The response
+    :param client_url: The URL to contact the client
+    :return: None
+    """
+    ApiGatewaySender.send_message_to_ws_client(client_url, message)
 
 
 def validate_request(request):
@@ -69,8 +147,9 @@ def validate_request(request):
     :param request: The request from the user
     :return: A validated and sanitized request or None
     """
-    import os
     # TODO: Validate the request
+
+    errors = []
 
     try:
         if 'cache_id' in request:
@@ -86,6 +165,7 @@ def validate_request(request):
     except Exception as e:
         errors.append('Error validating the request')
         print(e)
+        return None
 
 
 def get_cached_object_keys(hash_value):
@@ -94,9 +174,6 @@ def get_cached_object_keys(hash_value):
     :param hash_value: The hash value of the request
     :return: A list of object keys or None
     """
-    import boto3
-    import os
-
     # get the name of the s3 bucket used for caching results
     bucket = os.environ['CACHE_BUCKET']
 
@@ -115,387 +192,3 @@ def get_cached_object_keys(hash_value):
     for item in objects['Contents']:
         keys.append(item['Key'])
     return keys
-
-
-def prepare_working_dir(request):
-    """
-    Create all of the necessary empty directories
-    :param request: {dict} A validated and sanitized request object
-    :return: {bool} True=success; False=failure
-    """
-    import os
-
-    try:
-        root_dir = request['root_dir']
-
-        required_dirs = [root_dir, root_dir+'/work', root_dir+'/data', root_dir+'/plots/summary']
-        for center in request['centers']:
-            required_dirs.append(root_dir + '/plots/summary/' + center)
-
-        for required_dir in required_dirs:
-            if not os.path.exists(required_dir):
-                os.makedirs(required_dir)
-            elif os.path.isfile(required_dir):
-                return False
-
-        temp_files = [request['root_dir'] + '/work/EMC/dry/group_stats.pkl']
-        for temp_file in temp_files:
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
-
-        return True
-    except Exception as e:
-        errors.append('Error preparing working directory')
-        print(e)
-        return False
-
-
-def clean_up(request):
-    """
-    Clean up the temporary working directory
-    :param request: {dict} A validated and sanitized request object
-    :return: None
-    """
-    import shutil
-
-    root_dir = request['root_dir']
-
-    if root_dir is not None and root_dir != '/':
-        try:
-            shutil.rmtree(root_dir)
-        except FileNotFoundError:
-            print('%s not found when cleaning up' % root_dir)
-
-
-def download_s3_objects(request):
-    """
-    Download all required objects from S3
-    :param request: {dict} A validated and sanitized request object
-    :return: {bool} True=success; False=failure
-    """
-    import boto3
-    import os
-
-    try:
-        bucket = os.environ['DATA_BUCKET']
-        prefix = os.environ['OBJECT_PREFIX']
-        data_dir = request['root_dir'] + '/data'
-
-        get_s3_object_urls(request)
-        s3 = boto3.client('s3')
-
-        objs = get_s3_object_urls(request)
-        for obj in objs:
-            # create the local file name
-            local_dir = data_dir+'/'+obj[:obj.rfind('/')]+'/'
-            local_file = obj[obj.rfind('/')+1:]
-
-            # create the local directory if needed
-            if not os.path.exists(local_dir):
-                os.makedirs(local_dir)
-
-            # check to see if we already have the file
-            if os.path.exists(local_dir + local_file):
-                continue
-
-            # download the file from S3
-            try:
-                print('Downloading S3 object: s3://%s/%s/%s' % (bucket, prefix, obj))
-                s3.download_file(Bucket=bucket, Key=prefix+'/'+obj, Filename=local_dir+local_file)
-                if not os.path.exists(local_dir + local_file):
-                    print('Could not download S3 object: s3://%s/%s/%s' % (bucket, prefix, obj))
-                    raise Exception('Missing S3 data')
-            except Exception as e:
-                errors.append('Data missing from S3: s3://%s/%s/%s' % (bucket, prefix, obj))
-                print(e)
-
-        return True
-    except Exception as e:
-        errors.append('Error downloading data object from S3')
-        print(e)
-
-
-def process_bulk_stats(request):
-    """
-    Run the summary_bulk.py script on the data we have downloaded
-    :param request: {dict} A validated and sanitized request object
-    :return: None
-    """
-    import sys
-    import os
-    from summary_bulk import summary_bulk_main
-
-    try:
-        # delete previous work file
-        work_file = request['root_dir'] + 'work/' + request['centers'][0] + '/dry/bulk_stats.h5'
-        if os.path.exists(work_file):
-            os.remove(work_file)
-
-        sys.argv = ['script',
-                    '--center',
-                    ','.join(request['centers']),
-                    '--norm',
-                    request['norm'],
-                    '--rootdir',
-                    request['root_dir'],
-                    '--begin_date',
-                    request['start_date'] + request['cycles'][0],
-                    '--end_date',
-                    request['end_date'] + request['cycles'][0],
-                    '--interval',
-                    '24']
-
-        print('running summary_bulk_main: %s' % ' '.join(sys.argv))
-        summary_bulk_main()
-    except Exception as e:
-        errors.append('Error computing bulk statistics')
-        print(e)
-
-
-def process_fsoi_summary(request):
-    """
-    Run the fsoi_summary.py script on the bulk statistics
-    :param request: {dict} A validated and sanitized request object
-    :return: None
-    """
-    import sys
-    from summary_fsoi import summary_fsoi_main
-
-    try:
-        sys.argv = [
-            'script',
-            '--center',
-            request['centers'][0],
-            '--norm',
-            request['norm'],
-            '--rootdir',
-            request['root_dir'],
-            '--platform',
-            request['platforms'],
-            '--savefigure',
-            '--cycle'
-        ]
-        for cycle in request['cycles']:
-            sys.argv.append(cycle)
-
-        print('running summary_fsoi_main: %s' % ' '.join(sys.argv))
-        summary_fsoi_main()
-    except Exception as e:
-        errors.append('Error computing FSOI summary')
-        print(e)
-
-
-def dates_in_range(start_date, end_date):
-    """
-    Get a list of dates in the range
-    :param start_date: {str} yyyyMMdd
-    :param end_date:  {str} yyyyMMdd
-    :return: {list} List of dates in the given range (inclusive)
-    """
-    from datetime import datetime as dt
-
-    start_year = int(start_date[0:4])
-    start_month = int(start_date[4:6])
-    start_day = int(start_date[6:8])
-    start = dt(start_year, start_month, start_day)
-    s = int(start.timestamp())
-
-    end_year = int(end_date[0:4])
-    end_month = int(end_date[4:6])
-    end_day = int(end_date[6:8])
-    end = dt(end_year, end_month, end_day)
-    e = int(end.timestamp())
-
-    dates = []
-    for ts in range(s, e + 1, 86400):
-        d = dt.utcfromtimestamp(ts)
-        dates.append('%04d%02d%02d' % (d.year, d.month, d.day))
-
-    return dates
-
-
-def get_s3_object_urls(request):
-    """
-    Get a list of the S3 object URLs required to complete this request
-    :param request: {dict} A validated and sanitized request object
-    :return: {list} A list of S3 object URLs
-    """
-    start_date = request['start_date']
-    end_date = request['end_date']
-    centers = request['centers']
-    norm = request['norm']
-    cycles = request['cycles']
-
-    s3_objects = []
-    for date in dates_in_range(start_date, end_date):
-        for center in centers:
-            for cycle in cycles:
-                s3_objects.append('%s/%s.%s.%s%s.h5' % (center, center, norm, date, cycle))
-
-    return s3_objects
-
-
-def create_response(body):
-    """
-    Create a successful response with the given body
-    :param body: The body of the response message
-    :return: An HTTP response message
-    """
-    response = dict()
-    response['isBase64Encoded'] = False
-    response['headers'] = {}
-    response['headers']['Content-Type'] = 'text/json'
-    response['headers']['Content-Encoding'] = 'utf-8'
-    response['headers']['Access-Control-Allow-Origin'] = '*'
-    response['headers']['Access-Control-Allow-Credentials'] = True
-    response['body'] = body
-
-    return response
-
-
-def create_error_response(error_list):
-    """
-    Create a response with errors
-    :param error_list: List of error messages to return to the user
-    :return: List of error messages
-    """
-    import base64
-    import json
-
-    response = dict()
-    response['isBase64Encoded'] = True
-    response['headers'] = {}
-    response['headers']['Content-Type'] = 'text/json'
-    response['headers']['Content-Encoding'] = 'utf-8'
-    response['headers']['Access-Control-Allow-Origin'] = '*'
-    response['headers']['Access-Control-Allow-Credentials'] = True
-    response['body'] = base64.b64encode(json.dumps({'errors': error_list}).encode('utf-8')).decode('utf-8')
-
-    return response
-
-
-def create_response_body(key_list, hash_value):
-    """
-    Create a response body with URLs to all created images
-    :param key_list: {list} A list of S3 keys to images
-    :param hash_value: {str} Hash value of the request
-    :return: {str} A JSON string to be used for a response body
-    """
-    import os
-    import json
-
-    # get values from the environment
-    bucket = os.environ['CACHE_BUCKET']
-    region = os.environ['REGION']
-
-    # create an empty response
-    response = {'images': [], 'cache_id': hash_value}
-
-    # add each key in the list to the response
-    for key in key_list:
-        tokens = key.split('/')[1].split('_')
-        center = tokens[0]
-        typ = tokens[1]
-        if len(tokens) == 4:
-            center = tokens[0] + '_' + tokens[1]
-            typ = tokens[2]
-        url = 'http://%s.s3-website-%s.amazonaws.com/%s' % (bucket, region, key)
-        response['images'].append({'center': center, 'type': typ, 'url': url})
-
-    # return the response body as a string
-    return json.dumps(response)
-
-
-def cache_summary_plots_in_s3(hash_value, request):
-    """
-    Copy all of the new summary plots to S3
-    :param hash_value: {str} The hash value of the request
-    :param request: {dict} The full request
-    :return: None
-    """
-    import boto3
-    import os
-
-    # retrieve relevant environment variables
-    bucket = os.environ['CACHE_BUCKET']
-    root_dir = os.environ['FSOI_ROOT_DIR']
-    img_dir = root_dir + '/plots/summary'
-
-    # list of files to cache
-    files = [
-        img_dir + '/__CENTER__/__CENTER___ImpPerOb___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___FracImp___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___ObCnt___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___TotImp___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___FracNeuObs___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__Z.png'
-    ]
-
-    # create the s3 client
-    s3 = boto3.client('s3')
-
-    # loop through all centers and files
-    key_list = []
-    for center in request['centers']:
-        for cycle in request['cycles']:
-            for file in files:
-                # replace the center in the file name
-                filename = file.replace('__CENTER__', center).replace('__CYCLE__', cycle)
-                if os.path.exists(filename):
-                    print('Uploading %s to S3...' % filename)
-                    key = hash_value + '/' + filename[filename.rfind('/') + 1:]
-                    s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
-                    key_list.append(key)
-
-    if not key_list:
-        errors.append('Failed to generate plots')
-
-    return key_list
-
-
-def hash_request(request):
-    """
-    Create a hash of the request data
-    :param request: {dict} A validated and sanitized request object
-    :return:
-    """
-    import json
-    import base64
-    import hashlib
-
-    if 'cache_id' in request:
-        return request['cache_id']
-
-    req_str = json.dumps(request)
-    hasher = hashlib.sha256()
-    hasher.update(req_str.encode('utf-8'))
-    return base64.b16encode(hasher.digest()).decode()
-
-
-def get_reference_id(request):
-    from datetime import datetime as dt
-    import time
-    d = dt.utcfromtimestamp(time.time())
-    hash_bit = hash_request(request)[:6]
-    date_bit = '%04d-%02d-%02dT%02d:%02d:%02d' % (d.year, d.month, d.day, d.hour, d.minute, d.second)
-
-    return '%s_%s' % (hash_bit, date_bit)
-
-
-if __name__ == '__main__':
-    import json
-
-    global_event = {
-        'queryStringParameters': {
-            'start_date': '20150220',
-            'end_date': '20150222',
-            'centers': 'EMC',
-            'norm': 'dry',
-            'interval': '24',
-            'platforms': 'ASCAT Wind,Satellite Wind,MODIS Wind',
-            'cycles': '18'
-        }
-    }
-
-    global_response = lambda_gen_fsoi_chart(global_event, None)
-    print(json.dumps(global_response, indent='  '))
