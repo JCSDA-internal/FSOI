@@ -329,11 +329,19 @@ export class ControlsComponent implements OnInit
   /* reference to display component */
   display: DisplayComponent;
 
-  /* referense to app component */
+  /* reference to app component */
   app: AppComponent;
 
-  /* URL to request with cached images, used for sharing URL */
-  private requestUrl: string;
+  /* Object that contains a request to the server */
+  private requestData: object;
+
+  /* Websocket connection */
+  private websocket: WebSocket;
+  private websocketUrl = 'wss://0dsx2wip69.execute-api.us-east-1.amazonaws.com/v1';
+
+  /* Track all requests in this session */
+  private sessionRequests = [];
+
 
   /**
    * Constructor
@@ -587,18 +595,6 @@ export class ControlsComponent implements OnInit
 
 
   /**
-   * TODO: Is this necessary?
-   *
-   * @param func The function to call
-   * @param ms After this delay in milliseconds
-   */
-  timeout(func, ms): void
-  {
-    setTimeout(func.bind(this), ms);
-  }
-
-
-  /**
    * Change the date
    *
    * @param event Details including target and value
@@ -630,19 +626,12 @@ export class ControlsComponent implements OnInit
     this.progressBarMode = 'open';
     this.submitButtonMode = 'closed';
 
-    /* API URL */
-    let url = 'https://xy4tm62l1a.execute-api.us-east-1.amazonaws.com/b1/chart';
-
     /* Query string parameters */
-    const startDate = '?start_date=' + ControlsComponent.dateToString(this.startDate);
-    const endDate = '&end_date=' + ControlsComponent.dateToString(this.endDate);
-    let centers = '&centers=';
-    let norm = '&norm=';
-    const interval = '&interval=24';
-    let platforms = '&platforms=';
-    let cycles = '&cycles=';
+    const startDate = ControlsComponent.dateToString(this.startDate);
+    const endDate = ControlsComponent.dateToString(this.endDate);
 
     /* add centers */
+    let centers = '';
     for (let i = 0; i < this.centers['options'].length; i++)
     {
       if (this.centers['options'][i]['selected'] === true)
@@ -653,6 +642,7 @@ export class ControlsComponent implements OnInit
     centers = centers.slice(0, -1);
 
     /* add norms */
+    let norm = '';
     for (let i = 0; i < this.norm['options'].length; i++)
     {
       if (this.norm['options'][i]['selected'] === true)
@@ -663,6 +653,7 @@ export class ControlsComponent implements OnInit
     norm = norm.slice(0, -1);
 
     /* add platforms */
+    let platforms = '';
     for (let i = 0; i < this.platforms['options'].length; i++)
     {
       if (this.platforms['options'][i]['selected'] === true)
@@ -673,6 +664,7 @@ export class ControlsComponent implements OnInit
     platforms = platforms.slice(0, -1);
 
     /* add the cycles */
+    let cycles = '';
     if (this.c00z)
     {
       cycles += '0,';
@@ -691,65 +683,101 @@ export class ControlsComponent implements OnInit
     }
     cycles = cycles.slice(0, -1);
 
-    /* construct the full URL and send request */
-    url += startDate + endDate + centers + norm + interval + platforms + cycles;
-    this.requestUrl = url;
-    this.sendRequest();
+    /* construct the request */
+    this.requestData = {
+      'start_date': startDate,
+      'end_date': endDate,
+      'centers': centers,
+      'norm': norm,
+      'platforms': platforms,
+      'cycles': cycles,
+      'interval': 24
+    };
+
+    /* add a request to our session list */
+    this.sessionRequests[this.sessionRequests.length] = {
+      'progressMode': 'indeterminate',
+      'progress': 0,
+      'requestData': this.requestData
+    };
+
+    /* send the request over the websocket */
+    this.sendMessage(JSON.stringify(this.requestData));
   }
 
 
   /**
-   * Send a request for a cached result
-   *
-   * @param cacheId The cache ID (i.e., hash of the request)
+   * Get a websocket connection -- create one if it does not already exist
    */
-  submitCachedRequest(cacheId: string): void
+  getWebSocketConnection(): WebSocket
   {
-    this.requestUrl = 'https://xy4tm62l1a.execute-api.us-east-1.amazonaws.com/b1/chart?cache_id=' + cacheId;
-    this.sendRequest();
-  }
-
-
-  /**
-   * Send a request and register for the response
-   */
-  sendRequest(): void
-  {
-    this.http.get(this.requestUrl).subscribe(this.responseReceived.bind(this), this.responseReceived.bind(this));
-  }
-
-
-  /**
-   * Handle a response event
-   *
-   * @param event Contains a list of errors, or list of images and cache ID
-   */
-  responseReceived(event): void
-  {
-    if (event['error'] !== undefined)
+    if (this.websocket === undefined)
     {
-      if (event['statusText'] === 'Gateway Timeout')
-      {
-        console.log('Gateway timeout, retrying in 30 seconds');
-        setTimeout(this.sendRequest.bind(this), 30000);
-        return;
-      }
+      /* create a new websocket */
+      this.websocket = new WebSocket(this.websocketUrl);
+
+      /* add listeners for the new websocket */
+      this.websocket.onopen = function() { console.log('Websocket connection opened.'); };
+      this.websocket.onclose = function() { this.websocket = undefined; console.log('Websocket connection closed.'); }.bind(this);
+      this.websocket.onmessage = this.receiveMessage.bind(this);
+
+      return this.websocket;
     }
 
-    /* hide the progress bar and show the submit button */
-    this.progressBarMode = 'closed';
-    this.submitButtonMode = 'open';
+    /* return the websocket */
+    return this.websocket;
+  }
 
-    /* set the images array or error messages */
-    if (event['errors'] !== undefined)
+
+  /**
+   * Send a message to the server via the websocket
+   *
+   * @param data The data to send
+   */
+  sendMessage(data: string): void
+  {
+    const ws = this.getWebSocketConnection();
+
+    /* make sure the websocket is ready */
+    if (ws.readyState !== 1)
     {
-      this.errorMessages = event['errors'];
-    } else
-    {
-      this.display.setImages(event['images']);
-      this.display.setShareUrl('http://ios.jcsda.org/?cache_id=' + event['cache_id']);
-      this.errorMessages = [];
+      setTimeout(this.sendMessage.bind(this), 200, [data]);
+      return;
     }
+
+    /* send data on the websocket */
+    ws.send(JSON.stringify(this.requestData));
+    console.log('Websocket request sent: ');
+    console.log(this.requestData);
+  }
+
+
+  /**
+   * Handle an incoming message from the server
+   */
+  receiveMessage(event): void
+  {
+    console.log(event);
+
+    const data = JSON.parse(event.data);
+
+    /* if response contains 'images' attribute, show images and remove progress bar */
+    if (data.images !== undefined)
+    {
+      this.display.setImages(data.images);
+      this.progressBarMode = 'closed';
+      this.submitButtonMode = 'open';
+    }
+
+    /* if response contains 'errors' attribute, show errors */
+    if (data.errors !== undefined)
+    {
+      this.errorMessages = data.errors;
+      this.progressBarMode = 'closed';
+      this.submitButtonMode = 'open';
+    }
+    // TODO:
+    /* if response contains 'status_id' attribute, update status */
   }
 
 
@@ -760,9 +788,7 @@ export class ControlsComponent implements OnInit
    */
   queryParamsChanged(params): void
   {
-    if (params['cache_id'] !== undefined)
-    {
-      this.submitCachedRequest(params['cache_id']);
-    }
+    // TODO:
+    /* send a request for cached images using the params['cache_id'] value */
   }
 }

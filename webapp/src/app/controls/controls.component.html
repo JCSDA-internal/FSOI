@@ -63,12 +63,18 @@
             (click)="showOptionDialog('platform', true)">{{platformsSummary}}</button>
   </div>
 
-  <!-- Progress bar, normally hidden -->
-  <div class="progress-bar progress-bar-{{progressBarMode}}">
-    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-  </div>
+  <!-- Submit button -->
   <div class="submit-button-container submit-button-container-{{submitButtonMode}}">
     <button mat-raised-button color="primary" (click)="submitRequest()" [disabled]="invalidRequest">Submit</button>
+  </div>
+
+  <!-- Progress bar showing all session requests -->
+  <div class="progress-bar progress-bar-{{progressBarMode}}">
+    <mat-list>
+      <mat-list-item *ngFor="let req of sessionRequests">
+        <mat-progress-bar [mode]="req.progressMode" [value]="req.progress"></mat-progress-bar>
+      </mat-list-item>
+    </mat-list>
   </div>
 
   <!-- List of errors -->
