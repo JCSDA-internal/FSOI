@@ -14,25 +14,25 @@ import {Router, ActivatedRoute, Params} from '@angular/router';
 export class ControlsComponent implements OnInit
 {
   /* error messages */
-  errorMessages = [];
+  private errorMessages = [];
 
   /* default values are not a valid request */
-  invalidRequest = true;
+  private invalidRequest = true;
 
   /* a default start date */
-  startDate = new Date(2015, 1, 20); /* 2015-FEB-20 */
+  private startDate = new Date(2015, 1, 20); /* 2015-FEB-20 */
 
   /* a default end date */
-  endDate = new Date(2015, 1, 21); /* 2015-FEB-21 */
+  private endDate = new Date(2015, 1, 21); /* 2015-FEB-21 */
 
   /* cycle options */
-  c00z = false;
-  c06z = false;
-  c12z = false;
-  c18z = true;
+  private c00z = false;
+  private c06z = false;
+  private c12z = false;
+  private c18z = true;
 
   /* norm options */
-  norm = {
+  private norm = {
     'options': [
       {'name': 'dry', 'selected': true},
       {'name': 'moist', 'selected': false}
@@ -40,7 +40,7 @@ export class ControlsComponent implements OnInit
   };
 
   /* center options */
-  centers = {
+  private centers = {
     'options': [
       {'name': 'EMC', 'selected': true},
       {'name': 'GMAO', 'selected': true},
@@ -53,7 +53,7 @@ export class ControlsComponent implements OnInit
   };
 
   /* platform options */
-  platforms = {
+  private platforms = {
     'options': [
       {'name': 'Radiosonde', 'selected': true},
       {'name': 'Dropsonde', 'selected': true},
@@ -318,19 +318,15 @@ export class ControlsComponent implements OnInit
   };
 
   /* default summaries */
-  normSummary = '(0) No selections made';
-  centersSummary = '(0) No selections made';
-  platformsSummary = '(0) No selections made';
-
-  /* progress bar normally hidden */
-  submitButtonMode = 'open';
-  progressBarMode = 'closed';
+  private normSummary = '(0) No selections made';
+  private centersSummary = '(0) No selections made';
+  private platformsSummary = '(0) No selections made';
 
   /* reference to display component */
-  display: DisplayComponent;
+  private display: DisplayComponent;
 
   /* reference to app component */
-  app: AppComponent;
+  private app: AppComponent;
 
   /* Object that contains a request to the server */
   private requestData: object;
@@ -622,10 +618,6 @@ export class ControlsComponent implements OnInit
    */
   submitRequest(): void
   {
-    /* show the progress bar and hide the button */
-    this.progressBarMode = 'open';
-    this.submitButtonMode = 'closed';
-
     /* Query string parameters */
     const startDate = ControlsComponent.dateToString(this.startDate);
     const endDate = ControlsComponent.dateToString(this.endDate);
@@ -694,13 +686,6 @@ export class ControlsComponent implements OnInit
       'interval': 24
     };
 
-    /* add a request to our session list */
-    this.sessionRequests[this.sessionRequests.length] = {
-      'progressMode': 'indeterminate',
-      'progress': 0,
-      'requestData': this.requestData
-    };
-
     /* send the request over the websocket */
     this.sendMessage(JSON.stringify(this.requestData));
   }
@@ -765,19 +750,33 @@ export class ControlsComponent implements OnInit
     if (data.images !== undefined)
     {
       this.display.setImages(data.images);
-      this.progressBarMode = 'closed';
-      this.submitButtonMode = 'open';
     }
 
     /* if response contains 'errors' attribute, show errors */
-    if (data.errors !== undefined)
+    else if (data.errors !== undefined)
     {
       this.errorMessages = data.errors;
-      this.progressBarMode = 'closed';
-      this.submitButtonMode = 'open';
     }
-    // TODO:
+
     /* if response contains 'status_id' attribute, update status */
+    else if (data.status_id !== undefined)
+    {
+      data.progressMode = (data.status_id === 'PENDING') ? 'indeterminate' : 'determinate';
+      let added = false;
+      for (let i = 0; i < this.sessionRequests.length; i++)
+      {
+        if (this.sessionRequests[i].req_hash === data.req_hash)
+        {
+          this.sessionRequests[i] = data;
+          added = true;
+          break;
+        }
+      }
+      if (! added)
+      {
+        this.sessionRequests.splice(0, 0, data);
+      }
+    }
   }
 
 
@@ -790,5 +789,14 @@ export class ControlsComponent implements OnInit
   {
     // TODO:
     /* send a request for cached images using the params['cache_id'] value */
+  }
+
+
+  /**
+   * Call setTimeout since it is not available to angular
+   */
+  timeout(func, ms): void
+  {
+    setTimeout(func, ms);
   }
 }

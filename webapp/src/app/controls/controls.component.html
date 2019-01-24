@@ -64,17 +64,23 @@
   </div>
 
   <!-- Submit button -->
-  <div class="submit-button-container submit-button-container-{{submitButtonMode}}">
+  <div class="submit-button-container">
     <button mat-raised-button color="primary" (click)="submitRequest()" [disabled]="invalidRequest">Submit</button>
   </div>
 
   <!-- Progress bar showing all session requests -->
-  <div class="progress-bar progress-bar-{{progressBarMode}}">
-    <mat-list>
-      <mat-list-item *ngFor="let req of sessionRequests">
-        <mat-progress-bar [mode]="req.progressMode" [value]="req.progress"></mat-progress-bar>
-      </mat-list-item>
-    </mat-list>
+  <div [hidden]="sessionRequests.length == 0">
+    <mat-card class="request-card" *ngFor="let req of sessionRequests">
+      <mat-card-header>
+        <mat-card-title>{{req.req_hash.substr(0,10)}}</mat-card-title>
+        <mat-card-subtitle>{{req.message}}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content><mat-progress-bar [mode]="req.progressMode" [value]="req.progress"></mat-progress-bar></mat-card-content>
+      <mat-card-actions>
+        <button mat-button>VIEW</button>
+        <button mat-button>SHARE</button>
+      </mat-card-actions>
+    </mat-card>
   </div>
 
   <!-- List of errors -->

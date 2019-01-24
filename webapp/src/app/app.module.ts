@@ -18,7 +18,8 @@ import {
   MatNativeDateModule,
   MatFormFieldModule,
   MatInputModule,
-  MatProgressBarModule
+  MatProgressBarModule,
+  MatCardModule
 } from '@angular/material';
 import { MessageComponent } from './message/message.component';
 
@@ -43,6 +44,7 @@ import { MessageComponent } from './message/message.component';
     MatFormFieldModule,
     MatInputModule,
     MatProgressBarModule,
+    MatCardModule,
     HttpClientModule
   ],
   providers: [],
