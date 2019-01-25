@@ -99,7 +99,7 @@ def process_request(validated_request):
     print('Errors:\n%s' % ','.join(errors))
     errors.append('Reference ID: ' + reference_id)
 
-    return create_error_response_body(errors)
+    return create_error_response_body(hash_value, errors)
 
 
 def update_all_clients(req_hash, status_id, message, progress):
