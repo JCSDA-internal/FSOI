@@ -20,16 +20,16 @@ export class ControlsComponent implements OnInit
   private invalidRequest = true;
 
   /* a default start date */
-  private startDate = new Date(2015, 1, 20); /* 2015-FEB-20 */
+  startDate = new Date(2015, 1, 20); /* 2015-FEB-20 */
 
   /* a default end date */
-  private endDate = new Date(2015, 1, 21); /* 2015-FEB-21 */
+  endDate = new Date(2015, 1, 21); /* 2015-FEB-21 */
 
   /* cycle options */
-  private c00z = false;
-  private c06z = false;
-  private c12z = false;
-  private c18z = true;
+  c00z = false;
+  c06z = false;
+  c12z = false;
+  c18z = true;
 
   /* norm options */
   private norm = {
@@ -318,9 +318,9 @@ export class ControlsComponent implements OnInit
   };
 
   /* default summaries */
-  private normSummary = '(0) No selections made';
-  private centersSummary = '(0) No selections made';
-  private platformsSummary = '(0) No selections made';
+  normSummary = '(0) No selections made';
+  centersSummary = '(0) No selections made';
+  platformsSummary = '(0) No selections made';
 
   /* reference to display component */
   private display: DisplayComponent;
@@ -336,7 +336,7 @@ export class ControlsComponent implements OnInit
   private websocketUrl = 'wss://0dsx2wip69.execute-api.us-east-1.amazonaws.com/v1';
 
   /* Track all requests in this session */
-  private sessionRequests = [];
+  sessionRequests = [];
 
 
   /**

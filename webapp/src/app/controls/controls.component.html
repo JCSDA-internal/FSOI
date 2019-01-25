@@ -72,13 +72,13 @@
   <div [hidden]="sessionRequests.length == 0">
     <mat-card class="request-card" *ngFor="let req of sessionRequests">
       <mat-card-header>
-        <mat-card-title>{{req.req_hash.substr(0,10)}}</mat-card-title>
+        <mat-card-title>ID: {{req.req_hash.substr(0,10)}}</mat-card-title>
         <mat-card-subtitle>{{req.message}}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content><mat-progress-bar [mode]="req.progressMode" [value]="req.progress"></mat-progress-bar></mat-card-content>
       <mat-card-actions>
-        <button mat-button>VIEW</button>
-        <button mat-button>SHARE</button>
+        <button mat-button [disabled]="req.status_id !== 'SUCCESS'">VIEW</button>
+        <button mat-button [disabled]="req.status_id !== 'SUCCESS'">SHARE</button>
       </mat-card-actions>
     </mat-card>
   </div>
