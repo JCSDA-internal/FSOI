@@ -95,43 +95,6 @@ export class DisplayComponent implements OnInit
 
 
   /**
-   * Set the URL to share
-   *
-   * @param url Shareable URL
-   */
-  setShareUrl(url: string): void
-  {
-    this.shareUrl = url;
-  }
-
-
-  /**
-   * Show the shareable URL in a dialog
-   */
-  showShareUrl(): void
-  {
-    this.dialog.open(MessageComponent, {
-      width: '850px',
-      height: '200px',
-      data: {'title': 'Shareable URL', 'message': this.shareUrl}
-    });
-  }
-
-
-  /**
-   * Download a zip file of the images
-   */
-  downloadImages(): void
-  {
-    this.dialog.open(MessageComponent, {
-      width: '850px',
-      height: '200px',
-      data: {'title': 'Download Images', 'message': 'Sorry, this feature is not implemented yet'}
-    });
-  }
-
-
-  /**
    * Calculate the optimal size and layout for the images selected
    */
   recomputeGrid(): void

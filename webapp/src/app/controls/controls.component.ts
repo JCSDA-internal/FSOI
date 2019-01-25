@@ -5,6 +5,7 @@ import {HttpClient} from '@angular/common/http';
 import {DisplayComponent} from '../display/display.component';
 import {AppComponent} from '../app.component';
 import {Router, ActivatedRoute, Params} from '@angular/router';
+import {MessageComponent} from '../message/message.component';
 
 @Component({
   selector: 'app-controls',
@@ -687,7 +688,7 @@ export class ControlsComponent implements OnInit
     };
 
     /* send the request over the websocket */
-    this.sendMessage(JSON.stringify(this.requestData));
+    this.sendMessage(this.requestData);
   }
 
 
@@ -719,21 +720,21 @@ export class ControlsComponent implements OnInit
    *
    * @param data The data to send
    */
-  sendMessage(data: string): void
+  sendMessage(data: object): void
   {
     const ws = this.getWebSocketConnection();
 
     /* make sure the websocket is ready */
     if (ws.readyState !== 1)
     {
-      setTimeout(this.sendMessage.bind(this), 200, [data]);
+      setTimeout(this.sendMessage.bind(this), 200, data);
       return;
     }
 
     /* send data on the websocket */
-    ws.send(JSON.stringify(this.requestData));
+    ws.send(JSON.stringify(data));
     console.log('Websocket request sent: ');
-    console.log(this.requestData);
+    console.log(data);
   }
 
 
@@ -746,37 +747,58 @@ export class ControlsComponent implements OnInit
 
     const data = JSON.parse(event.data);
 
+    if (data.req_hash === undefined)
+    {
+      return;
+    }
+
+    /* find the index of this request in the sessionRequests list */
+    let requestIndex = -1;
+    for (let i = 0; i < this.sessionRequests.length; i++)
+    {
+      if (this.sessionRequests[i].req_hash === data.req_hash)
+      {
+        requestIndex = i;
+      }
+    }
+    if (requestIndex === -1)
+    {
+      this.sessionRequests.splice(0, 0, data);
+      requestIndex = 0;
+    }
+
     /* if response contains 'images' attribute, show images and remove progress bar */
     if (data.images !== undefined)
     {
       this.display.setImages(data.images);
+      this.sessionRequests[requestIndex].images = data.images;
     }
 
-    /* if response contains 'errors' attribute, show errors */
+    /* if response contains 'errors' attribute, save errors on the session requests */
     else if (data.errors !== undefined)
     {
-      this.errorMessages = data.errors;
+      this.sessionRequests[requestIndex].errors = data.errors;
     }
 
     /* if response contains 'status_id' attribute, update status */
     else if (data.status_id !== undefined)
     {
       data.progressMode = (data.status_id === 'PENDING') ? 'indeterminate' : 'determinate';
-      let added = false;
-      for (let i = 0; i < this.sessionRequests.length; i++)
-      {
-        if (this.sessionRequests[i].req_hash === data.req_hash)
-        {
-          this.sessionRequests[i] = data;
-          added = true;
-          break;
-        }
-      }
-      if (! added)
-      {
-        this.sessionRequests.splice(0, 0, data);
-      }
+      this.sessionRequests[requestIndex] = data;
     }
+  }
+
+
+  /**
+   * Show the shareable URL in a dialog
+   */
+  showShareUrl(shareUrl: string): void
+  {
+    this.dialog.open(MessageComponent, {
+      width: '850px',
+      height: '200px',
+      data: {'title': 'Shareable URL', 'message': shareUrl}
+    });
   }
 
 
@@ -787,8 +809,35 @@ export class ControlsComponent implements OnInit
    */
   queryParamsChanged(params): void
   {
-    // TODO:
     /* send a request for cached images using the params['cache_id'] value */
+    this.loadCachedImages(params['cache_id']);
+  }
+
+
+  /**
+   * Load cached images from the server
+   *
+   * @param cacheId The cache ID or request hash
+   */
+  loadCachedImages(cacheId: string): void
+  {
+    if (cacheId !== undefined)
+    {
+      this.sendMessage({'cache_id': cacheId});
+    }
+  }
+
+
+  /**
+   * Show the details of a request
+   *
+   * @param requestObj The original request object
+   * @param errors An array of strings
+   */
+  showDetails(requestObj: string, errors: object): void
+  {
+    console.log(JSON.parse(requestObj));
+    console.log(errors);
   }
 
 
