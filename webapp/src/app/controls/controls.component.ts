@@ -6,6 +6,7 @@ import {DisplayComponent} from '../display/display.component';
 import {AppComponent} from '../app.component';
 import {Router, ActivatedRoute, Params} from '@angular/router';
 import {MessageComponent} from '../message/message.component';
+import {DetailsComponent} from '../details/details.component';
 
 @Component({
   selector: 'app-controls',
@@ -15,10 +16,10 @@ import {MessageComponent} from '../message/message.component';
 export class ControlsComponent implements OnInit
 {
   /* error messages */
-  private errorMessages = [];
+  errorMessages = [];
 
   /* default values are not a valid request */
-  private invalidRequest = true;
+  invalidRequest = true;
 
   /* a default start date */
   startDate = new Date(2015, 1, 20); /* 2015-FEB-20 */
@@ -831,13 +832,17 @@ export class ControlsComponent implements OnInit
   /**
    * Show the details of a request
    *
+   * @param requestHash The hash of the request
    * @param requestObj The original request object
    * @param errors An array of strings
    */
-  showDetails(requestObj: string, errors: object): void
+  showDetails(requestHash: string, requestObj: string, errors: object): void
   {
-    console.log(JSON.parse(requestObj));
-    console.log(errors);
+    this.dialog.open(DetailsComponent, {
+      width: '700px',
+      height: '500px',
+      data: {'requestHash': requestHash, 'requestObject': requestObj, 'errors': errors}
+    });
   }
 
 

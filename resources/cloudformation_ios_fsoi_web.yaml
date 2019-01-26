@@ -324,9 +324,9 @@ Resources:
       ServiceRole: arn:aws:iam::469205354006:role/service-role/AWSBatchServiceRole
       ComputeEnvironmentName: fsoi_env
       ComputeResources:
-        MinvCpus: 0
+        MinvCpus: 2
         MaxvCpus: 24
-        DesiredvCpus: 0
+        DesiredvCpus: 2
         SecurityGroupIds:
           - Ref: BatchEnvSecurityGroup
         Type: EC2

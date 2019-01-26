@@ -19,9 +19,12 @@ import {
   MatFormFieldModule,
   MatInputModule,
   MatProgressBarModule,
-  MatCardModule
+  MatCardModule,
+  MatListModule,
+  MatGridListModule
 } from '@angular/material';
 import { MessageComponent } from './message/message.component';
+import { DetailsComponent } from './details/details.component';
 
 @NgModule({
   declarations: [
@@ -29,7 +32,8 @@ import { MessageComponent } from './message/message.component';
     ControlsComponent,
     DisplayComponent,
     OptionsComponent,
-    MessageComponent
+    MessageComponent,
+    DetailsComponent
   ],
   imports: [
     BrowserModule,
@@ -45,11 +49,13 @@ import { MessageComponent } from './message/message.component';
     MatInputModule,
     MatProgressBarModule,
     MatCardModule,
+    MatListModule,
+    MatGridListModule,
     HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent],
-  entryComponents: [OptionsComponent, MessageComponent]
+  entryComponents: [OptionsComponent, MessageComponent, DetailsComponent]
 })
 export class AppModule
 {

@@ -1,0 +1,13 @@
+.details-section-header
+{
+  background  : #ccc;
+  color       : #444;
+  font-family : "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size   : 1.1em;
+}
+
+li
+{
+  font-family : "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size   : 1em;
+}
