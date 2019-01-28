@@ -48,13 +48,14 @@ def get_reference_id(request):
     return '%s_%s' % (hash_bit, date_bit)
 
 
-def create_error_response_body(error_list):
+def create_error_response_body(req_hash, error_list):
     """
     Create a response with errors
+    :param req_hash: The request hash
     :param error_list: List of error messages to return to the user
     :return: List of error messages
     """
-    return {'errors': error_list}
+    return {'req_hash': req_hash, 'errors': error_list}
 
 
 def create_response_body(key_list, hash_value):
@@ -71,8 +72,9 @@ def create_response_body(key_list, hash_value):
     bucket = os.environ['CACHE_BUCKET']
     region = os.environ['REGION']
 
-    # create an empty response
-    response = {'images': [], 'cache_id': hash_value}
+    # create a response stub
+    response = RequestDao.get_request(hash_value)
+    response['images'] = []
 
     # add each key in the list to the response
     for key in key_list:

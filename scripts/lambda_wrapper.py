@@ -34,6 +34,11 @@ def main(event, context):
     client_url = 'https://%s/%s/@connections/%s' % (domain_name, stage, connection_id)
     print(client_url)
 
+    # if this is a request for a cached job, return the cached images
+    if 'cache_id' in request:
+        send_cached_response(request['cache_id'], client_url)
+        return
+
     # validate the request
     request = validate_request(request)
     if request is None:
@@ -57,7 +62,7 @@ def main(event, context):
 
     # if the job has previously completed successfully, send a cached response
     elif job['status_id'] == 'SUCCESS':
-        send_cached_response(job, client_url)
+        send_cached_response(job['req_hash'], client_url)
 
     # if we get here, we've missed some cases and need to fix code
     else:
@@ -81,7 +86,7 @@ def submit_request(request, hash_value, client_url, ref_id):
     res = batch.submit_job(
         jobName=hash_value,
         jobQueue='fsoi_queue',
-        jobDefinition='fsoi_job:7',
+        jobDefinition='fsoi_job:8',
         parameters={'request': json.dumps(request)}
     )
     submitted = res['ResponseMetadata']['HTTPStatusCode'] == 200
@@ -119,15 +124,15 @@ def send_status_to_client(job, client_url):
     ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
 
 
-def send_cached_response(job, client_url):
+def send_cached_response(req_hash, client_url):
     """
     Send a response with cached data values
-    :param job: The job status
+    :param req_hash: The request hash
     :param client_url: The URL to contact the client
     :return: None
     """
-    key_list = get_cached_object_keys(job['req_hash'])
-    response = create_response_body(key_list, job['req_hash'])
+    key_list = get_cached_object_keys(req_hash)
+    response = create_response_body(key_list, req_hash)
     send_response(response, client_url)
 
 

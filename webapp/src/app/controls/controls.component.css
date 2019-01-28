@@ -54,18 +54,7 @@
   margin                : 50px auto 10px auto;
   width                 : 100%;
   overflow              : hidden;
-}
-
-.submit-button-container-open
-{
-  height : 50px;
-}
-
-.submit-button-container-closed
-{
-  height  : 0;
-  margin  : 0;
-  padding : 0;
+  height                : 50px;
 }
 
 .progress-bar
@@ -98,4 +87,9 @@
 .error-item
 {
   margin : 3px 0 3px 30px;
+}
+
+.request-card
+{
+  margin-bottom: 16px;
 }
