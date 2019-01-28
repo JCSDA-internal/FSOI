@@ -23,7 +23,7 @@ export class DetailsComponent implements OnInit
   /**
    * A list of strings containing any error messages -- may be undefined if there are no errors
    */
-  errors: object;
+  errors: any;
 
 
   /**
