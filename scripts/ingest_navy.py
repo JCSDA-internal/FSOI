@@ -1,3 +1,10 @@
+"""
+This script will download a file from NRL's anonymous FTP site, upload it to an S3 bucket
+and submit a batch job to convert the file to HDF5 format that can be used by the IOS webapp.
+This script is intended to be called once per day by CloudWatch Events.
+"""
+
+
 def ftp_download_file(host, remote_file, local_file=None):
     """
     Download a file from an FTP site anonymously
@@ -31,6 +38,12 @@ def ftp_download_file(host, remote_file, local_file=None):
 
 
 def main(event, context):
+    """
+    The main lambda entry point, or main function if called stand-alone
+    :param event: {NoneType} Not used, but required for Lambda
+    :param context: {NoneType} Not used, but required for Lambda
+    :return: None
+    """
     import os
     import time
     import datetime
