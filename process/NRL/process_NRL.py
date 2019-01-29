@@ -26,7 +26,7 @@ def kt_def():
           3  : ['u','U-wind component','m/s'],
           4  : ['v','V-wind component','m/s'],
           5  : ['q','Humidity',''],
-          6  : ['UNK', 'Unknown', 'unknown'],
+          6  : ['ozone', 'Ozone Percentage Backscatter', '%'],
           8  : ['wspd','Surface Wind Speed','m/s'],
           11 : ['ps','Surface Pressure','hPa'],
           13 : ['Tb','Brightness Temperature','K'],
@@ -328,8 +328,6 @@ def main():
         lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
     print('Total obs = %d' % (nobs))
-
-    sys.exit(0)
 
 if __name__ == '__main__':
     main()
