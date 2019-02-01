@@ -20,7 +20,8 @@
 #   > aws cloudformation update-stack --stack-name IOSwebapp --template-body \
 #   >     fileb://resources/cloudformation_ios_fsoi_web.yaml
 #   # Update lambda code if it has changed:
-#   > aws lambda
+#   > aws lambda update-function-code --function-name fsoi_request_handler \
+#         --s3-bucket jcsda-scratch --s3-key fsoi_lambda.zip
 
 # 4. Until API Gateway v2 is supported in CloudFormation, create it manually from the console:
 #   a. Create a new API with WEBSOCKET protocol.

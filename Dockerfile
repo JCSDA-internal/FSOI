@@ -2,6 +2,13 @@ FROM python:3
 
 ADD scripts/*.py /
 ADD lib/*.py /
+ADD process/EMC/*.py /
+ADD process/GMAO/*.py /
+ADD process/JMA/*.py /
+ADD process/MET/*.py /
+ADD process/MeteoFr/*.py /
+ADD process/NRL/*.py /
+ADD Scientific.tar.gz /
 ADD docker/usr/bin/* /usr/bin/
 ADD docker/usr/include/* /usr/include/
 ADD docker/usr/lib/* /usr/lib/
