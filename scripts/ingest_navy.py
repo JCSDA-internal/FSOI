@@ -81,6 +81,17 @@ def main(event, context):
         s3 = boto3.client('s3')
         s3.upload_file(Filename=local_file, Bucket=bucket_name, Key=key)
 
+        # submit a batch job to convert the file to HDF5 format
+        input_url = 's3://%s/%s' % (bucket_name, key)
+        output_url = os.environ['OUTPUT_URL_TEMPLATE'].replace('DATE', date_str)
+        batch = boto3.client('batch')
+        batch.submit_job(
+            jobName='NRL-Ingest-%s-00Z' % date_str,
+            jobQueue='fsoi_ingest_queue',
+            jobDefinition='fsoi_ingest_nrl_job:8',
+            parameters={'input_url': input_url, 'output_url': output_url}
+        )
+
         # check the response and print our CloudWatch information
         log['ok'] = True
         print(json.dumps(log))
