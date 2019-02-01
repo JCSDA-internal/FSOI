@@ -78,6 +78,7 @@ def kx_def():
     kx[196] = 'CrIS'
     kx[197] = 'ATMS'
     kx[198] = 'GMI'
+    kx[199] = 'SAPHIR'
     kx[200] = 'AMSR2'
     kx[201] = 'wndmi'
     kx[210] = 'AMSUA'
