@@ -5,6 +5,8 @@ import {HttpClient} from '@angular/common/http';
 import {DisplayComponent} from '../display/display.component';
 import {AppComponent} from '../app.component';
 import {Router, ActivatedRoute, Params} from '@angular/router';
+import {MessageComponent} from '../message/message.component';
+import {DetailsComponent} from '../details/details.component';
 
 @Component({
   selector: 'app-controls',
@@ -32,7 +34,7 @@ export class ControlsComponent implements OnInit
   c18z = true;
 
   /* norm options */
-  norm = {
+  private norm = {
     'options': [
       {'name': 'dry', 'selected': true},
       {'name': 'moist', 'selected': false}
@@ -40,7 +42,7 @@ export class ControlsComponent implements OnInit
   };
 
   /* center options */
-  centers = {
+  private centers = {
     'options': [
       {'name': 'EMC', 'selected': true},
       {'name': 'GMAO', 'selected': true},
@@ -53,7 +55,7 @@ export class ControlsComponent implements OnInit
   };
 
   /* platform options */
-  platforms = {
+  private platforms = {
     'options': [
       {'name': 'Radiosonde', 'selected': true},
       {'name': 'Dropsonde', 'selected': true},
@@ -322,18 +324,22 @@ export class ControlsComponent implements OnInit
   centersSummary = '(0) No selections made';
   platformsSummary = '(0) No selections made';
 
-  /* progress bar normally hidden */
-  submitButtonMode = 'open';
-  progressBarMode = 'closed';
-
   /* reference to display component */
-  display: DisplayComponent;
+  private display: DisplayComponent;
 
-  /* referense to app component */
-  app: AppComponent;
+  /* reference to app component */
+  private app: AppComponent;
 
-  /* URL to request with cached images, used for sharing URL */
-  private requestUrl: string;
+  /* Object that contains a request to the server */
+  private requestData: object;
+
+  /* Websocket connection */
+  private websocket: WebSocket;
+  private websocketUrl = 'wss://0dsx2wip69.execute-api.us-east-1.amazonaws.com/v1';
+
+  /* Track all requests in this session */
+  sessionRequests = [];
+
 
   /**
    * Constructor
@@ -587,18 +593,6 @@ export class ControlsComponent implements OnInit
 
 
   /**
-   * TODO: Is this necessary?
-   *
-   * @param func The function to call
-   * @param ms After this delay in milliseconds
-   */
-  timeout(func, ms): void
-  {
-    setTimeout(func.bind(this), ms);
-  }
-
-
-  /**
    * Change the date
    *
    * @param event Details including target and value
@@ -626,23 +620,12 @@ export class ControlsComponent implements OnInit
    */
   submitRequest(): void
   {
-    /* show the progress bar and hide the button */
-    this.progressBarMode = 'open';
-    this.submitButtonMode = 'closed';
-
-    /* API URL */
-    let url = 'https://xy4tm62l1a.execute-api.us-east-1.amazonaws.com/b1/chart';
-
     /* Query string parameters */
-    const startDate = '?start_date=' + ControlsComponent.dateToString(this.startDate);
-    const endDate = '&end_date=' + ControlsComponent.dateToString(this.endDate);
-    let centers = '&centers=';
-    let norm = '&norm=';
-    const interval = '&interval=24';
-    let platforms = '&platforms=';
-    let cycles = '&cycles=';
+    const startDate = ControlsComponent.dateToString(this.startDate);
+    const endDate = ControlsComponent.dateToString(this.endDate);
 
     /* add centers */
+    let centers = '';
     for (let i = 0; i < this.centers['options'].length; i++)
     {
       if (this.centers['options'][i]['selected'] === true)
@@ -653,6 +636,7 @@ export class ControlsComponent implements OnInit
     centers = centers.slice(0, -1);
 
     /* add norms */
+    let norm = '';
     for (let i = 0; i < this.norm['options'].length; i++)
     {
       if (this.norm['options'][i]['selected'] === true)
@@ -663,6 +647,7 @@ export class ControlsComponent implements OnInit
     norm = norm.slice(0, -1);
 
     /* add platforms */
+    let platforms = '';
     for (let i = 0; i < this.platforms['options'].length; i++)
     {
       if (this.platforms['options'][i]['selected'] === true)
@@ -673,6 +658,7 @@ export class ControlsComponent implements OnInit
     platforms = platforms.slice(0, -1);
 
     /* add the cycles */
+    let cycles = '';
     if (this.c00z)
     {
       cycles += '0,';
@@ -691,65 +677,129 @@ export class ControlsComponent implements OnInit
     }
     cycles = cycles.slice(0, -1);
 
-    /* construct the full URL and send request */
-    url += startDate + endDate + centers + norm + interval + platforms + cycles;
-    this.requestUrl = url;
-    this.sendRequest();
+    /* construct the request */
+    this.requestData = {
+      'start_date': startDate,
+      'end_date': endDate,
+      'centers': centers,
+      'norm': norm,
+      'platforms': platforms,
+      'cycles': cycles,
+      'interval': 24
+    };
+
+    /* send the request over the websocket */
+    this.sendMessage(this.requestData);
   }
 
 
   /**
-   * Send a request for a cached result
-   *
-   * @param cacheId The cache ID (i.e., hash of the request)
+   * Get a websocket connection -- create one if it does not already exist
    */
-  submitCachedRequest(cacheId: string): void
+  getWebSocketConnection(): WebSocket
   {
-    this.requestUrl = 'https://xy4tm62l1a.execute-api.us-east-1.amazonaws.com/b1/chart?cache_id=' + cacheId;
-    this.sendRequest();
-  }
-
-
-  /**
-   * Send a request and register for the response
-   */
-  sendRequest(): void
-  {
-    this.http.get(this.requestUrl).subscribe(this.responseReceived.bind(this), this.responseReceived.bind(this));
-  }
-
-
-  /**
-   * Handle a response event
-   *
-   * @param event Contains a list of errors, or list of images and cache ID
-   */
-  responseReceived(event): void
-  {
-    if (event['error'] !== undefined)
+    if (this.websocket === undefined)
     {
-      if (event['statusText'] === 'Gateway Timeout')
+      /* create a new websocket */
+      this.websocket = new WebSocket(this.websocketUrl);
+
+      /* add listeners for the new websocket */
+      this.websocket.onopen = function() { console.log('Websocket connection opened.'); };
+      this.websocket.onclose = function() { this.websocket = undefined; console.log('Websocket connection closed.'); }.bind(this);
+      this.websocket.onmessage = this.receiveMessage.bind(this);
+
+      return this.websocket;
+    }
+
+    /* return the websocket */
+    return this.websocket;
+  }
+
+
+  /**
+   * Send a message to the server via the websocket
+   *
+   * @param data The data to send
+   */
+  sendMessage(data: object): void
+  {
+    const ws = this.getWebSocketConnection();
+
+    /* make sure the websocket is ready */
+    if (ws.readyState !== 1)
+    {
+      setTimeout(this.sendMessage.bind(this), 200, data);
+      return;
+    }
+
+    /* send data on the websocket */
+    ws.send(JSON.stringify(data));
+    console.log('Websocket request sent: ');
+    console.log(data);
+  }
+
+
+  /**
+   * Handle an incoming message from the server
+   */
+  receiveMessage(event): void
+  {
+    console.log(event);
+
+    const data = JSON.parse(event.data);
+
+    if (data.req_hash === undefined)
+    {
+      return;
+    }
+
+    /* find the index of this request in the sessionRequests list */
+    let requestIndex = -1;
+    for (let i = 0; i < this.sessionRequests.length; i++)
+    {
+      if (this.sessionRequests[i].req_hash === data.req_hash)
       {
-        console.log('Gateway timeout, retrying in 30 seconds');
-        setTimeout(this.sendRequest.bind(this), 30000);
-        return;
+        requestIndex = i;
       }
     }
-
-    /* hide the progress bar and show the submit button */
-    this.progressBarMode = 'closed';
-    this.submitButtonMode = 'open';
-
-    /* set the images array or error messages */
-    if (event['errors'] !== undefined)
+    if (requestIndex === -1)
     {
-      this.errorMessages = event['errors'];
-    } else
-    {
-      this.display.setImages(event['images']);
-      this.display.setShareUrl('http://ios.jcsda.org/?cache_id=' + event['cache_id']);
-      this.errorMessages = [];
+      this.sessionRequests.splice(0, 0, data);
+      requestIndex = 0;
     }
+
+    /* if response contains 'images' attribute, show images and remove progress bar */
+    if (data.images !== undefined)
+    {
+      this.display.setImages(data.images);
+      this.sessionRequests[requestIndex].images = data.images;
+    }
+
+    /* if response contains 'errors' attribute, save errors on the session requests */
+    else if (data.errors !== undefined)
+    {
+      this.sessionRequests[requestIndex].errors = data.errors;
+    }
+
+    /* if response contains 'status_id' attribute, update status */
+    else if (data.status_id !== undefined)
+    {
+      data.progressMode = (data.status_id === 'PENDING') ? 'indeterminate' : 'determinate';
+      this.sessionRequests[requestIndex] = data;
+    }
+  }
+
+
+  /**
+   * Show the shareable URL in a dialog
+   */
+  showShareUrl(shareUrl: string): void
+  {
+    this.dialog.open(MessageComponent, {
+      width: '850px',
+      height: '200px',
+      data: {'title': 'Shareable URL', 'message': shareUrl}
+    });
   }
 
 
@@ -760,9 +810,47 @@ export class ControlsComponent implements OnInit
    */
   queryParamsChanged(params): void
   {
-    if (params['cache_id'] !== undefined)
+    /* send a request for cached images using the params['cache_id'] value */
+    this.loadCachedImages(params['cache_id']);
+  }
+
+
+  /**
+   * Load cached images from the server
+   *
+   * @param cacheId The cache ID or request hash
+   */
+  loadCachedImages(cacheId: string): void
+  {
+    if (cacheId !== undefined)
     {
-      this.submitCachedRequest(params['cache_id']);
+      this.sendMessage({'cache_id': cacheId});
     }
+  }
+
+
+  /**
+   * Show the details of a request
+   *
+   * @param requestHash The hash of the request
+   * @param requestObj The original request object
+   * @param errors An array of strings
+   */
+  showDetails(requestHash: string, requestObj: string, errors: object): void
+  {
+    this.dialog.open(DetailsComponent, {
+      width: '700px',
+      height: '500px',
+      data: {'requestHash': requestHash, 'requestObject': requestObj, 'errors': errors}
+    });
+  }
+
+
+  /**
+   * Call setTimeout since it is not available to angular
+   */
+  timeout(func, ms): void
+  {
+    setTimeout(func, ms);
   }
 }

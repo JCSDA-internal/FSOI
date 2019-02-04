@@ -58,9 +58,14 @@ def process_request(validated_request):
     print('Request hash: %s' % hash_value)
     print('Request:\n%s' % json.dumps(validated_request))
 
+    # track the progress percentage
+    progress = 0
+    progress_step = int(94/len(validated_request['centers'])/3)
+
     # download data from S3
-    update_all_clients(hash_value, 'RUNNING', 'Accessing data objects', 27)
+    update_all_clients(hash_value, 'RUNNING', 'Accessing data objects', progress)
     download_s3_objects(validated_request)
+    progress += 5
 
     # iterate over each of the requested centers
     key_list = []
@@ -70,14 +75,17 @@ def process_request(validated_request):
         if not errors:
             prepare_working_dir(validated_request)
         if not errors:
-            update_all_clients(hash_value, 'RUNNING', 'Processing bulk stats for %s' % center, 27)
+            update_all_clients(hash_value, 'RUNNING', 'Processing bulk stats for %s' % center, progress)
             process_bulk_stats(validated_request)
+            progress += progress_step
         if not errors:
-            update_all_clients(hash_value, 'RUNNING', 'Processing FSOI summary for %s' % center, 27)
+            update_all_clients(hash_value, 'RUNNING', 'Processing FSOI summary for %s' % center, progress)
             process_fsoi_summary(validated_request)
+            progress += progress_step
         if not errors:
-            update_all_clients(hash_value, 'RUNNING', 'Storing images for %s' % center, 27)
-            key_list = cache_summary_plots_in_s3(hash_value, validated_request)
+            update_all_clients(hash_value, 'RUNNING', 'Storing images for %s' % center, progress)
+            key_list += cache_summary_plots_in_s3(hash_value, validated_request)
+            progress += progress_step
     clean_up(validated_request)
     validated_request['centers'] = centers
 
@@ -87,11 +95,11 @@ def process_request(validated_request):
         return create_response_body(key_list, hash_value)
 
     # handle error cases
-    update_all_clients(hash_value, 'FAIL', 'Failed to process request', 27)
+    update_all_clients(hash_value, 'FAIL', 'Failed to process request', progress)
     print('Errors:\n%s' % ','.join(errors))
     errors.append('Reference ID: ' + reference_id)
 
-    return create_error_response_body(errors)
+    return create_error_response_body(hash_value, errors)
 
 
 def update_all_clients(req_hash, status_id, message, progress):

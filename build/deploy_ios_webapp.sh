@@ -4,7 +4,7 @@
 
 # 1. Create the docker image and push it to AWS ECR.  This image will process requests:
 #   > docker build -t 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch .
-#   > aws ecr get-login
+#   > aws ecr get-login --no-include-email
 #   The command above will generate a docker login command.  Execute the generated command.
 #   > docker push 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch
 
@@ -19,6 +19,9 @@
 # 3b. Update the CloudFormation stack (if the stack IS already running):
 #   > aws cloudformation update-stack --stack-name IOSwebapp --template-body \
 #   >     fileb://resources/cloudformation_ios_fsoi_web.yaml
+#   # Update lambda code if it has changed:
+#   > aws lambda update-function-code --function-name fsoi_request_handler \
+#         --s3-bucket jcsda-scratch --s3-key fsoi_lambda.zip
 
 # 4. Until API Gateway v2 is supported in CloudFormation, create it manually from the console:
 #   a. Create a new API with WEBSOCKET protocol.

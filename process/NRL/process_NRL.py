@@ -26,6 +26,7 @@ def kt_def():
           3  : ['u','U-wind component','m/s'],
           4  : ['v','V-wind component','m/s'],
           5  : ['q','Humidity',''],
+          6  : ['ozone', 'Ozone Percentage Backscatter', '%'],
           8  : ['wspd','Surface Wind Speed','m/s'],
           11 : ['ps','Surface Pressure','hPa'],
           13 : ['Tb','Brightness Temperature','K'],
@@ -60,9 +61,12 @@ def kx_def():
         kx[key] = 'AVHRR_Wind'
     kx[89] = 'LEO-GEO'
     kx[90] = 'UW_wiIR'
+    kx[91] = 'GAVHR'
     kx[101] = ['Radiosonde','PIBAL','Dropsonde']
     kx[125] = 'SSMI_PRH'
     kx[126] = 'WINDSAT_PRH'
+    kx[160] = 'SBUV2'
+    kx[166] = 'OMPS'
     kx[179] = 'GPSRO'
     kx[184] = 'MHS'
     kx[185] = 'SSMIS'
@@ -73,6 +77,10 @@ def kx_def():
     kx[194] = 'SEVIRI'
     kx[196] = 'CrIS'
     kx[197] = 'ATMS'
+    kx[198] = 'GMI'
+    kx[199] = 'SAPHIR'
+    kx[200] = 'AMSR2'
+    kx[201] = 'wndmi'
     kx[210] = 'AMSUA'
     kx[250] = 'SSMI_TPW'
     kx[251] = 'WINDSAT_TPW'
@@ -95,7 +103,7 @@ def parse_line(line,kt,kx):
     obtyp = datain[10]
     instyp = datain[11]
     irflag = datain[13]
-    schar = datain[15] + '  ' + datain[16]
+    schar = str(datain[15]) + '  ' + str(datain[16])
     num_reject = datain[19]
     resid = datain[22]
     sens = datain[23]
@@ -103,7 +111,7 @@ def parse_line(line,kt,kx):
     impact = omf * sens
 
     if skip_ob(instyp,oberr,num_reject,impact):
-        print line.strip()
+        print(line.strip())
         return None
 
     platform,channel = get_platform_channel(instyp,schar,kx)
@@ -271,8 +279,8 @@ def main():
 
     try:
         fh = gzip.open(fname,'rb')
-    except RuntimeError,e:
-        raise IOError(e.messaage + ' ' + fname)
+    except RuntimeError as e:
+        raise IOError(e + ' ' + fname)
 
     for _ in range(75):
         fh.readline()
@@ -283,9 +291,16 @@ def main():
     lines = fh.readlines()
     fh.close()
 
+    line_number = 75
     nobs = 0
     bufr = []
     for line in lines:
+
+        line_number += 1
+
+        # convert any byte array to a string
+        if isinstance(line, bytes):
+            line = line.decode()
 
         data = parse_line(line,kt,kx)
 
@@ -313,9 +328,7 @@ def main():
         if os.path.isfile(fname_out): os.remove(fname_out)
         lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
-    print 'Total obs = %d' % (nobs)
-
-    sys.exit(0)
+    print('Total obs = %d' % (nobs))
 
 if __name__ == '__main__':
     main()
