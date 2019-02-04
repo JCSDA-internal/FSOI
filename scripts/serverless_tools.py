@@ -48,21 +48,23 @@ def get_reference_id(request):
     return '%s_%s' % (hash_bit, date_bit)
 
 
-def create_error_response_body(req_hash, error_list):
+def create_error_response_body(req_hash, error_list, warn_list):
     """
     Create a response with errors
     :param req_hash: The request hash
     :param error_list: List of error messages to return to the user
-    :return: List of error messages
+    :param warn_list: List of warning messages to return to the user
+    :return: Formatted response body
     """
     return {'req_hash': req_hash, 'errors': error_list}
 
 
-def create_response_body(key_list, hash_value):
+def create_response_body(key_list, hash_value, warns):
     """
     Create a response body with URLs to all created images
     :param key_list: {list} A list of S3 keys to images
     :param hash_value: {str} Hash value of the request
+    :param warns: {list} A list of warnings possibly empty
     :return: {str} A JSON string to be used for a response body
     """
     import os
@@ -75,6 +77,7 @@ def create_response_body(key_list, hash_value):
     # create a response stub
     response = RequestDao.get_request(hash_value)
     response['images'] = []
+    response['warnings'] = warns
 
     # add each key in the list to the response
     for key in key_list:
