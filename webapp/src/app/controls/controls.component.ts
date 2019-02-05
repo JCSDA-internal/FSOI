@@ -753,6 +753,11 @@ export class ControlsComponent implements OnInit
       return;
     }
 
+    /* set warning and error flags */
+    data.isComplete = data.images !== undefined;
+    data.hasErrors = data.errors !== undefined && data.errors.length > 0;
+    data.hasWarnings = data.warnings !== undefined && data.warnings.length > 0;
+
     /* find the index of this request in the sessionRequests list */
     let requestIndex = -1;
     for (let i = 0; i < this.sessionRequests.length; i++)
@@ -773,12 +778,14 @@ export class ControlsComponent implements OnInit
     {
       this.display.setImages(data.images);
       this.sessionRequests[requestIndex].images = data.images;
+      this.sessionRequests[requestIndex].isComplete = true;
     }
 
     /* if response contains 'errors' attribute, save errors on the session requests */
     else if (data.errors !== undefined)
     {
       this.sessionRequests[requestIndex].errors = data.errors;
+      this.sessionRequests[requestIndex].hasErrors = true;
     }
 
     /* if response contains 'status_id' attribute, update status */
@@ -786,6 +793,13 @@ export class ControlsComponent implements OnInit
     {
       data.progressMode = (data.status_id === 'PENDING') ? 'indeterminate' : 'determinate';
       this.sessionRequests[requestIndex] = data;
+    }
+
+    /* if response contains 'warnings' attribute, save warnings on the session requests */
+    if (data.warnings !== undefined && data.warnings.length > 0)
+    {
+      this.sessionRequests[requestIndex].warnings = data.warnings;
+      this.sessionRequests[requestIndex].hasWarnings = true;
     }
   }
 
@@ -835,13 +849,14 @@ export class ControlsComponent implements OnInit
    * @param requestHash The hash of the request
    * @param requestObj The original request object
    * @param errors An array of strings
+   * @param warnings An array of strings
    */
-  showDetails(requestHash: string, requestObj: string, errors: object): void
+  showDetails(requestHash: string, requestObj: string, errors: object, warnings: object): void
   {
     this.dialog.open(DetailsComponent, {
       width: '700px',
       height: '500px',
-      data: {'requestHash': requestHash, 'requestObject': requestObj, 'errors': errors}
+      data: {'requestHash': requestHash, 'requestObject': requestObj, 'errors': errors, 'warnings': warnings}
     });
   }
 

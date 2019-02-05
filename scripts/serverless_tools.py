@@ -56,7 +56,7 @@ def create_error_response_body(req_hash, error_list, warn_list):
     :param warn_list: List of warning messages to return to the user
     :return: Formatted response body
     """
-    return {'req_hash': req_hash, 'errors': error_list}
+    return {'req_hash': req_hash, 'errors': error_list, 'warnings': warn_list}
 
 
 def create_response_body(key_list, hash_value, warns):
