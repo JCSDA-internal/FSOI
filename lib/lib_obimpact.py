@@ -971,11 +971,40 @@ def summaryplot(df,qty='TotImp',plotOpt={},std=None):
 
     return fig
 
-def comparesummaryplot(df,qty='TotImp',plotOpt={}):
+def getcomparesummarypalette(centers=['GMAO', 'NRL', 'MET', 'MeteoFr', 'JMA_adj', 'JMA_ens', 'EMC']):
+    """
+    Get a color palette that can be passed to comparesummaryplot
+    :param centers: A list of centers in the plot
+    :return: A color palette
+    """
+    colors = {
+        'GMAO': '#b23136',          # 178, 49, 54
+        'NRL': '#dd684c',           # 221, 104, 76
+        'MET': '#e3e3ce',           # 227, 227, 206
+        'MeteoFr': '#878d92',       # 135, 141, 146
+        'JMA_adj': '#3eafa8',       # 62, 175, 168
+        'JMA_ens': '#15695d',       # 21, 105, 93
+        'EMC': '#e1f2f2',           # 225, 242, 242
+        'ExtraBonus': '#e7a53e'     # 231, 165, 62
+    }
+
+    # create a palette so that each center always maps to the same color
+    palette = []
+    for center in centers:
+        if center in colors:
+            palette.append(colors[center])
+        else:
+            palette.append(colors['ExtraBonus'])
+
+    return palette
+
+def comparesummaryplot(df,palette,qty='TotImp',plotOpt={}):
 
     alpha = plotOpt['alpha']
-    barcolors = ["#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"]
-    barcolors = reversed(barcolors)
+    barcolors = reversed(palette)
+
+    if palette is not None:
+        barcolors = palette
 
     width = 0.9
     df.plot.barh(width=width,stacked=True,color=barcolors,alpha=alpha,edgecolor='k',linewidth=1.25)

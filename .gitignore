@@ -9,3 +9,5 @@
 *.o
 venv
 docker
+webapp/dist
+webapp/node_modules

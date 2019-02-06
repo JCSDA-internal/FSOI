@@ -62,11 +62,12 @@ def sort_centers(DF,pref):
 def main():
 
     parser = ArgumentParser(description = 'Create and Plot Comparison Observation Impact Statistics',formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',required=False)
+    parser.add_argument('--rootdir',help='root path to directory',type=str,required=True)
     parser.add_argument('--platform',help='platforms to plot',type=str,default='full',choices=['full','conv','rad'],required=False)
-    parser.add_argument('--cycle',help='cycle to process',nargs='+',type=int,default=[0],choices=[0,6,12,18],required=False)
-    parser.add_argument('--norm',help='metric norm',type=str,default='dry',choices=['dry','moist'],required=False)
+    parser.add_argument('--cycle',help='cycle to process',nargs='+',type=int,choices=[0,6,12,18],required=True)
+    parser.add_argument('--norm',help='metric norm',type=str,choices=['dry','moist'],required=True)
     parser.add_argument('--savefigure',help='save figures',action='store_true',required=False)
+    parser.add_argument('--centers', help='comma-separated list of centers', type=str, required=True)
 
     args = parser.parse_args()
 
@@ -75,10 +76,11 @@ def main():
     cycle = sorted(list(set(args.cycle)))
     norm = args.norm
     savefig = args.savefigure
+    centers = [center.strip() for center in args.centers.split(',')]
+    palette = loi.getcomparesummarypalette(centers)
 
     cyclestr = ''.join('%02dZ' % c for c in cycle)
 
-    centers = ['GMAO','NRL','MET','MeteoFr','JMA_adj','JMA_ens','EMC']
     platforms = loi.RefPlatform(platform)
 
     DF = load_centers(rootdir,centers,norm,cycle)
@@ -94,7 +96,7 @@ def main():
             tmpdf.append(tmp)
         df = pd.concat(tmpdf, axis=1, sort=True)
         df = df.reindex(reversed(platforms))
-        loi.comparesummaryplot(df,qty=qty,plotOpt=plotOpt)
+        loi.comparesummaryplot(df,palette,qty=qty,plotOpt=plotOpt)
 
     if savefig:
         plt.close('all')
