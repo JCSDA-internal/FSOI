@@ -333,15 +333,15 @@ def process_fsoi_compare(request):
             'script',
             '--rootdir',
             request['root_dir'],
-            '--centers',
-            ','.join(request['centers']),
+            '--centers']
+        sys.argv += request['centers']
+        sys.argv += [
             '--norm',
             request['norm'],
             '--savefigure',
             '--cycle'
         ]
-        for cycle in request['cycles']:
-            sys.argv.append(cycle)
+        sys.argv += request['cycles']
 
         print('running compare_fsoi_main: %s' % ' '.join(sys.argv))
         compare_fsoi_main()

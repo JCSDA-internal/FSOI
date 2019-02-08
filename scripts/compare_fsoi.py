@@ -67,7 +67,7 @@ def compare_fsoi_main():
     parser.add_argument('--cycle',help='cycle to process',nargs='+',type=int,choices=[0,6,12,18],required=True)
     parser.add_argument('--norm',help='metric norm',type=str,choices=['dry','moist'],required=True)
     parser.add_argument('--savefigure',help='save figures',action='store_true',required=False)
-    parser.add_argument('--centers', help='comma-separated list of centers', type=str, required=True)
+    parser.add_argument('--centers', help='list of centers', type=str, nargs='+', choices=['EMC', 'GMAO', 'NRL', 'JMA_adj', 'JMA_ens', 'MET', 'MeteoFr'], required=True)
 
     args = parser.parse_args()
 
@@ -76,7 +76,7 @@ def compare_fsoi_main():
     cycle = sorted(list(set(args.cycle)))
     norm = args.norm
     savefig = args.savefigure
-    centers = [center.strip() for center in args.centers.split(',')]
+    centers = args.centers
     palette = loi.getcomparesummarypalette(centers)
 
     cyclestr = ''.join('%02dZ' % c for c in cycle)
