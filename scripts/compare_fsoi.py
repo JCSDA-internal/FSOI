@@ -59,7 +59,7 @@ def sort_centers(DF,pref):
         df.append(tmp)
     return df
 
-def main():
+def compare_fsoi_main():
 
     parser = ArgumentParser(description = 'Create and Plot Comparison Observation Impact Statistics',formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--rootdir',help='root path to directory',type=str,required=True)
@@ -103,6 +103,5 @@ def main():
     else:
         plt.show()
 
-    sys.exit(0)
 
-if __name__ == '__main__': main()
+if __name__ == '__main__': compare_fsoi_main()

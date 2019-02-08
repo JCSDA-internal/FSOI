@@ -60,7 +60,7 @@ def process_request(validated_request):
 
     # track the progress percentage
     progress = 0
-    progress_step = int(94/len(validated_request['centers'])/3)
+    progress_step = int(90/len(validated_request['centers'])/3)
 
     # download data from S3
     update_all_clients(hash_value, 'RUNNING', 'Accessing data objects', progress)
@@ -86,6 +86,19 @@ def process_request(validated_request):
             update_all_clients(hash_value, 'RUNNING', 'Storing images for %s' % center, progress)
             key_list += cache_summary_plots_in_s3(hash_value, validated_request)
             progress += progress_step
+
+    # restore original list of centers
+    validated_request['centers'] = centers
+
+    # create the comparison summary plots
+    if not errors:
+        update_all_clients(hash_value, 'RUNNING', 'Creating comparison plots', progress)
+        process_fsoi_compare(validated_request)
+        progress += 3
+        update_all_clients(hash_value, 'RUNNING', 'Storing comparison plots', progress)
+        key_list += cache_compare_plots_in_s3(hash_value, validated_request)
+        progress += 1
+
     clean_up(validated_request)
     validated_request['centers'] = centers
 
@@ -160,7 +173,9 @@ def prepare_working_dir(request):
     try:
         root_dir = request['root_dir']
 
-        required_dirs = [root_dir, root_dir+'/work', root_dir+'/data', root_dir+'/plots/summary']
+        required_dirs = [root_dir, root_dir+'/work', root_dir+'/data', root_dir+'/plots/summary',
+                         root_dir+'/plots/compare/full', root_dir+'/plots/compare/rad',
+                         root_dir+'/plots/compare/conv']
         for center in request['centers']:
             required_dirs.append(root_dir + '/plots/summary/' + center)
 
@@ -169,11 +184,6 @@ def prepare_working_dir(request):
                 os.makedirs(required_dir)
             elif os.path.isfile(required_dir):
                 return False
-
-        temp_files = [request['root_dir'] + '/work/EMC/dry/group_stats.pkl']
-        for temp_file in temp_files:
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
 
         return True
     except Exception as e:
@@ -310,6 +320,36 @@ def process_fsoi_summary(request):
         print(e)
 
 
+def process_fsoi_compare(request):
+    """
+    Run the compare_fsoi.py script on the final statistics
+    :param request:
+    :return:
+    """
+    from compare_fsoi import compare_fsoi_main
+
+    try:
+        sys.argv = [
+            'script',
+            '--rootdir',
+            request['root_dir'],
+            '--centers',
+            ','.join(request['centers']),
+            '--norm',
+            request['norm'],
+            '--savefigure',
+            '--cycle'
+        ]
+        for cycle in request['cycles']:
+            sys.argv.append(cycle)
+
+        print('running compare_fsoi_main: %s' % ' '.join(sys.argv))
+        compare_fsoi_main()
+    except Exception as e:
+        errors.append('Error creating FSOI comparison plots')
+        print(e)
+
+
 def dates_in_range(start_date, end_date):
     """
     Get a list of dates in the range
@@ -358,6 +398,46 @@ def get_s3_object_urls(request):
                 s3_objects.append('%s/%s.%s.%s%s.h5' % (center, center, norm, date, cycle))
 
     return s3_objects
+
+
+def cache_compare_plots_in_s3(hash_value, request):
+    """
+    Copy all of the new comparison plots to S3
+    :param hash_value: {str} The hash value of the request
+    :param request: {dict} The full request
+    :return: None
+    """
+    # retrieve relevant environment variables
+    bucket = os.environ['CACHE_BUCKET']
+    root_dir = os.environ['FSOI_ROOT_DIR']
+    img_dir = root_dir + '/plots/compare/full'
+
+    # list of files to cache
+    files = [
+        img_dir + '/ImpPerOb___CYCLE__Z.png',
+        img_dir + '/FracImp___CYCLE__Z.png',
+        img_dir + '/ObCnt___CYCLE__Z.png',
+        img_dir + '/TotImp___CYCLE__Z.png',
+        img_dir + '/FracNeuObs___CYCLE__Z.png',
+        img_dir + '/FracBenObs___CYCLE__Z.png'
+    ]
+
+    # create the s3 client
+    s3 = boto3.client('s3')
+
+    # loop through all centers and files
+    key_list = []
+    for cycle in request['cycles']:
+        for file in files:
+            # replace the center in the file name
+            filename = file.replace('__CYCLE__', cycle)
+            if os.path.exists(filename):
+                print('Uploading %s to S3...' % filename)
+                key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
+                s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
+                key_list.append(key)
+
+    return key_list
 
 
 def cache_summary_plots_in_s3(hash_value, request):

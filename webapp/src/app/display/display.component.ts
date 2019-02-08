@@ -158,6 +158,19 @@ export class DisplayComponent implements OnInit
 
 
   /**
+   * Select only images that show inter-center comparisons
+   */
+  selectOnlyComparisons(): void
+  {
+    for (let i = 0; i < this.allImages.length; i++)
+    {
+      this.allImages[i].selected = (this.allImages[i].center.startsWith('compare'));
+    }
+    this.setImages(this.allImages);
+  }
+
+
+  /**
    * Select only images that match the given type
    *
    * @param type Select all images for this type
