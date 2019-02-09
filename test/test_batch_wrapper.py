@@ -32,7 +32,8 @@ def test_all_requests():
     # run tests for requests that should fail
     for req in f:
         # add the root_dir to the request, this normally happens when 'validate_request'
-        # is called in the lambda function.  batch_wrapper.py assumes this has already been called.
+        # is called in the lambda function.  However, we are skipping the lambda function,
+        # so we must do it here before calling batch_wrapper.main()
         req['root_dir'] = '/tmp/pycharm/test/fsoi'
 
         # add an unused request field to generate a unique hash
@@ -48,7 +49,8 @@ def test_all_requests():
     # run tests for requests that should pass
     for req in p:
         # add the root_dir to the request, this normally happens when 'validate_request'
-        # is called in the lambda function.  batch_wrapper.py assumes this has already been called.
+        # is called in the lambda function.  However, we are skipping the lambda function,
+        # so we must do it here before calling batch_wrapper.main()
         req['root_dir'] = '/tmp/pycharm/test/fsoi'
 
         # add an unused request field to generate a unique hash

@@ -91,5 +91,11 @@
 
 .request-card
 {
-  margin-bottom: 16px;
+  margin-bottom : 16px;
+}
+
+.statusIcon
+{
+  position : relative;
+  top      : 6px;
 }
