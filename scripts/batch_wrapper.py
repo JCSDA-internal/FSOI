@@ -114,7 +114,10 @@ def process_request(validated_request):
         key_list += cache_compare_plots_in_s3(hash_value, validated_request)
         progress += 1
 
+    # clean up the working directory
     clean_up(validated_request)
+
+    # restore the request to its original value
     validated_request['centers'] = centers
 
     # handle success cases
@@ -496,29 +499,33 @@ def cache_summary_plots_in_s3(hash_value, request):
 
     # list of files to cache
     files = [
-        img_dir + '/__CENTER__/__CENTER___ImpPerOb___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___FracImp___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___ObCnt___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___TotImp___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___FracNeuObs___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__Z.png'
+        img_dir + '/__CENTER__/__CENTER___ImpPerOb___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___FracImp___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___ObCnt___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___TotImp___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___FracNeuObs___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__.png'
     ]
 
     # create the s3 client
     s3 = boto3.client('s3')
 
+    # create the cycle identifier
+    cycle = ''
+    for c in request['cycles']:
+        cycle += '%02dZ' % int(c)
+
     # loop through all centers and files
     key_list = []
     for center in request['centers']:
-        for cycle in request['cycles']:
-            for file in files:
-                # replace the center in the file name
-                filename = file.replace('__CENTER__', center).replace('__CYCLE__', cycle)
-                if os.path.exists(filename):
-                    print('Uploading %s to S3...' % filename)
-                    key = hash_value + '/' + filename[filename.rfind('/') + 1:]
-                    s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
-                    key_list.append(key)
+        for file in files:
+            # replace the center in the file name
+            filename = file.replace('__CENTER__', center).replace('__CYCLE__', cycle)
+            if os.path.exists(filename):
+                print('Uploading %s to S3...' % filename)
+                key = hash_value + '/' + filename[filename.rfind('/') + 1:]
+                s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
+                key_list.append(key)
 
     if not key_list:
         errors.append('Failed to generate plots')
