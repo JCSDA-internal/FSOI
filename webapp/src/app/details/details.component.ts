@@ -27,6 +27,12 @@ export class DetailsComponent implements OnInit
 
 
   /**
+   * A list of strings containing any warning messages -- may be undefined if there are no warnings
+   */
+  warnings: any;
+
+
+  /**
    * Construct the details dialog
    *
    * @param dialogRef Reference to the material dialog
@@ -40,6 +46,7 @@ export class DetailsComponent implements OnInit
     this.requestHash = data['requestHash'];
     this.requestObject = JSON.parse(data['requestObject']);
     this.errors = (data['errors'] === undefined) ? [] : data['errors'];
+    this.warnings = (data['warnings'] === undefined) ? [] : data['warnings'];
   }
 
 

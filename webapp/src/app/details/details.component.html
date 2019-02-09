@@ -42,6 +42,15 @@
       </mat-list>
     </div>
 
+    <div class="details-section-header">WARNINGS</div>
+    <div>
+      <mat-list>
+        <mat-list-item *ngFor="let warning of warnings">
+          <li>{{warning}}</li>
+        </mat-list-item>
+      </mat-list>
+    </div>
+
     <div class="details-section-header">ERRORS</div>
     <div>
       <mat-list>

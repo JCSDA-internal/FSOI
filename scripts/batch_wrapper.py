@@ -12,8 +12,9 @@ from serverless_tools import hash_request, get_reference_id, create_response_bod
 # Add various paths
 sys.path.extend(['/'])
 
-# List to hold errors encountered during processing
+# List to hold errors and warnings encountered during processing
 errors = []
+warns = []
 
 
 def main(request):
@@ -48,6 +49,7 @@ def process_request(validated_request):
     """
     # empty the list of errors
     del errors[:]
+    del warns[:]
 
     # compute the hash value and get a reference ID
     hash_value = hash_request(validated_request)
@@ -64,8 +66,21 @@ def process_request(validated_request):
 
     # download data from S3
     update_all_clients(hash_value, 'RUNNING', 'Accessing data objects', progress)
-    download_s3_objects(validated_request)
+    objects = download_s3_objects(validated_request)
     progress += 5
+
+    # analyze downloaded data to determine if there were any centers with no
+    # data, and remove those centers (if any) from the request and add a warning
+    center_counts = {}
+    for object in objects:
+        if object[1] not in center_counts:
+            center_counts[object[1]] = 0
+        if object[5]:
+            center_counts[object[1]] += 1
+    for center in center_counts:
+        if center_counts[center] == 0:
+            warns.append('No data available for %s' % center)
+            validated_request['centers'].remove(center)
 
     # iterate over each of the requested centers
     key_list = []
@@ -105,14 +120,15 @@ def process_request(validated_request):
     # handle success cases
     if not errors:
         update_all_clients(hash_value, 'SUCCESS', 'Done.', 100)
-        return create_response_body(key_list, hash_value)
+        return create_response_body(key_list, hash_value, warns)
 
     # handle error cases
     update_all_clients(hash_value, 'FAIL', 'Failed to process request', progress)
     print('Errors:\n%s' % ','.join(errors))
+    print('Warnings:\n%s' % ','.join(warns))
     errors.append('Reference ID: ' + reference_id)
 
-    return create_error_response_body(hash_value, errors)
+    return create_error_response_body(hash_value, errors, warns)
 
 
 def update_all_clients(req_hash, status_id, message, progress):
@@ -213,7 +229,9 @@ def download_s3_objects(request):
     """
     Download all required objects from S3
     :param request: {dict} A validated and sanitized request object
-    :return: {bool} True=success; False=failure
+    :return: {list} A list of lists, where each item in the main list is an object that was expected
+                    to be downloaded.  The sub lists contain [s3_key, center, norm, date, cycle,
+                    downloaded_boolean]
     """
     try:
         bucket = os.environ['DATA_BUCKET']
@@ -223,10 +241,14 @@ def download_s3_objects(request):
         s3 = boto3.client('s3')
 
         objs = get_s3_object_urls(request)
+        s3msgs = []
+        all_data_missing = True
         for obj in objs:
+            key = obj[0]
+
             # create the local file name
-            local_dir = data_dir+'/'+obj[:obj.rfind('/')]+'/'
-            local_file = obj[obj.rfind('/')+1:]
+            local_dir = data_dir+'/'+key[:key.rfind('/')]+'/'
+            local_file = key[key.rfind('/')+1:]
 
             # create the local directory if needed
             if not os.path.exists(local_dir):
@@ -234,23 +256,36 @@ def download_s3_objects(request):
 
             # check to see if we already have the file
             if os.path.exists(local_dir + local_file):
+                obj.append(True)
                 continue
 
             # download the file from S3
             try:
-                print('Downloading S3 object: s3://%s/%s/%s' % (bucket, prefix, obj))
-                s3.download_file(Bucket=bucket, Key=prefix+'/'+obj, Filename=local_dir+local_file)
+                print('Downloading S3 object: s3://%s/%s/%s' % (bucket, prefix, key))
+                s3.download_file(Bucket=bucket, Key=prefix+'/'+key, Filename=local_dir+local_file)
                 if not os.path.exists(local_dir + local_file):
-                    print('Could not download S3 object: s3://%s/%s/%s' % (bucket, prefix, obj))
-                    raise Exception('Missing S3 data')
+                    print('Could not download S3 object: s3://%s/%s/%s' % (bucket, prefix, key))
+                    obj.append(False)
+                else:
+                    all_data_missing = False
+                    obj.append(True)
             except Exception as e:
-                errors.append('Data missing from S3: s3://%s/%s/%s' % (bucket, prefix, obj))
+                s3msgs.append('Data missing from S3: s3://%s/%s/%s' % (bucket, prefix, key))
+                obj.append(False)
                 print(e)
 
-        return True
+        # put the S3 download messages either into errors or warns
+        for msg in s3msgs:
+            if all_data_missing:
+                errors.append(msg)
+            else:
+                warns.append(msg)
+
+        return objs
     except Exception as e:
         errors.append('Error downloading data object from S3')
         print(e)
+        return objs
 
 
 def process_bulk_stats(request):
@@ -383,7 +418,8 @@ def get_s3_object_urls(request):
     """
     Get a list of the S3 object URLs required to complete this request
     :param request: {dict} A validated and sanitized request object
-    :return: {list} A list of S3 object URLs
+    :return: {list} A list of objects expected to be downloaded, where each item in the list is
+                    a list containing [s3_key, center, norm, date, cycle].
     """
     start_date = request['start_date']
     end_date = request['end_date']
@@ -395,7 +431,13 @@ def get_s3_object_urls(request):
     for date in dates_in_range(start_date, end_date):
         for center in centers:
             for cycle in cycles:
-                s3_objects.append('%s/%s.%s.%s%s.h5' % (center, center, norm, date, cycle))
+                s3_objects.append([
+                    '%s/%s.%s.%s%s.h5' % (center, center, norm, date, cycle),
+                    center,
+                    norm,
+                    date,
+                    cycle]
+                )
 
     return s3_objects
 
