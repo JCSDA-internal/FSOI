@@ -7,11 +7,11 @@ a docker container in AWS Batch.
 import os
 import sys
 import shutil
-import boto3
 import bz2
 import gzip
 from argparse import ArgumentParser
 from argparse import ArgumentDefaultsHelpFormatter as ArgDefault
+import boto3
 
 
 def parse_args():
@@ -120,7 +120,7 @@ def main():
     workspace = prepare_workspace()
     if workspace is None:
         print('Failed to prepare workspace')
-        return -3
+        return
     os.chdir(workspace)
 
     # download the input file from S3

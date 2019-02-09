@@ -9,6 +9,11 @@
       <button mat-stroked-button (click)="selectAll()">All</button>
     </div>
 
+    <!-- show button to select all comparison images if images are present -->
+    <div *ngIf="allImages.length > 0" class="display-button-container">
+      <button mat-stroked-button (click)="selectOnlyComparisons()">Center Comparisons</button>
+    </div>
+
     <!-- show button to exclusively select a center -->
     <div class="display-button-container" *ngFor="let center of uniqueCenters">
       <button mat-stroked-button (click)="selectOnlyCenter(center)">{{center}} Only</button>
