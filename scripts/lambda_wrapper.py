@@ -132,7 +132,7 @@ def send_cached_response(req_hash, client_url):
     :return: None
     """
     key_list = get_cached_object_keys(req_hash)
-    response = create_response_body(key_list, req_hash)
+    response = create_response_body(key_list, req_hash, [])
     send_response(response, client_url)
 
 
