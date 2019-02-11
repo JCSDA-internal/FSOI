@@ -273,7 +273,11 @@ def download_s3_objects(request):
                     all_data_missing = False
                     obj.append(True)
             except Exception as e:
-                s3msgs.append('Data missing from S3: s3://%s/%s/%s' % (bucket, prefix, key))
+                tokens = key.split('.')
+                center = tokens[0]
+                date = tokens[2][0:8]
+                cycle = tokens[2][8:]
+                s3msgs.append('Missing data: %s %s %sZ' % (center, date, cycle))
                 obj.append(False)
                 print(e)
 
@@ -317,7 +321,7 @@ def process_bulk_stats(request):
                     '--end_date',
                     request['end_date'] + request['cycles'][-1],
                     '--interval',
-                    request['interval']]
+                    str(request['interval'])]
 
         print('running summary_bulk_main: %s' % ' '.join(sys.argv))
         summary_bulk_main()
