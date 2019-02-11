@@ -463,28 +463,32 @@ def cache_compare_plots_in_s3(hash_value, request):
 
     # list of files to cache
     files = [
-        img_dir + '/ImpPerOb___CYCLE__Z.png',
-        img_dir + '/FracImp___CYCLE__Z.png',
-        img_dir + '/ObCnt___CYCLE__Z.png',
-        img_dir + '/TotImp___CYCLE__Z.png',
-        img_dir + '/FracNeuObs___CYCLE__Z.png',
-        img_dir + '/FracBenObs___CYCLE__Z.png'
+        img_dir + '/ImpPerOb___CYCLE__.png',
+        img_dir + '/FracImp___CYCLE__.png',
+        img_dir + '/ObCnt___CYCLE__.png',
+        img_dir + '/TotImp___CYCLE__.png',
+        img_dir + '/FracNeuObs___CYCLE__.png',
+        img_dir + '/FracBenObs___CYCLE__.png'
     ]
 
     # create the s3 client
     s3 = boto3.client('s3')
 
+    # create the cycle identifier
+    cycle = ''
+    for c in request['cycles']:
+        cycle += '%02dZ' % int(c)
+
     # loop through all centers and files
     key_list = []
-    for cycle in request['cycles']:
-        for file in files:
-            # replace the center in the file name
-            filename = file.replace('__CYCLE__', cycle)
-            if os.path.exists(filename):
-                print('Uploading %s to S3...' % filename)
-                key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
-                s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
-                key_list.append(key)
+    for file in files:
+        # replace the center in the file name
+        filename = file.replace('__CYCLE__', cycle)
+        if os.path.exists(filename):
+            print('Uploading %s to S3...' % filename)
+            key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
+            s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
+            key_list.append(key)
 
     return key_list
 
