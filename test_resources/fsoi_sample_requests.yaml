@@ -5,10 +5,9 @@ requests:
       end_date: '20141202'
       cycles:
         - '00'
-        - '06'
         - '12'
         - '18'
-      interval: 24
+      interval: '6'
       centers:
         - EMC
       norm: dry

@@ -315,9 +315,9 @@ def process_bulk_stats(request):
                     '--begin_date',
                     request['start_date'] + request['cycles'][0],
                     '--end_date',
-                    request['end_date'] + request['cycles'][0],
+                    request['end_date'] + request['cycles'][-1],
                     '--interval',
-                    '24']
+                    request['interval']]
 
         print('running summary_bulk_main: %s' % ' '.join(sys.argv))
         summary_bulk_main()
