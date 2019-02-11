@@ -322,7 +322,7 @@ Resources:
     Properties:
       Type: MANAGED
       ServiceRole: arn:aws:iam::469205354006:role/service-role/AWSBatchServiceRole
-      ComputeEnvironmentName: fsoi_webapp_env_v2
+      ComputeEnvironmentName: fsoi_webapp_env_v3
       ComputeResources:
         MinvCpus: 8
         MaxvCpus: 24
@@ -334,7 +334,7 @@ Resources:
           - optimal
         # This AMI has a larger LVM partition to allow more storage for the docker containers
         # Some fun reading: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-ami-storage-config.html
-        ImageId: ami-08e2c67002eaf0136
+        ImageId: ami-07ee9fed984790191
         Ec2KeyPair: ios-webapp-batch
         InstanceRole: arn:aws:iam::469205354006:instance-profile/ecsInstanceRole
         Subnets:
@@ -349,7 +349,7 @@ Resources:
     Properties:
       ComputeEnvironmentOrder:
         - Order: 1
-          ComputeEnvironment: fsoi_webapp_env_v2
+          ComputeEnvironment: fsoi_webapp_env_v3
       State: ENABLED
       Priority: 100
       JobQueueName: fsoi_queue
