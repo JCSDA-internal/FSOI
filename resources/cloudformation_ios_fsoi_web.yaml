@@ -367,7 +367,7 @@ Resources:
           - python
           - /batch_wrapper.py
           - Ref::request
-        Memory: 8192
+        Memory: 32768
         JobRoleArn:
           Ref: FsoiBatchRole
         Vcpus: 2

@@ -10,4 +10,4 @@ cd ../
 
 aws s3 cp $zip_file s3://jcsda-scratch/fsoi_lambda.zip
 aws s3 cp $zip_file s3://jcsda-scratch/$zip_file
-#aws lambda update-function-code --function-name fsoi_request_handler --zip-file fileb://$zip_file
+aws lambda update-function-code --function-name fsoi_request_handler --zip-file fileb://$zip_file
