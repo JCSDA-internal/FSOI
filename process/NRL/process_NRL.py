@@ -15,7 +15,7 @@ from datetime import datetime
 from Scientific.IO import FortranFormat as ff
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
-sys.path.append('../../lib')
+sys.path.extend(['../../lib', '../lib'])
 import lib_utils as lutils
 import lib_obimpact as loi
 
@@ -90,9 +90,12 @@ def kx_def():
 def parse_line(line,kt,kx):
 
     fmtstr = 'i7,f9.3,1x,f8.2,1x,f8.2,1x,f8.2,f9.3,1x,f9.2,1x,f9.2,1x,f9.2,1x,f11.5,1x,i2,1x,i3,4x,i2,4x,i1,3x,i5,2x,a16,a12,4x,i1,2x,i1,3x,i1,1x,e13.6,1x,e13.6,1x,e13.6,1x,e13.6'
-    fmt = ff.FortranFormat(fmtstr)
 
+    fmt = ff.FortranFormat(fmtstr)
     datain = ff.FortranLine(line,fmt)
+
+    # line_reader = FortranRecordReader(fmtstr)
+    # datain = line_reader.read(line)
 
     ob = datain[1]
     omf = datain[4]
