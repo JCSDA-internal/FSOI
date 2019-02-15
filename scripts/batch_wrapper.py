@@ -114,7 +114,10 @@ def process_request(validated_request):
         key_list += cache_compare_plots_in_s3(hash_value, validated_request)
         progress += 1
 
+    # clean up the working directory
     clean_up(validated_request)
+
+    # restore the request to its original value
     validated_request['centers'] = centers
 
     # handle success cases
@@ -270,7 +273,11 @@ def download_s3_objects(request):
                     all_data_missing = False
                     obj.append(True)
             except Exception as e:
-                s3msgs.append('Data missing from S3: s3://%s/%s/%s' % (bucket, prefix, key))
+                tokens = key.split('.')
+                center = tokens[0]
+                date = tokens[2][0:8]
+                cycle = tokens[2][8:]
+                s3msgs.append('Missing data: %s %s %sZ' % (center, date, cycle))
                 obj.append(False)
                 print(e)
 
@@ -312,9 +319,9 @@ def process_bulk_stats(request):
                     '--begin_date',
                     request['start_date'] + request['cycles'][0],
                     '--end_date',
-                    request['end_date'] + request['cycles'][0],
+                    request['end_date'] + request['cycles'][-1],
                     '--interval',
-                    '24']
+                    str(request['interval'])]
 
         print('running summary_bulk_main: %s' % ' '.join(sys.argv))
         summary_bulk_main()
@@ -456,28 +463,32 @@ def cache_compare_plots_in_s3(hash_value, request):
 
     # list of files to cache
     files = [
-        img_dir + '/ImpPerOb___CYCLE__Z.png',
-        img_dir + '/FracImp___CYCLE__Z.png',
-        img_dir + '/ObCnt___CYCLE__Z.png',
-        img_dir + '/TotImp___CYCLE__Z.png',
-        img_dir + '/FracNeuObs___CYCLE__Z.png',
-        img_dir + '/FracBenObs___CYCLE__Z.png'
+        img_dir + '/ImpPerOb___CYCLE__.png',
+        img_dir + '/FracImp___CYCLE__.png',
+        img_dir + '/ObCnt___CYCLE__.png',
+        img_dir + '/TotImp___CYCLE__.png',
+        img_dir + '/FracNeuObs___CYCLE__.png',
+        img_dir + '/FracBenObs___CYCLE__.png'
     ]
 
     # create the s3 client
     s3 = boto3.client('s3')
 
+    # create the cycle identifier
+    cycle = ''
+    for c in request['cycles']:
+        cycle += '%02dZ' % int(c)
+
     # loop through all centers and files
     key_list = []
-    for cycle in request['cycles']:
-        for file in files:
-            # replace the center in the file name
-            filename = file.replace('__CYCLE__', cycle)
-            if os.path.exists(filename):
-                print('Uploading %s to S3...' % filename)
-                key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
-                s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
-                key_list.append(key)
+    for file in files:
+        # replace the center in the file name
+        filename = file.replace('__CYCLE__', cycle)
+        if os.path.exists(filename):
+            print('Uploading %s to S3...' % filename)
+            key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
+            s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
+            key_list.append(key)
 
     return key_list
 
@@ -496,29 +507,33 @@ def cache_summary_plots_in_s3(hash_value, request):
 
     # list of files to cache
     files = [
-        img_dir + '/__CENTER__/__CENTER___ImpPerOb___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___FracImp___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___ObCnt___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___TotImp___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___FracNeuObs___CYCLE__Z.png',
-        img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__Z.png'
+        img_dir + '/__CENTER__/__CENTER___ImpPerOb___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___FracImp___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___ObCnt___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___TotImp___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___FracNeuObs___CYCLE__.png',
+        img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__.png'
     ]
 
     # create the s3 client
     s3 = boto3.client('s3')
 
+    # create the cycle identifier
+    cycle = ''
+    for c in request['cycles']:
+        cycle += '%02dZ' % int(c)
+
     # loop through all centers and files
     key_list = []
     for center in request['centers']:
-        for cycle in request['cycles']:
-            for file in files:
-                # replace the center in the file name
-                filename = file.replace('__CENTER__', center).replace('__CYCLE__', cycle)
-                if os.path.exists(filename):
-                    print('Uploading %s to S3...' % filename)
-                    key = hash_value + '/' + filename[filename.rfind('/') + 1:]
-                    s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
-                    key_list.append(key)
+        for file in files:
+            # replace the center in the file name
+            filename = file.replace('__CENTER__', center).replace('__CYCLE__', cycle)
+            if os.path.exists(filename):
+                print('Uploading %s to S3...' % filename)
+                key = hash_value + '/' + filename[filename.rfind('/') + 1:]
+                s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
+                key_list.append(key)
 
     if not key_list:
         errors.append('Failed to generate plots')
