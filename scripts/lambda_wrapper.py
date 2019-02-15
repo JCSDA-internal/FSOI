@@ -86,7 +86,7 @@ def submit_request(request, hash_value, client_url, ref_id):
     res = batch.submit_job(
         jobName=hash_value,
         jobQueue='fsoi_queue',
-        jobDefinition='fsoi_job:8',
+        jobDefinition='fsoi_job:9',
         parameters={'request': json.dumps(request)}
     )
     submitted = res['ResponseMetadata']['HTTPStatusCode'] == 200
@@ -132,7 +132,7 @@ def send_cached_response(req_hash, client_url):
     :return: None
     """
     key_list = get_cached_object_keys(req_hash)
-    response = create_response_body(key_list, req_hash)
+    response = create_response_body(key_list, req_hash, [])
     send_response(response, client_url)
 
 
