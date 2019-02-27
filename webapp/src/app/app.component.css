@@ -6,6 +6,7 @@
   background-position-y : -60%;
   width                 : 100%;
   height                : 98px;
+  border-radius         : 6px 6px 0 0;
 }
 
 .header-shade
@@ -18,6 +19,7 @@
   width                 : calc(100% - 16px);
   height                : 98px;
   background-color      : rgba(0, 0, 0, 0.3);
+  border-radius         : 6px 6px 0 0;
 }
 
 .control-div
@@ -25,9 +27,9 @@
   border-width  : 1px;
   border-style  : solid;
   border-color  : #677174;
-  border-radius : 0 0 6px 6px;
+  border-radius : 0 0 0 6px;
   padding       : 8px;
-  margin        : 8px;
+  margin        : 8px 0 8px 8px;
   position      : absolute;
   top           : 97px;
   left          : 0;
@@ -38,7 +40,7 @@
 
 .control-div-open
 {
-  width : 455px;
+  width : 474px;
 }
 
 .control-div-collapsed
@@ -82,7 +84,7 @@
   border-width  : 1px;
   border-style  : solid;
   border-color  : #677174;
-  border-radius : 0 0 6px 6px;
+  border-radius : 0 0 6px 0;
   padding       : 8px;
   margin        : 8px;
   position      : absolute;
@@ -100,6 +102,6 @@
 
 .display-div-collapsed
 {
-  left  : calc(24px + 20px + 16px); /* control-div-collapsed-width - control-div-margin*2 - control-div-padding*2 */
-  width : calc(100% - 24px - 54px - 16px);
+  left  : calc(24px + 16px + 1px); /* control-div-collapsed-width + control-div-padding*2 + 1 */
+  width : calc(100% - 24px - 54px - 16px + 19px);
 }
