@@ -1,21 +1,28 @@
+"""
+This script will download files from NASA's website, upload them to an S3 bucket and submit a
+batch job to process the files and save them to HDF5 format that can be used by the IOS webapp.
+This script is intended to be called once per day by CloudWatch Events.
+"""
+
 import os
 import time
 import datetime
-import urllib3
-import certifi
 import re
-import boto3
 import json
 from threading import Thread
-
-# Get a shared S3 client to be used by all threads
-s3_client = boto3.client('s3')
+import boto3
+import urllib3
+import certifi
 
 
 class Worker(Thread):
     """
     Thread to download file and put data in S3
     """
+
+    # Static S3 client to be used by all threads
+    s3_client = boto3.client('s3')
+
     def __init__(self, url, s3_bucket, s3_key):
         """
         Constructor
@@ -49,7 +56,7 @@ class Worker(Thread):
                 return
 
             # write the data to S3
-            s3_response = s3_client.put_object(
+            s3_response = Worker.s3_client.put_object(
                 Bucket=self.s3_bucket,
                 Key=self.s3_key,
                 Body=response.data
@@ -61,15 +68,14 @@ class Worker(Thread):
                 print('URL: %s' % self.url)
                 print('S3 URL: s3://%s/%s' % (self.s3_bucket, self.s3_key))
                 return
-            else:
-                print('Done: %s' % self.s3_key)
 
             # happy
+            print('Done: %s' % self.s3_key)
             self.download_size = len(response.data)
             self.success = True
 
-        except Exception as e:
-            print(e)
+        except RuntimeError as exception:
+            print(exception)
             self.success = False
 
 
@@ -121,7 +127,7 @@ def main(event, context):
         base_url = 'https://%s/%s' % (https_host, remote_path)
         files = get_list_of_files_from_url(base_url)
 
-        # move the data files to S3
+        # start all data transfer threads
         threads = []
         s3_key_template = 'Y%04d/M%02d/D%02d/H%02d/%s'
         for remote_file in files:
@@ -146,8 +152,8 @@ def main(event, context):
         # print the log info for CloudWatch
         print(json.dumps(log))
 
-    except Exception as e:
-        print(e)
+    except RuntimeError as exception:
+        print(exception)
         print(json.dumps(log))
 
 
@@ -158,16 +164,16 @@ if __name__ == '__main__':
     DEFAULT_HOST = 'portal.nccs.nasa.gov'
     DEFAULT_PATH = '/datashare/gmao_ops/pub/f522_fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d'
     DEFAULT_BUCKET = 'fsoi-gmao-ingest'
-    parser = ArgumentParser(description='Download GMAO data', formatter_class=HelpFormatter)
-    parser.add_argument('--lag', help='download data from N days ago', type=str, required=True)
-    parser.add_argument('--host', help='portal.nccs.nasa.gov', type=str, default=DEFAULT_HOST)
-    parser.add_argument('--remote-path', help='Remote path template', default=DEFAULT_PATH)
-    parser.add_argument('--bucket-name', help='S3 bucket name', default=DEFAULT_BUCKET)
-    args = parser.parse_args()
+    PARSER = ArgumentParser(description='Download GMAO data', formatter_class=HelpFormatter)
+    PARSER.add_argument('--lag', help='download data from N days ago', type=str, required=True)
+    PARSER.add_argument('--host', help='portal.nccs.nasa.gov', type=str, default=DEFAULT_HOST)
+    PARSER.add_argument('--remote-path', help='Remote path template', default=DEFAULT_PATH)
+    PARSER.add_argument('--bucket-name', help='S3 bucket name', default=DEFAULT_BUCKET)
+    ARGS = PARSER.parse_args()
 
-    os.environ['LAG_IN_DAYS'] = args.lag
-    os.environ['HTTPS_HOST'] = args.host
-    os.environ['REMOTE_PATH'] = args.remote_path
-    os.environ['BUCKET_NAME'] = args.bucket_name
+    os.environ['LAG_IN_DAYS'] = ARGS.lag
+    os.environ['HTTPS_HOST'] = ARGS.host
+    os.environ['REMOTE_PATH'] = ARGS.remote_path
+    os.environ['BUCKET_NAME'] = ARGS.bucket_name
 
     main(None, None)
