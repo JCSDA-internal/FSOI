@@ -156,7 +156,7 @@ Resources:
           BUCKET_NAME: fsoi-gmao-ingest
           HTTPS_HOST: portal.nccs.nasa.gov
           LAG_IN_DAYS: 3
-          REMOTE_PATH: /datashare/gmao_ops/pub/f522_fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d
+          REMOTE_PATH: /datashare/gmao_ops/pub/fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d
 
   #
   # CLOUDWATCH EVENTS, METRICS, and ALARMS
