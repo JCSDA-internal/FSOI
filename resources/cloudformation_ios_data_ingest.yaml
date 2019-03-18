@@ -82,11 +82,14 @@ Resources:
             - arn:aws:s3:::fsoi
             - arn:aws:s3:::fsoi-navy-ingest/*
             - arn:aws:s3:::fsoi-navy-ingest
+            - arn:aws:s3:::fsoi-gmao-ingest/*
+            - arn:aws:s3:::fsoi-gmao-ingest
         - Effect: Allow
           Action: s3:HeadBucket
           Resource:
             - arn:aws:s3:::fsoi
             - arn:aws:s3:::fsoi-navy-ingest
+            - arn:aws:s3:::fsoi-gmao-ingest
 
   # Policy to allow lambda to submit batch jobs
   AllowFsoiIngestSubmitBatchJobs:
@@ -110,7 +113,7 @@ Resources:
   # LAMBDA
   #
 
-  # Function to handle requests from the API Gateway
+  # Function to download NRL data and submit a batch job to process
   LambdaFunctionFsoiIngestNrl:
     Type: AWS::Lambda::Function
     DependsOn:
@@ -133,18 +136,38 @@ Resources:
           REMOTE_FILE_TEMPLATE: receive/obimpact_gemops_DATE00.bz2
           OUTPUT_URL_TEMPLATE: s3://fsoi/intercomp/hdf5/NRL/NRL.dry.DATE00.h5
 
+  # Function to handle
+  LambdaFunctionFsoiIngestGmao:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - FsoiIngestLambdaRole
+    Properties:
+      FunctionName: fsoi_ingest_gmao
+      Handler: ingest_gmao.main
+      Role: arn:aws:iam::469205354006:role/fsoi_ingest_lambda_role
+      Code:
+        S3Bucket: jcsda-scratch
+        S3Key: fsoi_lambda.zip
+      Runtime: python3.6
+      Timeout: 300
+      MemorySize: 2048
+      Environment:
+        Variables:
+          BUCKET_NAME: fsoi-gmao-ingest
+          HTTPS_HOST: portal.nccs.nasa.gov
+          LAG_IN_DAYS: 3
+          REMOTE_PATH: /datashare/gmao_ops/pub/fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d
 
   #
   # CLOUDWATCH EVENTS, METRICS, and ALARMS
   #
 
-  # Run Lambda function once daily
+  # Run NRL ingest function once daily
   DailyFsoiIngestNrlEvent:
     Type: AWS::Events::Rule
     DependsOn:
       - LambdaFunctionFsoiIngestNrl
     Properties:
-
       Description: Ingest NRL data daily at 18:45 UTC
       ScheduleExpression: cron(45 18 * * ? *)
       Name: fsoi_ingest_nrl_daily
@@ -153,8 +176,22 @@ Resources:
         - Arn: arn:aws:lambda:us-east-1:469205354006:function:fsoi_ingest_nrl
           Id: fsoi_ingest_nrl
 
-  # Allow CloudWatch Events to invoke the Lambda function
-  PermissionForEventsToInvokeLambda:
+  # Run GMAO ingest function once daily
+  DailyFsoiIngestGmaoEvent:
+    Type: AWS::Events::Rule
+    DependsOn:
+      - LambdaFunctionFsoiIngestGmao
+    Properties:
+      Description: Ingest GMAO data daily at 18:45 UTC
+      ScheduleExpression: cron(45 18 * * ? *)
+      Name: fsoi_ingest_gmao_daily
+      State: ENABLED
+      Targets:
+        - Arn: arn:aws:lambda:us-east-1:469205354006:function:fsoi_ingest_gmao
+          Id: fsoi_ingest_gmao
+
+  # Allow CloudWatch Events to invoke the NRL ingest function
+  PermissionForEventsToInvokeNrlLambda:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName:
@@ -163,7 +200,17 @@ Resources:
       Principal: events.amazonaws.com
       SourceArn: arn:aws:events:us-east-1:469205354006:rule/fsoi_ingest_nrl_daily
 
-  # Create a metric filter that will parse the downloaded file size from the log files
+  # Allow CloudWatch Events to invoke the GMAO ingest function
+  PermissionForEventsToInvokeGmaoLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: LambdaFunctionFsoiIngestGmao
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: arn:aws:events:us-east-1:469205354006:rule/fsoi_ingest_gmao_daily
+
+  # Create a metric filter that will parse the downloaded file size from the NRL log files
   FsoiIngestNrlDownloadSizeMetric:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -174,6 +221,38 @@ Resources:
           MetricValue: "$.size"
           MetricNamespace: FSOI
 
+  # Create a metric filter that will parse the downloaded file size from the GMAO log files
+  FsoiIngestGmaoDownloadSizeMetric:
+    Type: AWS::Logs::MetricFilter
+    DependsOn:
+      - FsoiIngestGmaoLogGroup
+    Properties:
+      LogGroupName: /aws/lambda/fsoi_ingest_gmao
+      FilterPattern: "{ $.ok IS TRUE }"
+      MetricTransformations:
+        - MetricName: fsoi_ingest_gmao_download_size
+          MetricValue: "$.size"
+          MetricNamespace: FSOI
+
+  # Create a metric filter that will parse the downloaded file count from the GMAO log files
+  FsoiIngestGmaoFileCountMetric:
+    Type: AWS::Logs::MetricFilter
+    DependsOn:
+      - FsoiIngestGmaoLogGroup
+    Properties:
+      LogGroupName: /aws/lambda/fsoi_ingest_gmao
+      FilterPattern: "{ $.ok IS TRUE }"
+      MetricTransformations:
+        - MetricName: fsoi_ingest_gmao_file_count
+          MetricValue: "$.file_count"
+          MetricNamespace: FSOI
+
+  # Create a log group for the GMAO lambda function to write to
+  FsoiIngestGmaoLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/fsoi_ingest_gmao
+
   # Create a topic for FSOI alarms and subscribe my email
   FsoiAlarmTopic:
     Type: AWS::SNS::Topic
@@ -183,7 +262,7 @@ Resources:
         - Endpoint: hahnd@ucar.edu
           Protocol: email
 
-  # Send an alarm when
+  # Send an alarm when NRL data was not downloaded
   FsoiIngestNrlAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn:
@@ -206,6 +285,28 @@ Resources:
       TreatMissingData: breaching
       Unit: Bytes
 
+  # Send an alarm when NRL data was not downloaded
+  FsoiIngestGmaoAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn:
+      - FsoiAlarmTopic
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - Ref: FsoiAlarmTopic
+      InsufficientDataActions:
+        - Ref: FsoiAlarmTopic
+      AlarmName: fsoi_ingest_gmao_alarm
+      ComparisonOperator: LessThanOrEqualToThreshold
+      DatapointsToAlarm: 1
+      EvaluationPeriods: 1
+      MetricName: fsoi_ingest_gmao_download_size
+      Namespace: FSOI
+      Period: 86400
+      Statistic: Maximum
+      Threshold: 669888434
+      TreatMissingData: breaching
+      Unit: Bytes
 
   #
   # BATCH
