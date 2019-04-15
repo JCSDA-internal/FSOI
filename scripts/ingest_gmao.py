@@ -162,7 +162,7 @@ if __name__ == '__main__':
     from argparse import ArgumentDefaultsHelpFormatter as HelpFormatter
 
     DEFAULT_HOST = 'portal.nccs.nasa.gov'
-    DEFAULT_PATH = '/datashare/gmao_ops/pub/f522_fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d'
+    DEFAULT_PATH = '/datashare/gmao_ops/pub/fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d'
     DEFAULT_BUCKET = 'fsoi-gmao-ingest'
     PARSER = ArgumentParser(description='Download GMAO data', formatter_class=HelpFormatter)
     PARSER.add_argument('--lag', help='download data from N days ago', type=str, required=True)
