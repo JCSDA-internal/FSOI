@@ -95,7 +95,7 @@ def summary_fsoi_main():
         try:
             plotOpt = loi.getPlotOpt(qty, cycle=cycle, center=center, savefigure=savefig,
                                      platform=platform, domain='Global')
-            plotOpt['figname'] = '/tmp/sample.png'
+            plotOpt['figname'] = '%s/plots/summary/%s/%s_%s' % (rootdir,center,plotOpt.get('figname'),cyclestr)
             loi.summaryplot(df, qty=qty, plotOpt=plotOpt, std=df_std)
         except Exception as e:
             print(e)
