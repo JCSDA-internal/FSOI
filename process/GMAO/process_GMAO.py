@@ -233,7 +233,6 @@ def main():
 
     print('Total obs used in %s = %d' % (adate.strftime('%Y%m%d%H'),nobs))
 
-    sys.exit(0)
 
 if __name__ == '__main__':
     main()

@@ -26,7 +26,7 @@ def parse_args():
 
     # validate the command line parameters
     if not args.output.startswith('s3://'):
-        print('input parameter must point to an S3 object: ' + args.input)
+        print('output parameter must be an S3 url: ' + args.output)
         exit(-1)
     if len(args.date) != 10:
         print('date parameter must be in the format yyyyMMddHH')
@@ -150,7 +150,7 @@ def main():
     # run the process_NRL.py script
     from process_GMAO import main as process_gmao_main
     output_file = 'GMAO.moist.%s.h5' % args.date
-    sys.argv = ('script -i %s -o %s -a %s' % (input_dir, output_file, args.date)).split()
+    sys.argv = ('script -i %s -o %s -a %s -n moist' % ('/tmp/work', output_file, args.date)).split()
     process_gmao_main()
 
     # upload the processed file to S3 target
