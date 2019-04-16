@@ -16,7 +16,7 @@
 
     <!-- show button to exclusively select a center -->
     <div class="display-button-container" *ngFor="let center of uniqueCenters">
-      <button mat-stroked-button (click)="selectOnlyCenter(center)">{{center}} Only</button>
+      <button *ngIf="center != 'comparefull'" mat-stroked-button (click)="selectOnlyCenter(center)">{{center}} Only</button>
     </div>
 
     <!-- show button to exclusively select a plot type -->
