@@ -107,6 +107,7 @@ Resources:
             Effect: Allow
             Resource:
               - arn:aws:batch:us-east-1:469205354006:job-definition/fsoi_ingest_nrl_job:*
+              - arn:aws:batch:us-east-1:469205354006:job-definition/fsoi_ingest_gmao_job:*
               - arn:aws:batch:us-east-1:469205354006:job-queue/fsoi_ingest_queue
 
   #
@@ -157,6 +158,7 @@ Resources:
           HTTPS_HOST: portal.nccs.nasa.gov
           LAG_IN_DAYS: 3
           REMOTE_PATH: /datashare/gmao_ops/pub/fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d
+          OUTPUT_URL_TEMPLATE: s3://fsoi/intercomp/hdf5/GMAO/GMAO.moist.DATE.h5
 
   #
   # CLOUDWATCH EVENTS, METRICS, and ALARMS
@@ -387,6 +389,28 @@ Resources:
           - /convert_navy.py
           - --input
           - Ref::input_url
+          - --output
+          - Ref::output_url
+        Memory: 4096
+        JobRoleArn:
+          Ref: FsoiIngestBatchRole
+        Vcpus: 2
+        Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch
+
+  # Job definition
+  BatchJobDefinitionFsoiGmaoIngest:
+    Type: AWS::Batch::JobDefinition
+    DependsOn:
+      - FsoiIngestBatchRole
+    Properties:
+      Type: container
+      JobDefinitionName: fsoi_ingest_gmao_job
+      ContainerProperties:
+        Command:
+          - python
+          - /convert_gmao.py
+          - --date
+          - Ref::date
           - --output
           - Ref::output_url
         Memory: 4096
