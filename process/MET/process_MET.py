@@ -12,10 +12,10 @@ import sys
 import gzip
 import numpy as np
 from datetime import datetime
-from Scientific.IO import FortranFormat as ff
+from fortranformat import FortranRecordReader
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
-sys.path.append('../../lib')
+sys.path.extend(['../../lib', '../lib'])
 import lib_utils as lutils
 import lib_obimpact as loi
 
@@ -35,9 +35,9 @@ def kt_def():
 def parse_line(line,kt):
 
     fmtstr = 'i8,1x,e15.8,1x,e15.8,1x,e16.8,1x,f6.2,1x,f6.2,1x,f10.4,1x,i3,1x,i5,1x,i6,1x,e14.8,1x,f6.2,1x,a35'
-    fmt = ff.FortranFormat(fmtstr)
+    line_reader = FortranRecordReader(fmtstr)
 
-    datain = ff.FortranLine(line,fmt)
+    datain = line_reader.read(line)
 
     ob = datain[1]
     omf = datain[2]
@@ -55,14 +55,14 @@ def parse_line(line,kt):
     if obtyp == 10: # Radiances
         platform,channel = get_radiance(schar)
         if platform == 'UNKNOWN':
-            print 'MISSING RAD : ', platform, channel, ' | ',  schar
+            print('MISSING RAD : ', platform, channel, ' | ',  schar)
     else: # Conventional
         platform,channel = get_conventional(instyp,schar)
         if platform == 'UNKNOWN':
-            print 'MISSING CONV: ', platform, instyp, ' | ', schar
+            print('MISSING CONV: ', platform, instyp, ' | ', schar)
 
     if skip_ob(obtyp,instyp,oberr,impact):
-        print 'SKIPPING : ', line.strip()
+        print('SKIPPING : ', line.strip())
         return None
 
     dataout = {}
@@ -241,8 +241,8 @@ def main():
 
     try:
         fh = gzip.open(fname,'rb')
-    except RuntimeError,e:
-        raise IOError(e.messaage + ' ' + fname)
+    except RuntimeError as e:
+        raise IOError(e, fname)
 
     kt = kt_def()
 
@@ -279,7 +279,7 @@ def main():
         if os.path.isfile(fname_out): os.remove(fname_out)
         lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
-    print 'Total obs = %d' % (nobs)
+    print('Total obs = %d' % (nobs))
 
     sys.exit(0)
 
