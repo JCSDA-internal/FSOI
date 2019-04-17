@@ -7,11 +7,11 @@ a docker container in AWS Batch.
 import os
 import sys
 import shutil
+import boto3
 from argparse import ArgumentParser
 from argparse import ArgumentDefaultsHelpFormatter as ArgDefault
 from fsoi.ingest.gmao.process_GMAO import main as process_gmao_main
 
-import boto3
 
 
 def parse_args():

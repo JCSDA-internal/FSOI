@@ -13,8 +13,10 @@ import fsoi.stats.lib_utils as lutils
 def parse_file(adate, fname):
     """
     Call the appropriate file parser depending on platform
+    :param adate:
+    :param fname:
+    :return:
     """
-
     ffname = os.path.basename(fname)
     platform = ffname.split('.')[1]
 

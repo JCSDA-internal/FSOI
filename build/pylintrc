@@ -4,3 +4,6 @@ extension-pkg-whitelist=netCDF4
 
 [VARIABLES]
 additional-builtins=FortranRecordReader
+
+[BASIC]
+good-names=y,m,d,h,i,e,s3,kt,kx,s,c,fh,df,tf

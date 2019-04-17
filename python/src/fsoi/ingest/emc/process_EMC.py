@@ -1,7 +1,7 @@
 import os
-import numpy as np
 from datetime import datetime
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import numpy as np
 from emc import emc
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi

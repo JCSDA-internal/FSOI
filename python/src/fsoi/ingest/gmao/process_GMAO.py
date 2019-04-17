@@ -1,13 +1,13 @@
 import os
-import numpy as np
-from netCDF4 import Dataset
 from datetime import datetime, timedelta
+from netCDF4 import Dataset
+import numpy as np
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
 
 
-class ODS(object):
+class ODS:
     """
     ODS Class
     """

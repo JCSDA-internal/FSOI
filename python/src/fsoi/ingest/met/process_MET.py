@@ -98,16 +98,9 @@ def get_conventional(instyp, schar):
 
     if 'AIRCRAFT' in schar:
         platform = 'Aircraft'
-    elif any(x in schar for x in [
-        'GOES   3',
-        'GOES   4',
-        'GOES 206',
-        'GOES 207',
-        'GOES 209',
-        'GOES 223',
-        'MSG   3',
-        'MSG   4'
-    ]):
+    elif any(x in schar for x in
+             ['GOES   3', 'GOES   4', 'GOES 206', 'GOES 207', 'GOES 209', 'GOES 223', 'MSG   3',
+              'MSG   4']):
         platform = 'AVHRR_Wind'
     elif 'DROP' in schar:
         platform = 'Dropsonde'
@@ -115,25 +108,13 @@ def get_conventional(instyp, schar):
         platform = 'GPSRO'
     elif 'GROUNDGPS' in schar:
         platform = 'GroundGPS'
-    elif any(x in schar for x in [
-        'GOES 783',
-        'GOES 784',
-    ]):
+    elif any(x in schar for x in ['GOES 783', 'GOES 784']):
         platform = 'MODIS_Wind'
     elif 'GOES 854' in schar:
         platform = 'LEO-GEO'
-    elif any(x in schar for x in [
-        'ESA  54',
-        'JMA 172',
-        'MSG  57',
-        'GOES 257',
-        'GOES 259',
-    ]):
+    elif any(x in schar for x in ['ESA  54', 'JMA 172', 'MSG  57', 'GOES 257', 'GOES 259']):
         platform = 'Geo_Wind'
-    elif any(x in schar for x in [
-        'ASCAT   3',
-        'ASCAT   4'
-    ]):
+    elif any(x in schar for x in ['ASCAT   3', 'ASCAT   4']):
         platform = 'ASCAT_Wind'
     elif 'KUSCAT 801' in schar:
         platform = 'KUSCAT'
@@ -197,15 +178,9 @@ def get_radiance(schar):
         platform = 'HIRS_METOP-B'
     elif 'NOAA19 ATOVS HIRS' in schar:
         platform = 'HIRS_N19'
-    elif any(x in schar for x in [
-        'MetOp2 (A) ATOVS IASI',
-        'MetOp2 (A) IASI'
-    ]):
+    elif any(x in schar for x in ['MetOp2 (A) ATOVS IASI', 'MetOp2 (A) IASI']):
         platform = 'IASI_METOP-A'
-    elif any(x in schar for x in [
-        'MetOp1 (B) ATOVS IASI',
-        'MetOp1 (B) IASI'
-    ]):
+    elif any(x in schar for x in ['MetOp1 (B) ATOVS IASI', 'MetOp1 (B) IASI']):
         platform = 'IASI_METOP-B'
     elif 'JPSS0 (NPP) ATMS ATMS' in schar:
         platform = 'ATMS_NPP'
@@ -225,10 +200,7 @@ def get_radiance(schar):
         platform = 'MHS_N18'
     elif 'NOAA19 ATOVS AMSUB' in schar:
         platform = 'MHS_N19'
-    elif any(x in schar for x in [
-        'GOES13 GOESCLR GOESCLR',
-        'GOES15 GOESCLR GOESCLR'
-    ]):
+    elif any(x in schar for x in ['GOES13 GOESCLR GOESCLR', 'GOES15 GOESCLR GOESCLR']):
         platform = 'GOES_CSR'
 
     return platform, channel
