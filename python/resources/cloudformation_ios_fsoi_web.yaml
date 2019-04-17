@@ -364,8 +364,7 @@ Resources:
       JobDefinitionName: fsoi_job
       ContainerProperties:
         Command:
-          - python
-          - /batch_wrapper.py
+          - batch_wrapper.py
           - Ref::request
         Memory: 32768
         JobRoleArn:

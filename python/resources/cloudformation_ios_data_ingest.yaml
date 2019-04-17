@@ -121,12 +121,12 @@ Resources:
       - FsoiIngestLambdaRole
     Properties:
       FunctionName: fsoi_ingest_nrl
-      Handler: ingest_navy.main
+      Handler: fsoi.ingest.nrl.ingest_navy.ingest_navy_aws_lambda
       Role: arn:aws:iam::469205354006:role/fsoi_ingest_lambda_role
       Code:
         S3Bucket: jcsda-scratch
         S3Key: fsoi_lambda.zip
-      Runtime: python3.6
+      Runtime: python3.7
       Timeout: 300
       MemorySize: 256
       Environment:
@@ -144,12 +144,12 @@ Resources:
       - FsoiIngestLambdaRole
     Properties:
       FunctionName: fsoi_ingest_gmao
-      Handler: ingest_gmao.main
+      Handler: fsoi.ingest.gmao.ingest_gmao.ingest_gmao_aws_lambda
       Role: arn:aws:iam::469205354006:role/fsoi_ingest_lambda_role
       Code:
         S3Bucket: jcsda-scratch
         S3Key: fsoi_lambda.zip
-      Runtime: python3.6
+      Runtime: python3.7
       Timeout: 300
       MemorySize: 2048
       Environment:
@@ -385,8 +385,7 @@ Resources:
       JobDefinitionName: fsoi_ingest_nrl_job
       ContainerProperties:
         Command:
-          - python
-          - /convert_navy.py
+          - convert_navy
           - --input
           - Ref::input_url
           - --output
@@ -407,8 +406,7 @@ Resources:
       JobDefinitionName: fsoi_ingest_gmao_job
       ContainerProperties:
         Command:
-          - python
-          - /convert_gmao.py
+          - convert_gmao
           - --date
           - Ref::date
           - --output
