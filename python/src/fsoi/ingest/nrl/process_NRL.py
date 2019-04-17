@@ -59,6 +59,7 @@ def kx_def():
     kx[89] = 'LEO-GEO'
     kx[90] = 'UW_wiIR'
     kx[91] = 'GAVHR'
+    kx[93] = 'UW_wiIR'
     kx[101] = ['Radiosonde', 'PIBAL', 'Dropsonde']
     kx[125] = 'SSMI_PRH'
     kx[126] = 'WINDSAT_PRH'
