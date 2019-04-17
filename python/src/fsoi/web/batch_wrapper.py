@@ -16,7 +16,7 @@ errors = []
 warns = []
 
 
-def main(request):
+def handler(request):
     """
     Create a chart as a PNG based on the input parameters
     :param request: Contains request details (validated)
@@ -540,9 +540,17 @@ def cache_summary_plots_in_s3(hash_value, request):
     return key_list
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Main function from the command line
+    :return: None
+    """
     print('args:')
     for arg in sys.argv:
         print(arg)
     global_request = json.loads(sys.argv[1])
-    main(global_request)
+    handler(global_request)
+
+
+if __name__ == '__main__':
+    main()

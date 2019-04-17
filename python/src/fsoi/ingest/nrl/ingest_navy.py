@@ -42,7 +42,7 @@ def ftp_download_file(host, remote_file, local_file=None):
     return local_file
 
 
-def main(event, context):
+def ingest_navy_aws_lambda(event, context):
     """
     The main lambda entry point, or main function if called stand-alone
     :param event: {NoneType} Not used, but required for Lambda
@@ -100,5 +100,35 @@ def main(event, context):
         print(json.dumps(log))
 
 
+def main():
+    """
+    Entry point for command line
+    :return: None
+    """
+    from argparse import ArgumentParser
+    from argparse import ArgumentDefaultsHelpFormatter as HelpFormatter
+
+    bucket = 'fsoi-navy-ingest'
+    ftp_host = 'ftp-ex.nrlmry.navy.mil'
+    lag_in_days = '4'
+    file = 'receive/obimpact_gemops_DATE00.bz2'
+    output_url_template = 's3://fsoi/intercomp/hdf5/NRL/NRL.dry.DATE00.h5'
+    PARSER = ArgumentParser(description='Download GMAO data', formatter_class=HelpFormatter)
+    PARSER.add_argument('--lag', help='time lag in days', type=int, default=lag_in_days)
+    PARSER.add_argument('--host', help='ftp-ex.nrlmry.navy.mil', type=str, default=ftp_host)
+    PARSER.add_argument('--remote-path', help='Remote path template', default=file)
+    PARSER.add_argument('--s3-bucket', help='Store in this bucket', default=bucket)
+    PARSER.add_argument('--output-url', help='Final processing target', default=output_url_template)
+    args = PARSER.parse_args()
+
+    os.environ['BUCKET_NAME'] = args.s3_bucket
+    os.environ['FTP_HOST'] = args.host
+    os.environ['LAG_IN_DAYS'] = str(args.lag)
+    os.environ['REMOTE_FILE_TEMPLATE'] = args.remote_path
+    os.environ['OUTPUT_URL_TEMPLATE'] = args.output_url
+
+    ingest_navy_aws_lambda(None, None)
+
+
 if __name__ == '__main__':
-    main(None, None)
+    main()

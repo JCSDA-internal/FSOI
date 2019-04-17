@@ -100,7 +100,7 @@ def get_list_of_files_from_url(url):
     return list(set(files))
 
 
-def main(event, context):
+def ingest_gmao_aws_lambda(event, context):
     """
     The main lambda entry point, or main function if called stand-alone
     :param event: {NoneType} Not used, but required for Lambda
@@ -165,7 +165,11 @@ def main(event, context):
         print(json.dumps(log))
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Entry point for command line
+    :return: None
+    """
     from argparse import ArgumentParser
     from argparse import ArgumentDefaultsHelpFormatter as HelpFormatter
 
@@ -184,4 +188,8 @@ if __name__ == '__main__':
     os.environ['REMOTE_PATH'] = ARGS.remote_path
     os.environ['BUCKET_NAME'] = ARGS.bucket_name
 
-    main(None, None)
+    ingest_gmao_aws_lambda(None, None)
+
+
+if __name__ == '__main__':
+    main()

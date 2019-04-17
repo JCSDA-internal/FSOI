@@ -127,7 +127,7 @@ def main():
     gzip_file = download_from_s3(args.input)
 
     # run the process_NRL.py script
-    from process_NRL import main as process_nrl_main
+    from fsoi.ingest.nrl.process_NRL import main as process_nrl_main
     date = gzip_file.split('_')[2][:-3]
     output_file = 'NRL.dry.%s.h5' % date
     sys.argv = ('script -i %s -o %s -a %s' % (gzip_file, output_file, date)).split()

@@ -29,7 +29,11 @@ setup(
   zip_safe=False,
   entry_points={
     'console_scripts': [
-      'summary_fsoi=fsoi.plots.summary_fsoi:summary_fsoi_main'
+      'ingest_navy=fsoi.ingest.nrl.ingest_navy:main',
+      'ingest_gmao=fsoi.ingest.gmao.ingest_gmao:main',
+      'convert_navy=fsoi.ingest.nrl.convert_navy:main',
+      'convert_gmao=fsoi.ingest.gmao.convert_gmao:main',
+      'batch_wrapper=fsoi.web.batch_wrapper:main'
     ]
   }
 )
