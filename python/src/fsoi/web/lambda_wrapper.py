@@ -2,15 +2,12 @@
 This script is an entry point for an AWS Lambda function to download
 H5 files from S3 and create plots using existing functions.
 """
-import sys
+
 import os
 import json
 import boto3
 from fsoi.web.serverless_tools import ApiGatewaySender, RequestDao, get_reference_id, hash_request, \
     create_response_body
-
-# Add various paths for
-sys.path.extend(['../lib', 'lib', '.'])
 
 
 def main(event, context):

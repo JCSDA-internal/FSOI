@@ -9,6 +9,8 @@ import sys
 import shutil
 from argparse import ArgumentParser
 from argparse import ArgumentDefaultsHelpFormatter as ArgDefault
+from fsoi.ingest.gmao.process_GMAO import main as process_gmao_main
+
 import boto3
 
 
@@ -148,7 +150,6 @@ def main():
     input_dir = file_list[0][:file_list[0].rfind('/')]
 
     # run the process_NRL.py script
-    from process_GMAO import main as process_gmao_main
     output_file = 'GMAO.moist.%s.h5' % args.date
     sys.argv = ('script -i %s -o %s -a %s -n moist' % ('/tmp/work', output_file, args.date)).split()
     process_gmao_main()

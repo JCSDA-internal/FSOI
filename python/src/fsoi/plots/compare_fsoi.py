@@ -1,36 +1,25 @@
-#!/usr/bin/env python
-
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
-'''
+"""
 lib_obimpact.py contains functions for FSOI project
 Some functions can be used elsewhere
-'''
+"""
 
-__author__ = "Rahul Mahajan"
-__email__ = "rahul.mahajan@noaa.gov"
-__copyright__ = "Copyright 2016, NOAA / NCEP / EMC"
-__license__ = "GPL"
-__status__ = "Prototype"
-__version__ = "0.1"
-
-import sys
 import pandas as pd
 import numpy as np
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
-
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
 
 
 def load_centers(rootdir, centers, norm, cycle):
+    """
+
+    :param rootdir:
+    :param centers:
+    :param norm:
+    :param cycle:
+    :return:
+    """
     DF = []
     for center in centers:
 
@@ -50,6 +39,12 @@ def load_centers(rootdir, centers, norm, cycle):
 
 
 def sort_centers(DF, pref):
+    """
+
+    :param DF:
+    :param pref:
+    :return:
+    """
     df = []
     for i in range(len(DF)):
         tmp = DF[i]
@@ -61,6 +56,10 @@ def sort_centers(DF, pref):
 
 
 def compare_fsoi_main():
+    """
+
+    :return:
+    """
     parser = ArgumentParser(description='Create and Plot Comparison Observation Impact Statistics',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--rootdir', help='root path to directory', type=str, required=True)
@@ -111,4 +110,5 @@ def compare_fsoi_main():
         plt.show()
 
 
-if __name__ == '__main__': compare_fsoi_main()
+if __name__ == '__main__':
+    compare_fsoi_main()

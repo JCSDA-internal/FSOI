@@ -1,23 +1,6 @@
-#!/usr/bin/env python
-
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
-'''
+"""
 summary_bulk.py - reads raw data and writes out accumulated bulk statistics
-'''
-
-__author__ = "Rahul Mahajan"
-__email__ = "rahul.mahajan@noaa.gov"
-__copyright__ = "Copyright 2016, NOAA / NCEP / EMC"
-__license__ = "GPL"
-__status__ = "Prototype"
-__version__ = "0.1"
+"""
 
 import os
 import pandas as pd
@@ -28,6 +11,10 @@ import fsoi.stats.lib_obimpact as loi
 
 
 def summary_bulk_main():
+    """
+
+    :return:
+    """
     parser = ArgumentParser(description='Create Observation Impacts database',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--center', help='originating center', type=str, required=True,

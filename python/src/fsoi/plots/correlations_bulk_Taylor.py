@@ -1,22 +1,28 @@
-#!/usr/bin/env python
+"""
+Make Taylor Diagrams of correlations in bulk mode
+"""
 
-'''
-correlations_bulk_Taylor.py - make Taylor Diagrams of correlations in bulk mode
-'''
-
-import os
 import sys
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from matplotlib import pyplot as plt
-import numpy as np
 import pandas as pd
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from matplotlib import pyplot as plt
 from fsoi.stats.TaylorDiagram import TaylorDiagram
 
 
 def read_center_bulk(rootdir, center, norm, platform, cycle, obtype, channel):
-    'Read data for a center'
+    """
+    Read data for a center
+    :param rootdir:
+    :param center:
+    :param norm:
+    :param platform:
+    :param cycle:
+    :param obtype:
+    :param channel:
+    :return:
+    """
     fname = '%s/work/%s/%s/%s.h5' % (rootdir, center, norm, platform.lower())
     tmp = lutils.readHDF(fname, 'df')
     tmp = loi.select(tmp, cycles=cycle, obtypes=obtype, channels=channel)
@@ -27,8 +33,11 @@ def read_center_bulk(rootdir, center, norm, platform, cycle, obtype, channel):
 
 
 def compute_std_corr_bulk(df):
-    'Compute the standard deviation and correlation from dictionary of dataframe'
-
+    """
+    Compute the standard deviation and correlation from dictionary of dataframe
+    :param df:
+    :return:
+    """
     df2 = pd.concat(df, axis=1)
     df2.columns = df2.columns.levels[0]
     df_stdv = df2.std()
@@ -38,11 +47,15 @@ def compute_std_corr_bulk(df):
 
 
 def compute_std_corr_bulk_brute_force(df, centers):
-    'Compute the standard deviation and correlation from dictionary of dataframe'
-
+    """
+    Compute the standard deviation and correlation from dictionary of dataframe
+    :param df:
+    :param centers:
+    :return:
+    """
     ref_center = centers[0]
 
-    stdv = {};
+    stdv = {}
     corr = {}
     for center in centers:
 
@@ -67,7 +80,19 @@ def compute_std_corr_bulk_brute_force(df, centers):
 
 def plot_taylor(ref_center, stdv, corr, fig=None, full=False, norm=True, title=None, colors=None,
                 center_names=None):
-    '''Plot Taylor diagram'''
+    """
+    Plot Taylor diagram
+    :param ref_center:
+    :param stdv:
+    :param corr:
+    :param fig:
+    :param full:
+    :param norm:
+    :param title:
+    :param colors:
+    :param center_names:
+    :return:
+    """
 
     if colors == None: colors = lutils.discrete_colors(len(center_names) - 1)
     centers = corr.columns.get_values()
@@ -112,9 +137,11 @@ def plot_taylor(ref_center, stdv, corr, fig=None, full=False, norm=True, title=N
     return fig
 
 
-# def main():
-if __name__ == '__main__':
-
+def main():
+    """
+    Main
+    :return:
+    """
     parser = ArgumentParser(
         description='Create and Plot Observation Impact Correlation Taylor Diagrams',
         formatter_class=ArgumentDefaultsHelpFormatter)
@@ -175,4 +202,5 @@ if __name__ == '__main__':
 
     sys.exit(0)
 
-# if __name__ == '__main__': main()
+if __name__ == '__main__':
+    main()

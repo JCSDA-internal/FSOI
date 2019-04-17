@@ -1,12 +1,3 @@
-#!/usr/bin/env python
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
 import os
 import sys
 import glob
@@ -20,9 +11,9 @@ from matplotlib import pyplot as plt
 
 
 def parse_date(datadir, adate):
-    '''
+    """
     Call the appropriate file parser depending on platform
-    '''
+    """
 
     tmpdir = tempfile.mkdtemp()
     tf = tarfile.open('%s/deltaJ.all_obs.bg.tar.gz' % datadir)
@@ -62,10 +53,9 @@ def parse_date(datadir, adate):
 
 
 def read_file(fname):
-    '''
+    """
     Read a file into a dataframe
-    '''
-
+    """
     names = ['obtype', 'PLATFORM', 'TotImp', 'ObCnt', 'ObCntBen', 'ObCntDet', 'TotImpDet']
     try:
         data = pd.read_csv(fname, header=None, delim_whitespace=True, skipinitialspace=True,
@@ -78,6 +68,9 @@ def read_file(fname):
 
 
 def main():
+    """
+    :return:
+    """
     parser = ArgumentParser(description='Process Meteo France data',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--indir', help='path to input data directory', type=str,

@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-
-'''
+"""
 extract_platform_bin.py - extract a platform from raw HDF file, bin it and write out
-'''
+"""
 
 import os
 import sys
@@ -11,8 +9,10 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
 
-if __name__ == '__main__':
-
+def main():
+    """
+    :return:
+    """
     parser = ArgumentParser(description='Extract a platform from HDF file, bin it and write out',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--center', help='originating center', type=str,
@@ -71,4 +71,5 @@ if __name__ == '__main__':
 
         lutils.writeHDF(fbinned, 'df', df, complevel=1, complib='zlib', fletcher32=True)
 
-    sys.exit(0)
+if __name__ == '__main__':
+    main()

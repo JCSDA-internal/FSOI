@@ -1,25 +1,17 @@
-#!/usr/bin/env python
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
 import os
-import sys
 import gzip
-import numpy as np
+import fsoi.stats.lib_utils as lutils
+import fsoi.stats.lib_obimpact as loi
 from datetime import datetime
 from fortranformat import FortranRecordReader
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-import fsoi.stats.lib_utils as lutils
-import fsoi.stats.lib_obimpact as loi
-
 
 def kt_def():
+    """
+
+    :return:
+    """
     kt = {
         1: ['z', 'Geopotential Height', 'm'],
         2: ['T', 'Temperature', 'K'],
@@ -37,6 +29,10 @@ def kt_def():
 
 
 def kx_def():
+    """
+
+    :return:
+    """
     kx = {}
     kx[1] = 'Land_Surface'
     kx[10] = ['Ship', 'Drifting_Buoy', 'Moored_Buoy']
@@ -90,6 +86,13 @@ def kx_def():
 
 
 def parse_line(line, kt, kx):
+    """
+
+    :param line:
+    :param kt:
+    :param kx:
+    :return:
+    """
     fmtstr = 'i7,f9.3,1x,f8.2,1x,f8.2,1x,f8.2,f9.3,1x,f9.2,1x,f9.2,1x,f9.2,1x,f11.5,1x,i2,1x,i3,' \
              '4x,i2,4x,i1,3x,i5,2x,a16,a12,4x,i1,2x,i1,3x,i1,1x,e13.6,1x,e13.6,1x,e13.6,1x,e13.6'
 
@@ -137,6 +140,13 @@ def parse_line(line, kt, kx):
 
 
 def skip_ob(instyp, oberr, num_reject, impact):
+    """
+    :param instyp:
+    :param oberr:
+    :param num_reject:
+    :param impact:
+    :return:
+    """
     # discard observations with very large observation error
     # if oberr > 1000.:
     #    return True
@@ -154,6 +164,13 @@ def skip_ob(instyp, oberr, num_reject, impact):
 
 
 def get_platform_channel(instyp, schar, kx):
+    """
+
+    :param instyp:
+    :param schar:
+    :param kx:
+    :return:
+    """
     platform = 'UNKNOWN'
     channel = -999
 
@@ -271,6 +288,10 @@ def get_platform_channel(instyp, schar, kx):
 
 
 def main():
+    """
+
+    :return:
+    """
     parser = ArgumentParser(description='Process NRL file',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', help='Raw NRL file', type=str, required=True)

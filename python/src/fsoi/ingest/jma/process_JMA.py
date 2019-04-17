@@ -1,24 +1,20 @@
-#!/usr/bin/env python
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
+"""
+Process JMA data
+"""
 
 import os
-import sys
 from datetime import datetime
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from jma import jma
-
-sys.path.append('../../lib')
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
 
-if __name__ == '__main__':
 
+def main():
+    """
+
+    :return:
+    """
     parser = ArgumentParser(description='Process JMA file',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', help='Raw JMA file', type=str, required=True)
@@ -56,4 +52,6 @@ if __name__ == '__main__':
 
     print('Total obs = %d' % (nobstot))
 
-    sys.exit(0)
+
+if __name__ == '__main__':
+    main()

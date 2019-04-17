@@ -1,27 +1,22 @@
-#!/usr/bin/env python
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
 import os
-import sys
 import numpy as np
 from netCDF4 import Dataset
 from datetime import datetime, timedelta
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
-sys.path.append('../../lib')
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
 
 
 class ODS(object):
+    """
+    ODS Class
+    """
 
     def __init__(self, filename):
+        """
+        Constructor
+        :param filename:
+        """
         try:
             self.filename = filename
             self.file_ = Dataset(filename, 'r')
@@ -38,6 +33,12 @@ class ODS(object):
             raise IOError(str(e) + ' ' + filename)
 
     def read(self, only_good=True, platform=None):
+        """
+
+        :param only_good:
+        :param platform:
+        :return:
+        """
         # pylint wrongly believes self.file_.variables is not iterable or subscriptable
         # pylint: disable=E1133, E1136
         for vname in self.file_.variables:
@@ -85,6 +86,10 @@ class ODS(object):
         return s
 
     def close(self):
+        """
+
+        :return:
+        """
         try:
             self.file_.close()
         except RuntimeError as e:
@@ -92,6 +97,10 @@ class ODS(object):
 
 
 def kt_def():
+    """
+
+    :return:
+    """
     kt = {
         4: ['u', 'Upper-air zonal wind', 'm/sec'],
         5: ['v', 'Upper-air meridional wind', 'm/sec'],
@@ -117,6 +126,10 @@ def kt_def():
 
 
 def kx_def():
+    """
+
+    :return:
+    """
     kx = {}
     for key in [120, 220]:
         kx[key] = 'Radiosonde'
@@ -163,6 +176,12 @@ def kx_def():
 
 
 def get_files(datadir, adate):
+    """
+
+    :param datadir:
+    :param adate:
+    :return:
+    """
     vdate = adate + timedelta(hours=24)
     idate = adate - timedelta(hours=9)
     idatestr = idate.strftime('%Y%m%d_%Hz')
@@ -174,6 +193,10 @@ def get_files(datadir, adate):
 
 
 def main():
+    """
+
+    :return:
+    """
     parser = ArgumentParser(description='Process GMAO data',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--indir', help='path to ODS directory', type=str, required=True)

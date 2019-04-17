@@ -1,50 +1,40 @@
-#!/usr/bin/env python
-
-'''
+"""
 lib_mapping.py contains mapping related functions:
-'''
+"""
 
 from mpl_toolkits.basemap import Basemap as _Basemap
 
-__author__ = "Rahul Mahajan"
-__email__ = "rahul.mahajan@noaa.gov"
-__copyright__ = "Copyright 2016, NOAA / NCEP / EMC"
-__license__ = "GPL"
-__status__ = "Prototype"
-__version__ = "0.1"
-
-__all__ = ['Projection',
-           'createMap',
-           'drawMap']
-
 
 class Projection(object):
-    '''
+    """
     Define a class for Projection
-    '''
+    """
 
-    def __init__(self, projection='mill',
-                 resolution='c',
-                 cenlat=None,
-                 cenlon=None,
-                 stdlat1=None,
-                 stdlat2=None,
-                 llcrnrlon=None,
-                 llcrnrlat=None,
-                 urcrnrlon=None,
-                 urcrnrlat=None,
-                 boundinglat=None,
-                 width=None,
-                 height=None,
-                 mlabel_int=60.0,
-                 plabel_int=30.0,
-                 meridians_labels=None,
-                 parallels_labels=None,
-                 **kwargs
-                 ):
-        '''
+    def __init__(self, projection='mill', resolution='c', cenlat=None, cenlon=None, stdlat1=None,
+                 stdlat2=None, llcrnrlon=None, llcrnrlat=None, urcrnrlon=None, urcrnrlat=None,
+                 boundinglat=None, width=None, height=None, mlabel_int=60.0, plabel_int=30.0,
+                 meridians_labels=None, parallels_labels=None, **kwargs):
+        """
         Initialize an class for Projection
-        '''
+        :param projection:
+        :param resolution:
+        :param cenlat:
+        :param cenlon:
+        :param stdlat1:
+        :param stdlat2:
+        :param llcrnrlon:
+        :param llcrnrlat:
+        :param urcrnrlon:
+        :param urcrnrlat:
+        :param boundinglat:
+        :param width:
+        :param height:
+        :param mlabel_int:
+        :param plabel_int:
+        :param meridians_labels:
+        :param parallels_labels:
+        :param kwargs:
+        """
         self.projection = projection
         self.resolution = resolution
 
@@ -115,11 +105,14 @@ class Projection(object):
 
 
 def createMap(proj, **kwargs):
-    '''
+    """
     Define a basemap object given the projection parameters from setProj
     Input  : Projection class
     Output : basemap object
-    '''
+    :param proj:
+    :param kwargs:
+    :return:
+    """
 
     if proj.projection == 'stere':
         bmap = _Basemap(projection=proj.projection, **kwargs)
@@ -172,18 +165,19 @@ def createMap(proj, **kwargs):
     return bmap
 
 
-def drawMap(
-        bmap,
-        proj,
-        coastlines=True,
-        fillcontinents=True,
-        meridians=True,
-        parallels=True,
-        **kwargs):
-    '''
+def drawMap(bmap, proj, coastlines=True, fillcontinents=True, meridians=True, parallels=True,
+            **kwargs):
+    """
     Draw map with coastlines, fill continents, draw meridians and parallels, etc.
-    '''
-
+    :param bmap:
+    :param proj:
+    :param coastlines:
+    :param fillcontinents:
+    :param meridians:
+    :param parallels:
+    :param kwargs:
+    :return:
+    """
     if (coastlines):
         bmap.drawcoastlines(color='dimgray')
     if (fillcontinents):

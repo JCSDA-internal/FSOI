@@ -1,16 +1,7 @@
-#!/usr/bin/env python
-
-'''
+"""
 lib_obimpact.py contains functions for FSOI project
 Some functions can be used elsewhere
-'''
-
-__author__ = "Rahul Mahajan"
-__email__ = "rahul.mahajan@noaa.gov"
-__copyright__ = "Copyright 2016, NOAA / NCEP / EMC"
-__license__ = "GPL"
-__status__ = "Prototype"
-__version__ = "0.1"
+"""
 
 import numpy as _np
 import pandas as _pd
@@ -23,8 +14,14 @@ import fsoi.stats.lib_utils as _lutils
 
 
 class FSOI(object):
+    """
+    FSOI Class
+    """
 
     def __init__(self):
+        """
+        Constructor
+        """
         self.center_name = {
             'GMAO': 'GMAO',
             'NRL': 'NRL',
@@ -49,6 +46,11 @@ class FSOI(object):
 
 
 def RefPlatform(plat_type):
+    """
+
+    :param plat_type:
+    :return:
+    """
     if plat_type not in ['full', 'conv', 'rad']:
         print('Input to RefPlatform must be "full", "conv" or "rad", instead got %s' % plat_type)
         raise Exception()
@@ -97,6 +99,10 @@ def RefPlatform(plat_type):
 
 
 def OnePlatform():
+    """
+
+    :return:
+    """
     platforms = {
         'Radiosonde': [
             'Radiosonde', 'RADIOSONDE'
@@ -286,12 +292,21 @@ def OnePlatform():
 
 
 def Platforms(center):
+    """
+
+    :param center:
+    :return:
+    """
     platforms = {}
     exec('platforms = %s_platforms()' % center)
     return platforms
 
 
 def GMAO_platforms():
+    """
+
+    :return:
+    """
     platforms = {
         'Radiosonde': ['Radiosonde'],
         'Dropsonde': ['Dropsonde'],
@@ -329,6 +344,10 @@ def GMAO_platforms():
 
 
 def NRL_platforms():
+    """
+
+    :return:
+    """
     platforms = {
         'Radiosonde': ['Radiosonde'],
         'Dropsonde': ['Dropsonde'],
@@ -373,6 +392,10 @@ def NRL_platforms():
 
 
 def EMC_platforms():
+    """
+
+    :return:
+    """
     platforms = {
         'Radiosonde': ['Radiosonde'],
         'Dropsonde': ['Dropsonde'],
@@ -410,14 +433,26 @@ def EMC_platforms():
 
 
 def JMA_adj_platforms():
+    """
+
+    :return:
+    """
     return JMA_platforms()
 
 
 def JMA_ens_platforms():
+    """
+
+    :return:
+    """
     return JMA_platforms()
 
 
 def JMA_platforms():
+    """
+
+    :return:
+    """
     platforms = {
         'Radiosonde': ['RADIOSONDE'],
         'Dropsonde': ['Dropsonde'],
@@ -458,6 +493,10 @@ def JMA_platforms():
 
 
 def MET_platforms():
+    """
+
+    :return:
+    """
     platforms = {
         'Radiosonde': ['Radiosonde'],
         'Dropsonde': ['Dropsonde'],
@@ -497,6 +536,10 @@ def MET_platforms():
 
 
 def MeteoFr_platforms():
+    """
+
+    :return:
+    """
     platforms = {
         'Radiosonde': ['Radiosonde'],
         'Dropsonde': ['Dropsonde'],
@@ -533,10 +576,9 @@ def MeteoFr_platforms():
 
 
 def add_dicts(dicts, unique=False):
-    '''
+    """
     Add dictionaries and result is a common dictionary with common keys and values from both dictionaries. The unique keys are preserved
-    '''
-
+    """
     result = {}
     for dic in dicts:
         for key in (result.keys() | dic.keys()):
@@ -552,6 +594,12 @@ def add_dicts(dicts, unique=False):
 
 
 def read_ascii(adate, fname):
+    """
+
+    :param adate:
+    :param fname:
+    :return:
+    """
     # DataFrame for the data base
     names = ['PLATFORM', 'OBTYPE', 'CHANNEL', 'LONGITUDE', 'LATITUDE', 'PRESSURE', 'IMPACT', 'OMF',
              'OBERR']
@@ -577,12 +625,14 @@ def read_ascii(adate, fname):
 
 
 def list_to_dataframe(adate, data):
-    '''
+    """
     INPUT:  data = list of lists. Each list is a row e.g. [[...],[...],...,[...]]
            adate = date to append to the dataframe
     OUTPUT:   df = convert list data into a pandas dataframe
-    '''
-
+    :param adate:
+    :param data:
+    :return:
+    """
     columns = ['PLATFORM', 'OBTYPE', 'CHANNEL', 'LONGITUDE', 'LATITUDE', 'PRESSURE', 'IMPACT',
                'OMF', 'OBERR']
     index_cols = columns[0:3]
@@ -606,9 +656,19 @@ def list_to_dataframe(adate, data):
 
 def select(df, cycles=None, dates=None, platforms=None, obtypes=None, channels=None, latitudes=None,
            longitudes=None, pressures=None):
-    '''
-        Successively slice a dataframe given ranges of cycles, dates, platforms, obtypes, channels, latitudes, longitudes and pressures
-    '''
+    """
+    Successively slice a dataframe given ranges of cycles, dates, platforms, obtypes, channels, latitudes, longitudes and pressures
+    :param df:
+    :param cycles:
+    :param dates:
+    :param platforms:
+    :param obtypes:
+    :param channels:
+    :param latitudes:
+    :param longitudes:
+    :param pressures:
+    :return:
+    """
     if cycles is not None:
         indx = df.index.get_level_values('DATETIME') == ''
         for cycle in cycles:
@@ -654,8 +714,12 @@ def select(df, cycles=None, dates=None, platforms=None, obtypes=None, channels=N
 
 
 def BulkStats(DF, threshold=1.e-10):
-    '''Collapse PRESSURE, LATITUDE, LONGITUDE'''
-
+    """
+    Collapse PRESSURE, LATITUDE, LONGITUDE
+    :param DF:
+    :param threshold:
+    :return:
+    """
     print('... computing bulk statistics ...')
 
     columns = ['TotImp', 'ObCnt', 'ObCntBen', 'ObCntNeu']
@@ -677,7 +741,11 @@ def BulkStats(DF, threshold=1.e-10):
 
 
 def accumBulkStats(DF):
-    '''Collapse OBTYPE and CHANNEL'''
+    """
+    Collapse OBTYPE and CHANNEL
+    :param DF:
+    :return:
+    """
 
     print('... accumulating bulk statistics ...')
 
@@ -697,8 +765,12 @@ def accumBulkStats(DF):
 
 
 def groupBulkStats(DF, Platforms):
-    '''Group accumulated bulk statistics by aggregated platforms'''
-
+    """
+    Group accumulated bulk statistics by aggregated platforms
+    :param DF:
+    :param Platforms:
+    :return:
+    """
     print('... grouping bulk statistics ...')
 
     tmp = DF.reset_index()
@@ -716,6 +788,12 @@ def groupBulkStats(DF, Platforms):
 
 
 def tavg(DF, level=None):
+    """
+
+    :param DF:
+    :param level:
+    :return:
+    """
     if level is None:
         print('A level is needed to do averaging over, e.g. PLATFORM or CHANNEL')
         raise Exception()
@@ -733,17 +811,14 @@ def tavg(DF, level=None):
 
 
 def bin_df(DF, dlat=5., dlon=5., dpres=None):
-    '''
+    """
     Bin a dataframe given dlat, dlon and dpres using Pandas method
-    INPUT:
-          DF : dataframe that needs to be binned
-        dlat : latitude box in degrees (default: 5.)
-        dlon : longitude box in degrees (default: 5.)
-       dpres : pressure box in hPa (default: None, column sum)
-    OUTPUT:
-          df : binned dataframe
-    '''
-
+    :param DF: dataframe that needs to be binned
+    :param dlat: latitude box in degrees (default: 5.)
+    :param dlon: longitude box in degrees (default: 5.)
+    :param dpres: pressure box in hPa (default: None, column sum)
+    :return: binned dataframe
+    """
     tmp = DF.reset_index()
 
     columns = ['TotImp', 'ObCnt']
@@ -783,12 +858,23 @@ def bin_df(DF, dlat=5., dlon=5., dpres=None):
 
 
 def scipy_bin_df(df, dlat=5., dlon=5., dpres=None):
-    raise NotImplementedError('lib_obimpact.py - scipy_bin_df is not yet active')
+    """
 
-    return df
+    :param df:
+    :param dlat:
+    :param dlon:
+    :param dpres:
+    :return:
+    """
+    raise NotImplementedError('lib_obimpact.py - scipy_bin_df is not yet active')
 
 
 def summarymetrics(DF):
+    """
+
+    :param DF:
+    :return:
+    """
     df = DF[['TotImp', 'ObCnt']].copy()
 
     df['ImpPerOb'] = df['TotImp'] / df['ObCnt']
@@ -803,6 +889,12 @@ def summarymetrics(DF):
 
 
 def getPlotOpt(qty='TotImp', **kwargs):
+    """
+
+    :param qty:
+    :param kwargs:
+    :return:
+    """
     plotOpt = {}
 
     plotOpt['center'] = kwargs['center'] if 'center' in kwargs else None
@@ -878,6 +970,15 @@ def getPlotOpt(qty='TotImp', **kwargs):
 
 
 def getbarcolors(data, logscale, cmax, cmin, cmap):
+    """
+
+    :param data:
+    :param logscale:
+    :param cmax:
+    :param cmin:
+    :param cmap:
+    :return:
+    """
     lmin = _np.log10(cmin)
     lmax = _np.log10(cmax)
     barcolors = []
@@ -899,6 +1000,14 @@ def getbarcolors(data, logscale, cmax, cmin, cmap):
 
 
 def summaryplot(df, qty='TotImp', plotOpt={}, std=None):
+    """
+
+    :param df:
+    :param qty:
+    :param plotOpt:
+    :param std:
+    :return:
+    """
     if plotOpt['finite']:
         df = df[_np.isfinite(df[qty])]
 
@@ -1036,6 +1145,14 @@ def getcomparesummarypalette(
 
 
 def comparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
+    """
+
+    :param df:
+    :param palette:
+    :param qty:
+    :param plotOpt:
+    :return:
+    """
     alpha = plotOpt['alpha']
     barcolors = reversed(palette)
 

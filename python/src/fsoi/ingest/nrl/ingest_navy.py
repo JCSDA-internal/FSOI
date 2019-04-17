@@ -4,6 +4,13 @@ and submit a batch job to convert the file to HDF5 format that can be used by th
 This script is intended to be called once per day by CloudWatch Events.
 """
 
+import os
+import time
+import datetime
+import json
+import boto3
+from ftplib import FTP
+
 
 def ftp_download_file(host, remote_file, local_file=None):
     """
@@ -13,8 +20,6 @@ def ftp_download_file(host, remote_file, local_file=None):
     :param local_file: Full path to the local file
     :return: None
     """
-    from ftplib import FTP
-
     # connect and login
     ftp = FTP(host)
     ftp.login()
@@ -44,12 +49,6 @@ def main(event, context):
     :param context: {NoneType} Not used, but required for Lambda
     :return: None
     """
-    import os
-    import time
-    import datetime
-    import json
-    import boto3
-
     log = {'ok': False, 'runtime': int(time.time()), 'size': -1, 'name': 'n/a'}
 
     try:

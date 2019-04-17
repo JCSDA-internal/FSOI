@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-'''
+"""
 Taylor Diagram (Taylor, 2001)
 
 http://www-pcmdi.llnl.gov/about/staff/Taylor/CV/Taylor_diagram_primer.htm
@@ -12,26 +10,30 @@ Modifications:
     0. Cosmetic updates, e.g. numpy is imported as _np, etc.
     1. Removed the test function
     2. Added the ability to create Full Taylor
-'''
+"""
 
 import numpy as _np
 from matplotlib import pyplot as _plt
 
 
 class TaylorDiagram(object):
-    """Taylor diagram: plot model standard deviation and correlation
-    to reference (data) sample in a polar plot, with
-    r=stddev and theta=arccos(correlation).
+    """
+    Taylor diagram: plot model standard deviation and correlation
+    to reference (data) sample in a polar plot, with r=stddev
+    and theta=arccos(correlation).
     """
 
     def __init__(self, refstd, fig=None, rect=111, label='_', norm=False, full=False, grid=True):
-        """Set up Taylor diagram axes, i.e. polar plot,
-        using mpl_toolkits.axisartist.floating_axes. refstd is
-        the reference standard deviation to be compared to.
-        norm : flag to normalize with respect to refstd.
-        full : flag to create single quadrant or semi-circle
         """
-
+        Set up Taylor diagram axes, i.e. polar plot, using mpl_toolkits.axisartist.floating_axes.
+        :param refstd: the reference standard deviation to be compared to
+        :param fig:
+        :param rect:
+        :param label:
+        :param norm: flag to normalize with respect to refstd
+        :param full: flag to create single quadrant or semi-circle
+        :param grid:
+        """
         from matplotlib.projections import PolarAxes as _PolarAxes
         import mpl_toolkits.axisartist.floating_axes as _FA
         import mpl_toolkits.axisartist.grid_finder as _GF
@@ -141,10 +143,14 @@ class TaylorDiagram(object):
         return
 
     def add_sample(self, stddev, corrcoef, *args, **kwargs):
-        """Add sample (stddev,corrcoeff) to the Taylor diagram. args
-        and kwargs are directly propagated to the Figure.plot
-        command."""
-
+        """
+        Add sample (stddev,corrcoeff) to the Taylor diagram.
+        :param stddev:
+        :param corrcoef:
+        :param args: directly propagated to the Figure.plot command
+        :param kwargs: directly propagated to the Figure.plot command
+        :return:
+        """
         l, = self.ax.plot(_np.arccos(corrcoef), stddev / (self.refstd if self.norm else 1.0),
                           *args, **kwargs)  # (theta,radius)
         self.samplePoints.append(l)
@@ -152,10 +158,14 @@ class TaylorDiagram(object):
         return l
 
     def add_contours(self, levels=5, **kwargs):
-        """Add constant centered RMS difference contours."""
+        """
+        Add constant centered RMS difference contours.
+        :param levels:
+        :param kwargs:
+        :return:
+        """
+        rs, ts = _np.meshgrid(_np.linspace(self.smin, self.smax), _np.linspace(0, self.ext_max))
 
-        rs, ts = _np.meshgrid(_np.linspace(self.smin, self.smax),
-                              _np.linspace(0, self.ext_max))
         # Compute centered RMS difference
         rms = _np.sqrt((self.refstd / (self.refstd if self.norm else 1.0)) ** 2 + rs ** 2 - 2 * (
                     self.refstd / (self.refstd if self.norm else 1.0)) * rs * _np.cos(ts))

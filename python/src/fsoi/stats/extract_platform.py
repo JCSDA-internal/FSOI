@@ -1,17 +1,17 @@
-#!/usr/bin/env python
-
-'''
+"""
 extract_platform.py - extract a platform from raw HDF file and write out
-'''
+"""
 
 import os
-import sys
 import pandas as pd
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import fsoi.stats.lib_utils as lutils
 
-if __name__ == '__main__':
+def main():
+    """
 
+    :return:
+    """
     parser = ArgumentParser(
         description='Extract a platform from HDF file and write out to a smaller HDF file',
         formatter_class=ArgumentDefaultsHelpFormatter)
@@ -67,4 +67,6 @@ if __name__ == '__main__':
         lutils.writeHDF(fext, 'df', df, complevel=1,
                         complib='zlib', fletcher32=True)
 
-    sys.exit(0)
+
+if __name__ == '__main__':
+    main()

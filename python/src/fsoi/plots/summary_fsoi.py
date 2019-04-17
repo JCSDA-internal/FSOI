@@ -1,15 +1,6 @@
-#!/usr/bin/env python
-
-'''
+"""
 summary_fsoi.py - create a summary figure of all platforms
-'''
-
-__author__ = "Rahul Mahajan"
-__email__ = "rahul.mahajan@noaa.gov"
-__copyright__ = "Copyright 2016, NOAA / NCEP / EMC"
-__license__ = "GPL"
-__status__ = "Prototype"
-__version__ = "0.1"
+"""
 
 import os
 import numpy as np
@@ -21,6 +12,10 @@ import fsoi.stats.lib_obimpact as loi
 
 
 def summary_fsoi_main():
+    """
+
+    :return:
+    """
     parser = ArgumentParser(description='Create and Plot Observation Impacts Statistics',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--center', help='originating center', type=str, required=True,

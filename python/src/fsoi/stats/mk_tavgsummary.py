@@ -1,23 +1,6 @@
-#!/usr/bin/env python
-
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
-'''
+"""
 mk_tavgsummary.py - Compute time-average statistics and dump to a pkl file
-'''
-
-__author__ = "Rahul Mahajan"
-__email__ = "rahul.mahajan@noaa.gov"
-__copyright__ = "Copyright 2016, NOAA / NCEP / EMC"
-__license__ = "GPL"
-__status__ = "Prototype"
-__version__ = "0.1"
+"""
 
 import os
 import sys
@@ -27,6 +10,10 @@ import fsoi.stats.lib_obimpact as loi
 
 
 def main():
+    """
+
+    :return:
+    """
     parser = ArgumentParser(description='Create time-average data given bulk statistics',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--center', help='originating center', type=str, required=True,
@@ -55,4 +42,5 @@ def main():
     sys.exit(0)
 
 
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    main()

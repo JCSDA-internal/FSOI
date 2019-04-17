@@ -1,12 +1,3 @@
-#!/usr/bin/env python
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
 import os
 import sys
 import glob
@@ -16,15 +7,13 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
-sys.path.append('../../lib')
 import fsoi.stats.lib_utils as lutils
 
 
 def parse_file(adate, fname):
-    '''
+    """
     Call the appropriate file parser depending on platform
-    '''
+    """
 
     ffname = os.path.basename(fname)
     platform = ffname.split('.')[1]
@@ -53,9 +42,9 @@ def parse_file(adate, fname):
 
 
 def parse_conv(fname):
-    '''
+    """
     Parse conventional observations file
-    '''
+    """
 
     plat_ids, plat_names = get_platid_platname()
     var_ids, var_names = get_varid_varname()
@@ -79,9 +68,9 @@ def parse_conv(fname):
 
 
 def parse_satem(fname):
-    '''
+    """
     Parse satellite radiances and scatterometer file
-    '''
+    """
 
     ffname = os.path.basename(fname)
     instrument = ffname.split('.')[1].split('_')[-1]
@@ -118,9 +107,9 @@ def parse_satem(fname):
 
 
 def parse_satwind(fname):
-    '''
+    """
     Parse satellite winds file
-    '''
+    """
 
     sat_ids, sat_names = get_satwindid_satwindname()
     var_ids, var_names = get_varid_varname()
@@ -144,9 +133,9 @@ def parse_satwind(fname):
 
 
 def parse_gpsro(fname):
-    '''
+    """
     Parse GPSRO file
-    '''
+    """
 
     var_ids, var_names = get_varid_varname()
 
@@ -169,12 +158,12 @@ def parse_gpsro(fname):
 
 
 def read_file(fname):
-    '''
+    """
     Read a file into a dataframe
     Drop the useless columns
     Convert latitude, LONGITUDE from radians to degrees
     Rescale impact by 1.e5 because units in the file are JPa/kg
-    '''
+    """
 
     try:
         data = pd.read_csv(fname, header=0, delim_whitespace=True, skipinitialspace=True,

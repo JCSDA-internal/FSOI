@@ -1,25 +1,17 @@
-#!/usr/bin/env python
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
 import os
-import sys
 import numpy as np
 from datetime import datetime
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from emc import emc
-
-sys.path.append('../../lib')
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
 
 
 def kt_def():
+    """
+
+    :return:
+    """
     kt = {
         4: ['u', 'Upper-air zonal wind', 'm/sec'],
         5: ['v', 'Upper-air meridional wind', 'm/sec'],
@@ -45,6 +37,11 @@ def kt_def():
 
 
 def get_platform_rad(plat):
+    """
+
+    :param plat:
+    :return:
+    """
     platform = plat.upper()
 
     if 'CRIS' in platform:
@@ -60,6 +57,11 @@ def get_platform_rad(plat):
 
 
 def get_platform_con(plat):
+    """
+
+    :param plat:
+    :return:
+    """
     platform = 'UNKNOWN'
 
     if plat in map(str, [122, 126, 191, 285, 286]):
@@ -117,6 +119,10 @@ def get_platform_con(plat):
 
 
 def main():
+    """
+
+    :return:
+    """
     parser = ArgumentParser(description='Process EMC file',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', help='Raw EMC file', type=str, required=True)
@@ -162,8 +168,6 @@ def main():
         lutils.writeHDF(fname_out, 'df', df, complevel=1, complib='zlib', fletcher32=True)
 
     print('Total obs = %d' % (nobs))
-
-    sys.exit(0)
 
 
 if __name__ == '__main__':

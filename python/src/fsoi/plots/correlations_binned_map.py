@@ -1,11 +1,8 @@
-#!/usr/bin/env python
-
-'''
+"""
 correlations_binned_map.py - make spatial maps of FSOI binned correlations
-'''
+"""
 
 import os
-import sys
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 import fsoi.stats.lib_mapping as lmapping
@@ -14,7 +11,10 @@ import fsoi.stats.lib_obimpact as loi
 
 
 def read_centers_raw():
-    'Read data and return a dictionary of dataframes, one key per center'
+    """
+    Read data and return a dictionary of dataframes, one key per center
+    :return:
+    """
     df = {}
     for center in centers:
         fbinned = '%s/work/%s/%s/%s.h5' % (rootdir, center, norm, platform.lower())
@@ -28,7 +28,10 @@ def read_centers_raw():
 
 
 def read_centers():
-    'Read binned data and return a dictionary of dataframes, one key per center'
+    """
+    Read binned data and return a dictionary of dataframes, one key per center
+    :return:
+    """
     df = {}
     for center in centers:
         fbinned = '%s/work/%s/%s/%s.binned.h5' % (rootdir, center, norm, platform.lower())
@@ -42,7 +45,11 @@ def read_centers():
 
 
 def compute_std_corr(df):
-    'Compute the standard deviation and correlation from dictionary of dataframe'
+    """
+    Compute the standard deviation and correlation from dictionary of dataframe
+    :param df:
+    :return:
+    """
     stdv = {};
     corr = {}
     for center in centers:
@@ -67,6 +74,13 @@ def compute_std_corr(df):
 
 
 def plot_corr(center, corr, titlestr):
+    """
+
+    :param center:
+    :param corr:
+    :param titlestr:
+    :return:
+    """
     vmax = 0.6
     vmin = -vmax
 
@@ -86,86 +100,89 @@ def plot_corr(center, corr, titlestr):
     return
 
 
-global rootdir, centers, cycle, platform, obtype, channel, norm, savefig
-global ref_center, cyclestr
-global cmap, proj, bmap, xg, yg
+def main():
+    """
 
-parser = ArgumentParser(description='Create and Plot Observation Impact Correlation Maps',
-                        formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument('--rootdir', help='root path to directory', type=str,
-                    default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',
-                    required=False)
-parser.add_argument('--norm', help='metric norm', type=str, default='dry', choices=['dry', 'moist'],
-                    required=False)
-parser.add_argument('--centers', help='originating centers', nargs='+', type=str,
-                    choices=['GMAO', 'NRL', 'MET', 'MeteoFr', 'JMA_adj', 'JMA_ens', 'EMC'],
-                    required=True)
-parser.add_argument('--cycle', help='cycle to process', nargs='+', type=int, default=None,
-                    choices=[0, 6, 12, 18], required=False)
-parser.add_argument('--platform', help='platform to plot', type=str, required=True)
-parser.add_argument('--obtype', help='observation types to include', nargs='+', type=str,
-                    default=None, required=False)
-parser.add_argument('--channel', help='channel to process', nargs='+', type=int, default=None,
-                    required=False)
-parser.add_argument('--savefigure', help='save figures', action='store_true', required=False)
+    :return:
+    """
+    global rootdir, centers, cycle, platform, obtype, channel, norm, savefig
+    global ref_center, cyclestr
+    global cmap, proj, bmap, xg, yg
 
-args = parser.parse_args()
+    parser = ArgumentParser(description='Create and Plot Observation Impact Correlation Maps',
+                            formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--rootdir', help='root path to directory', type=str,
+                        default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',
+                        required=False)
+    parser.add_argument('--norm', help='metric norm', type=str, default='dry', choices=['dry', 'moist'],
+                        required=False)
+    parser.add_argument('--centers', help='originating centers', nargs='+', type=str,
+                        choices=['GMAO', 'NRL', 'MET', 'MeteoFr', 'JMA_adj', 'JMA_ens', 'EMC'],
+                        required=True)
+    parser.add_argument('--cycle', help='cycle to process', nargs='+', type=int, default=None,
+                        choices=[0, 6, 12, 18], required=False)
+    parser.add_argument('--platform', help='platform to plot', type=str, required=True)
+    parser.add_argument('--obtype', help='observation types to include', nargs='+', type=str,
+                        default=None, required=False)
+    parser.add_argument('--channel', help='channel to process', nargs='+', type=int, default=None,
+                        required=False)
+    parser.add_argument('--savefigure', help='save figures', action='store_true', required=False)
 
-rootdir = args.rootdir
-norm = args.norm
-centers = args.centers
-cycle = [0, 6, 12, 18] if args.cycle is None else sorted(list(set(args.cycle)))
-platform = args.platform
-obtype = args.obtype
-channel = args.channel
-savefig = args.savefigure
+    args = parser.parse_args()
 
-cyclestr = ' '.join('%02dZ' % c for c in cycle)
-if channel is not None:
-    channelstr = ', '.join('%d' % c for c in channel)
-ref_center = centers[0]
+    rootdir = args.rootdir
+    norm = args.norm
+    centers = args.centers
+    cycle = [0, 6, 12, 18] if args.cycle is None else sorted(list(set(args.cycle)))
+    platform = args.platform
+    obtype = args.obtype
+    channel = args.channel
+    savefig = args.savefigure
 
-fcorrpkl = '%s/work/%s.%s.corr.pkl' % (rootdir, platform.lower(), norm)
-if os.path.isfile(fcorrpkl):
-    overwrite = input('%s exists, OVERWRITE [y/N]: ' % fcorrpkl)
-else:
-    overwrite = 'Y'
+    cyclestr = ' '.join('%02dZ' % c for c in cycle)
+    if channel is not None:
+        channelstr = ', '.join('%d' % c for c in channel)
+    ref_center = centers[0]
 
-if overwrite.upper() in ['Y', 'YES']:
-    # Read and select by cycles, obtypes and channels
-    df = read_centers()
-    # Compute stdev and correlations between centers
-    df_stdv, df_corr = compute_std_corr(df)
-    # Store as a pkl file
-    os.remove(fcorrpkl)
-    lutils.pickle(fcorrpkl, [df_stdv, df_corr])
-else:
-    # Unpickle a pkl file
-    df_stdv, df_corr = lutils.unpickle(fcorrpkl)
+    fcorrpkl = '%s/work/%s.%s.corr.pkl' % (rootdir, platform.lower(), norm)
+    if os.path.isfile(fcorrpkl):
+        overwrite = input('%s exists, OVERWRITE [y/N]: ' % fcorrpkl)
+    else:
+        overwrite = 'Y'
 
-df_corr.reset_index(inplace=True)
-lons = df_corr['LONGITUDE'].values
-lats = df_corr['LATITUDE'].values
+    if overwrite.upper() in ['Y', 'YES']:
+        # Read and select by cycles, obtypes and channels
+        df = read_centers()
+        # Compute stdev and correlations between centers
+        df_stdv, df_corr = compute_std_corr(df)
+        # Store as a pkl file
+        os.remove(fcorrpkl)
+        lutils.pickle(fcorrpkl, [df_stdv, df_corr])
+    else:
+        # Unpickle a pkl file
+        df_stdv, df_corr = lutils.unpickle(fcorrpkl)
 
-cmap = plt.cm.get_cmap(name='coolwarm', lut=20)
-proj = lmapping.Projection('mill', resolution='c', llcrnrlat=-80., urcrnrlat=80.)
-bmap = lmapping.createMap(proj)
-xg, yg = bmap(lons, lats)
+    df_corr.reset_index(inplace=True)
+    lons = df_corr['LONGITUDE'].values
+    lats = df_corr['LATITUDE'].values
 
-title_substr = '%s DJF 2014-15\n%s' % (cyclestr, platform)
-if channel is not None:
-    title_substr = '%s, ch. %s' % (title_substr, channelstr)
+    cmap = plt.cm.get_cmap(name='coolwarm', lut=20)
+    proj = lmapping.Projection('mill', resolution='c', llcrnrlat=-80., urcrnrlat=80.)
+    bmap = lmapping.createMap(proj)
+    xg, yg = bmap(lons, lats)
 
-fsoi = loi.FSOI()
+    title_substr = '%s DJF 2014-15\n%s' % (cyclestr, platform)
+    if channel is not None:
+        title_substr = '%s, ch. %s' % (title_substr, channelstr)
 
-for center in centers[1:]:
-    titlestr = '%s - %s correlation\n%s' % (
-    fsoi.center_name[ref_center], fsoi.center_name[center], title_substr)
-    plot_corr(center, df_corr[center], titlestr)
+    fsoi = loi.FSOI()
 
-if savefig:
-    plt.close('all')
-else:
-    plt.show()
+    for center in centers[1:]:
+        titlestr = '%s - %s correlation\n%s' % (
+        fsoi.center_name[ref_center], fsoi.center_name[center], title_substr)
+        plot_corr(center, df_corr[center], titlestr)
 
-sys.exit(0)
+    if savefig:
+        plt.close('all')
+    else:
+        plt.show()

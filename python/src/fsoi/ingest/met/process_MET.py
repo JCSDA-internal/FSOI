@@ -1,12 +1,3 @@
-#!/usr/bin/env python
-###############################################################
-# < next few lines under version control, D O  N O T  E D I T >
-# $Date$
-# $Revision$
-# $Author$
-# $Id$
-###############################################################
-
 import os
 import sys
 import gzip
@@ -14,12 +5,15 @@ import numpy as np
 from datetime import datetime
 from fortranformat import FortranRecordReader
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
 
 
 def kt_def():
+    """
+
+    :return:
+    """
     kt = {
         1: ['ps', 'Surface Pressure', 'hPa'],
         2: ['T', 'Temperature', 'K'],
@@ -34,6 +28,12 @@ def kt_def():
 
 
 def parse_line(line, kt):
+    """
+
+    :param line:
+    :param kt:
+    :return:
+    """
     fmtstr = 'i8,1x,e15.8,1x,e15.8,1x,e16.8,1x,f6.2,1x,f6.2,1x,f10.4,1x,i3,1x,i5,1x,i6,1x,' \
              'e14.8,1x,f6.2,1x,a35'
     # pylint wrongly believes that the FortranRecordReader constructor is not callable
@@ -84,6 +84,12 @@ def parse_line(line, kt):
 
 
 def get_conventional(instyp, schar):
+    """
+
+    :param instyp:
+    :param schar:
+    :return:
+    """
     schar = schar.upper()
     zchar = schar.split()
 
@@ -161,6 +167,11 @@ def get_conventional(instyp, schar):
 
 
 def get_radiance(schar):
+    """
+
+    :param schar:
+    :return:
+    """
     zchar = schar.split()
 
     platform = 'UNKNOWN'
@@ -224,6 +235,14 @@ def get_radiance(schar):
 
 
 def skip_ob(obtyp, instyp, oberr, impact):
+    """
+
+    :param obtyp:
+    :param instyp:
+    :param oberr:
+    :param impact:
+    :return:
+    """
     # discard obs with very large impact
     if np.abs(impact) > 1.e-3:
         return True
@@ -232,6 +251,10 @@ def skip_ob(obtyp, instyp, oberr, impact):
 
 
 def main():
+    """
+
+    :return:
+    """
     parser = ArgumentParser(description='Process UKMet file',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input', help='Raw UKMet file', type=str, required=True)
