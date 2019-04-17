@@ -15,13 +15,13 @@ __copyright__ = "Copyright 2016, NOAA / NCEP / EMC"
 __license__ = "GPL"
 __status__ = "Prototype"
 __all__ = [
-            'float10Power', 'roundNumber',
-            'pickle', 'unpickle',
-            'writeHDF', 'readHDF',
-            'EmptyDataFrame',
-            'discrete_colors',
-            'savefigure'
-          ]
+    'float10Power', 'roundNumber',
+    'pickle', 'unpickle',
+    'writeHDF', 'readHDF',
+    'EmptyDataFrame',
+    'discrete_colors',
+    'savefigure'
+]
 
 
 def float10Power(value):
@@ -51,7 +51,7 @@ def roundNumber(value):
     '''
 
     d = float10Power(value)
-    round_value = _np.round(abs(value)/10**d) * 10**d * _np.sign(value)
+    round_value = _np.round(abs(value) / 10 ** d) * 10 ** d * _np.sign(value)
 
     return round_value
 
@@ -144,7 +144,7 @@ def discrete_colors(N, base_cmap=None, colormap=False):
     color_list = base(_np.linspace(0, 1, N))
     cmap_name = base.name + str(N)
 
-    #return base.from_list(cmap_name, color_list, N)
+    # return base.from_list(cmap_name, color_list, N)
     return _lscmap.from_list(cmap_name, color_list, N) if colormap else color_list
 
 
@@ -160,15 +160,15 @@ def savefigure(fh=None, fname='test',
         fh = _plt
     if 'png' in format:
         fh.savefig('%s.png' % fname,
-                   format='png', dpi=1*dpi,
+                   format='png', dpi=1 * dpi,
                    orientation=orientation)
     if 'eps' in format:
         fh.savefig('%s.eps' % fname,
-                   format='eps', dpi=2*dpi,
+                   format='eps', dpi=2 * dpi,
                    orientation=orientation)
     if 'pdf' in format:
         fh.savefig('%s.pdf' % fname,
-                   format='pdf', dpi=2*dpi,
+                   format='pdf', dpi=2 * dpi,
                    orientation=orientation)
 
     return

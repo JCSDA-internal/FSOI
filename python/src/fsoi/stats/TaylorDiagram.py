@@ -36,42 +36,42 @@ class TaylorDiagram(object):
         import mpl_toolkits.axisartist.floating_axes as _FA
         import mpl_toolkits.axisartist.grid_finder as _GF
 
-        self.refstd = refstd            # Reference standard deviation
-        self.norm   = norm              # Normalized or Absolute
-        self.full   = full              # Full or Single-quadrant Taylor
-        self.grid   = grid              # Cyan grid-lines at correlation theta
+        self.refstd = refstd  # Reference standard deviation
+        self.norm = norm  # Normalized or Absolute
+        self.full = full  # Full or Single-quadrant Taylor
+        self.grid = grid  # Cyan grid-lines at correlation theta
 
         tr = _PolarAxes.PolarTransform()
 
         # Correlation labels
-        rlocs = _np.concatenate((_np.arange(10)/10.,[0.95,0.99]))
+        rlocs = _np.concatenate((_np.arange(10) / 10., [0.95, 0.99]))
         if self.full:
-            rlocs = _np.concatenate([-1.*_np.flipud(rlocs)[:-1],rlocs])
-        tlocs = _np.arccos(rlocs)        # Conversion to polar angles
-        gl1 = _GF.FixedLocator(tlocs)    # Positions
-        tf1 = _GF.DictFormatter(dict(zip(tlocs, map(str,rlocs))))
+            rlocs = _np.concatenate([-1. * _np.flipud(rlocs)[:-1], rlocs])
+        tlocs = _np.arccos(rlocs)  # Conversion to polar angles
+        gl1 = _GF.FixedLocator(tlocs)  # Positions
+        tf1 = _GF.DictFormatter(dict(zip(tlocs, map(str, rlocs))))
 
         # Standard deviation axis extent and labels
         self.smin = 0
-        if self. norm:
+        if self.norm:
             self.smax = 1.5
-            slocs = _np.arange(self.smax*10)[::2]/10.
+            slocs = _np.arange(self.smax * 10)[::2] / 10.
             gl2 = _GF.FixedLocator(slocs)
-            tf2 = _GF.DictFormatter(dict(zip(slocs, map(str,slocs))))
+            tf2 = _GF.DictFormatter(dict(zip(slocs, map(str, slocs))))
         else:
-            self.smax = 1.5*self.refstd
+            self.smax = 1.5 * self.refstd
             gl2 = None
             tf2 = None
 
-        self.ext_max = _np.pi if self.full else _np.pi/2.
+        self.ext_max = _np.pi if self.full else _np.pi / 2.
         ghelper = _FA.GridHelperCurveLinear(tr,
-                                           extremes=(0.,self.ext_max,
-                                                     self.smin,self.smax),
-                                           grid_locator1=gl1,
-                                           tick_formatter1=tf1,
-                                           grid_locator2=gl2,
-                                           tick_formatter2=tf2,
-                                           )
+                                            extremes=(0., self.ext_max,
+                                                      self.smin, self.smax),
+                                            grid_locator1=gl1,
+                                            tick_formatter1=tf1,
+                                            grid_locator2=gl2,
+                                            tick_formatter2=tf2,
+                                            )
 
         if fig is None:
             fig = _plt.figure()
@@ -89,12 +89,13 @@ class TaylorDiagram(object):
         ax.axis["top"].label.set_fontsize(12)
         ax.axis["top"].label.set_fontweight("normal")
 
-        ax.axis["left"].set_axis_direction("bottom") # "X axis"
-        ax.axis["left"].label.set_text("Normalized Standard Deviation" if self.norm else "Standard Deviation")
+        ax.axis["left"].set_axis_direction("bottom")  # "X axis"
+        ax.axis["left"].label.set_text(
+            "Normalized Standard Deviation" if self.norm else "Standard Deviation")
         ax.axis["left"].label.set_fontsize(12)
         ax.axis["left"].label.set_fontweight("normal")
 
-        ax.axis["right"].set_axis_direction("top")   # "Y axis"
+        ax.axis["right"].set_axis_direction("top")  # "Y axis"
         ax.axis["right"].toggle(ticklabels=True)
 
         if self.full:
@@ -103,62 +104,61 @@ class TaylorDiagram(object):
             ax.axis["bottom"].set_axis_direction("bottom")
         else:
             ax.axis["right"].major_ticklabels.set_axis_direction("left")
-            ax.axis["bottom"].set_visible(False)         # Useless
+            ax.axis["bottom"].set_visible(False)  # Useless
 
         # Contours along standard deviations
         ax.grid(False)
 
-        self._ax = ax                   # Graphical axes
-        self.ax = ax.get_aux_axes(tr)   # Polar coordinates
+        self._ax = ax  # Graphical axes
+        self.ax = ax.get_aux_axes(tr)  # Polar coordinates
 
         # Add reference point and stddev contour
-        #print "Reference std:", self.refstd
+        # print "Reference std:", self.refstd
         l, = self.ax.plot([0], 1.0 if self.norm else self.refstd, 'k*',
                           ls='', ms=10, label=label)
         t = _np.linspace(0, self.ext_max)
-        r = _np.zeros_like(t) + ( 1.0 if self.norm else self.refstd )
-        self.ax.plot(t,r, 'k--', label='_')
+        r = _np.zeros_like(t) + (1.0 if self.norm else self.refstd)
+        self.ax.plot(t, r, 'k--', label='_')
 
         # Collect sample points for latter use (e.g. legend)
         self.samplePoints = [l]
 
         # Add 0 line if full Taylor
         if self.full:
-            r = _np.linspace(0.,self.smax)
-            t = _np.zeros_like(r) + _np.pi/2.
-            self.ax.plot(t,r,'k--',label='_')
+            r = _np.linspace(0., self.smax)
+            t = _np.zeros_like(r) + _np.pi / 2.
+            self.ax.plot(t, r, 'k--', label='_')
 
         # Add cyan radii at all correlations:
         if self.grid:
-            r = _np.linspace(0.,self.smax)
+            r = _np.linspace(0., self.smax)
             for th in tlocs:
-                th_deg = 180.*th/_np.pi
+                th_deg = 180. * th / _np.pi
                 if not (20. < th_deg < 160. and th_deg != 90.): continue
                 t = _np.zeros_like(r) + th
-                self.ax.plot(t,r,'c-',label='_')
+                self.ax.plot(t, r, 'c-', label='_')
 
         return
-
 
     def add_sample(self, stddev, corrcoef, *args, **kwargs):
         """Add sample (stddev,corrcoeff) to the Taylor diagram. args
         and kwargs are directly propagated to the Figure.plot
         command."""
 
-        l, = self.ax.plot(_np.arccos(corrcoef), stddev/(self.refstd if self.norm else 1.0),
-                          *args, **kwargs) # (theta,radius)
+        l, = self.ax.plot(_np.arccos(corrcoef), stddev / (self.refstd if self.norm else 1.0),
+                          *args, **kwargs)  # (theta,radius)
         self.samplePoints.append(l)
 
         return l
 
-
     def add_contours(self, levels=5, **kwargs):
         """Add constant centered RMS difference contours."""
 
-        rs,ts = _np.meshgrid(_np.linspace(self.smin,self.smax),
-                            _np.linspace(0,self.ext_max))
+        rs, ts = _np.meshgrid(_np.linspace(self.smin, self.smax),
+                              _np.linspace(0, self.ext_max))
         # Compute centered RMS difference
-        rms = _np.sqrt((self.refstd/(self.refstd if self.norm else 1.0))**2 + rs**2 - 2*(self.refstd/(self.refstd if self.norm else 1.0))*rs*_np.cos(ts))
+        rms = _np.sqrt((self.refstd / (self.refstd if self.norm else 1.0)) ** 2 + rs ** 2 - 2 * (
+                    self.refstd / (self.refstd if self.norm else 1.0)) * rs * _np.cos(ts))
 
         contours = self.ax.contour(ts, rs, rms, levels, **kwargs)
 

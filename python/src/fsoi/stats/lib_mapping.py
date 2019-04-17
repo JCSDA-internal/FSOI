@@ -59,17 +59,17 @@ class Projection(object):
             self.parallels = range(-90, 90, plabel_int)
             self.lon_0 = 0.0 if (cenlon is None) else cenlon
             self.meridians_labels = [0, 0, 1, 1] if (
-                meridians_labels is None) else meridians_labels
+                    meridians_labels is None) else meridians_labels
             if (self.projection == 'npstere'):
                 self.boundinglat = 45.0 if (
-                    boundinglat is None) else abs(boundinglat)
+                        boundinglat is None) else abs(boundinglat)
                 self.parallels_labels = [1, 0, 0, 0] if (
-                    parallels_labels is None) else parallels_labels
+                        parallels_labels is None) else parallels_labels
             if (self.projection == 'spstere'):
                 self.boundinglat = - \
                     45.0 if (boundinglat is None) else -abs(boundinglat)
                 self.parallels_labels = [0, 1, 0, 0] if (
-                    parallels_labels is None) else parallels_labels
+                        parallels_labels is None) else parallels_labels
 
         elif (self.projection in ['mill', 'miller', 'merc', 'mercator']):
             self.llcrnrlon = 0.0 if (llcrnrlon is None) else llcrnrlon
@@ -79,9 +79,9 @@ class Projection(object):
             self.meridians = range(-180, 180, mlabel_int)
             self.parallels = range(-90, 90, plabel_int)
             self.meridians_labels = [0, 0, 0, 1] if (
-                meridians_labels is None) else meridians_labels
+                    meridians_labels is None) else meridians_labels
             self.parallels_labels = [1, 0, 0, 0] if (
-                parallels_labels is None) else parallels_labels
+                    parallels_labels is None) else parallels_labels
 
         elif (self.projection in ['lcc', 'lambert']):
             self.cenlat = 0.0 if (cenlat is None) else cenlat
@@ -93,9 +93,9 @@ class Projection(object):
             self.meridians = range(-180, 180, mlabel_int)
             self.parallels = range(-90, 90, plabel_int)
             self.meridians_labels = [0, 0, 0, 1] if (
-                meridians_labels is None) else meridians_labels
+                    meridians_labels is None) else meridians_labels
             self.parallels_labels = [0, 1, 0, 0] if (
-                parallels_labels is None) else parallels_labels
+                    parallels_labels is None) else parallels_labels
 
         elif self.projection == 'ortho':
             print('projection "%s" has been implemented but not supported yet' % (self.projection))

@@ -301,7 +301,7 @@ def process_bulk_stats(request):
     :param request: {dict} A validated and sanitized request object
     :return: None
     """
-    from summary_bulk import summary_bulk_main
+    from fsoi.stats.summary_bulk import summary_bulk_main
 
     try:
         # delete previous work file
@@ -336,7 +336,7 @@ def process_fsoi_summary(request):
     :param request: {dict} A validated and sanitized request object
     :return: None
     """
-    from summary_fsoi import summary_fsoi_main
+    from fsoi.plots.summary_fsoi import summary_fsoi_main
 
     try:
         sys.argv = [
@@ -368,7 +368,7 @@ def process_fsoi_compare(request):
     :param request:
     :return:
     """
-    from compare_fsoi import compare_fsoi_main
+    from fsoi.plots.compare_fsoi import compare_fsoi_main
 
     try:
         sys.argv = [

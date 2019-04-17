@@ -12,16 +12,18 @@ import fsoi.stats.lib_utils as lutils
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser(description='Extract a platform from HDF file and write out to a smaller HDF file',
-                            formatter_class=ArgumentDefaultsHelpFormatter)
+    parser = ArgumentParser(
+        description='Extract a platform from HDF file and write out to a smaller HDF file',
+        formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--center', help='originating center', type=str, choices=[
-                        'GMAO', 'NRL', 'MET', 'MeteoFr', 'JMA_adj', 'JMA_ens', 'EMC'], required=True)
+        'GMAO', 'NRL', 'MET', 'MeteoFr', 'JMA_adj', 'JMA_ens', 'EMC'], required=True)
     parser.add_argument(
         '--platform', help='platform to extract and bin', type=str, required=True)
     parser.add_argument('--norm', help='metric norm', type=str,
                         default='dry', choices=['dry', 'moist'], required=False)
     parser.add_argument('--rootdir', help='root path to directory', type=str,
-                        default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI', required=False)
+                        default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',
+                        required=False)
     parser.add_argument('--begin_date', help='dataset begin date',
                         type=str, default='2014120100', required=False)
     parser.add_argument('--end_date', help='dataset end date',

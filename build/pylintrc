@@ -1,5 +1,5 @@
 [MASTER]
-ignored-modules=emc, jma, fortranformat, mpl_toolkits
+ignored-modules=emc, jma, mpl_toolkits
 extension-pkg-whitelist=netCDF4
 
 [VARIABLES]

@@ -17,9 +17,9 @@ platform = 'AMSUA_METOP-B'
 platform = 'Radiosonde'
 savefig = False
 
-fpkl = '%s/work/%s.%s.corr.pkl' % (rootdir,platform.lower(),norm)
+fpkl = '%s/work/%s.%s.corr.pkl' % (rootdir, platform.lower(), norm)
 
-df_stdv,df_corr = lutils.unpickle(fpkl)
+df_stdv, df_corr = lutils.unpickle(fpkl)
 
 centers = df_stdv.columns
 ref_center = centers[0]
@@ -35,9 +35,11 @@ norm = True
 dia = TaylorDiagram(refstd, fig=fig, rect=111, label=ref_center, norm=norm, full=full)
 
 # Add samples to Taylor diagram
-for c,center in enumerate(centers[1:]):
-    for i,(ref_stdv,stdv,corr) in enumerate(zip(df_stdv[ref_center],df_stdv[center],df_corr[center])):
-        dia.add_sample(stdv/ref_stdv, corr, marker='o', ms=3, mec=colors[c], ls='', c=colors[c], label=center, alpha=0.2)
+for c, center in enumerate(centers[1:]):
+    for i, (ref_stdv, stdv, corr) in enumerate(
+            zip(df_stdv[ref_center], df_stdv[center], df_corr[center])):
+        dia.add_sample(stdv / ref_stdv, corr, marker='o', ms=3, mec=colors[c], ls='', c=colors[c],
+                       label=center, alpha=0.2)
         if i != 0: dia.samplePoints.pop()
 
 # Add RMS contours, and label them
@@ -46,12 +48,12 @@ plt.clabel(contours, inline=1, fontsize=10)
 
 # Add a figure legend
 fig.legend(dia.samplePoints,
-           [ p.get_label() for p in dia.samplePoints ],
+           [p.get_label() for p in dia.samplePoints],
            numpoints=1, prop=dict(size='small'), loc='upper right')
 
 if savefig:
-    fname = 'Taylor-%s-%s' % (ref_center,platform)
-    lutils.savefigure(fname=fname,format='pdf',fh=fig)
+    fname = 'Taylor-%s-%s' % (ref_center, platform)
+    lutils.savefigure(fname=fname, format='pdf', fh=fig)
     plt.close('all')
 else:
     plt.show()

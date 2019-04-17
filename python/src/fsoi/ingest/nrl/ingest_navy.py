@@ -22,7 +22,7 @@ def ftp_download_file(host, remote_file, local_file=None):
 
     # parse file names
     remote_dir = remote_file[0:remote_file.rfind('/')]
-    remote_file_only = remote_file[1+remote_file.rfind('/'):]
+    remote_file_only = remote_file[1 + remote_file.rfind('/'):]
     if local_file is None:
         local_file = '/tmp/' + remote_file_only
 
