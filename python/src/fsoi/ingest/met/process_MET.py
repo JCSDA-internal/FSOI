@@ -15,9 +15,8 @@ from datetime import datetime
 from fortranformat import FortranRecordReader
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
-sys.path.extend(['../../lib', '../lib'])
-import lib_utils as lutils
-import lib_obimpact as loi
+import fsoi.stats.lib_utils as lutils
+import fsoi.stats.lib_obimpact as loi
 
 def kt_def():
     kt = {
@@ -35,6 +34,8 @@ def kt_def():
 def parse_line(line,kt):
 
     fmtstr = 'i8,1x,e15.8,1x,e15.8,1x,e16.8,1x,f6.2,1x,f6.2,1x,f10.4,1x,i3,1x,i5,1x,i6,1x,e14.8,1x,f6.2,1x,a35'
+    # pylint wrongly believes that the FortranRecordReader constructor is not callable
+    # pylint: disable=E1102
     line_reader = FortranRecordReader(fmtstr)
 
     datain = line_reader.read(line)

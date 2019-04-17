@@ -19,8 +19,7 @@ from matplotlib import cm as _cm
 import matplotlib.colors as _colors
 from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 import itertools as _itertools
-
-import lib_utils as _lutils
+import fsoi.stats.lib_utils as _lutils
 
 class FSOI(object):
 
@@ -528,7 +527,7 @@ def add_dicts(dicts,unique=False):
 
     result = {}
     for dic in dicts:
-        for key in (result.viewkeys() | dic.keys()):
+        for key in (result.keys() | dic.keys()):
             if key in dic:
                 result.setdefault(key, []).append(dic[key])
 
@@ -747,7 +746,7 @@ def bin_df(DF, dlat=5., dlon=5., dpres=None):
     tmp['LONGITUDE'] = tmp['LONGITUDE'].apply(lambda x: [e for e in _np.arange(  0.,360.+dlon,dlon) if e <= x][-1])
     tmp['LATITUDE' ] = tmp['LATITUDE' ].apply(lambda x: [e for e in _np.arange(-90., 90.+dlat,dlat) if e <= x][-1])
     if not dpres is None:
-        tmp['PRESSURE' ] = tmp['PRESSURE' ].apply(lambda x: [e for e in _np.arange(1000.,0.,-dpres) if e >= x][-1])
+        tmp['PRESSURE' ] = tmp['PRESSURE' ].apply(lambda x: [e for e in _np.arange(1000.,0.,-1*dpres) if e >= x][-1])
 
     df[['TotImp','ObCnt']] = tmp.groupby(names)['IMPACT'].agg(['sum','count'])
     df['ObCnt'] = df['ObCnt'].astype(_np.int)

@@ -6,7 +6,7 @@ import sys
 import os
 import json
 import boto3
-from serverless_tools import hash_request, get_reference_id, create_response_body, \
+from fsoi.web.serverless_tools import hash_request, get_reference_id, create_response_body, \
     create_error_response_body, RequestDao, ApiGatewaySender
 
 # Add various paths

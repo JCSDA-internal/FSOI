@@ -11,12 +11,11 @@ import os
 import sys
 from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
-
 from jma import jma
 
 sys.path.append('../../lib')
-import lib_utils as lutils
-import lib_obimpact as loi
+import fsoi.stats.lib_utils as lutils
+import fsoi.stats.lib_obimpact as loi
 
 if __name__ == '__main__':
 
@@ -53,6 +52,6 @@ if __name__ == '__main__':
         if os.path.isfile(fname_out): os.remove(fname_out)
         lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
-    print 'Total obs = %d' % (nobstot)
+    print('Total obs = %d' % (nobstot))
 
     sys.exit(0)

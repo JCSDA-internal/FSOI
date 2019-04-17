@@ -18,7 +18,7 @@ from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 sys.path.append('../../lib')
-import lib_utils as lutils
+import fsoi.stats.lib_utils as lutils
 
 def parse_file(adate,fname):
     '''
@@ -161,7 +161,7 @@ def read_file(fname):
     try:
         data = pd.read_csv(fname,header=0,delim_whitespace=True,skipinitialspace=True,index_col=False,quotechar="'")
     except RuntimeError:
-        print 'Error reading %s' % fname
+        print('Error reading %s' % fname)
         raise
 
     data.drop(['date@hdr','time@hdr','seqno@hdr','an_depar@body','fg_error@errstat'],axis=1,inplace=True)
@@ -281,14 +281,14 @@ if __name__ == '__main__':
 
         ffname = os.path.basename(fname)
 
-        print 'processing %s' % ffname
+        print('processing %s' % ffname)
 
         if os.stat(fname).st_size == 0:
-            print '%s is an empty file ... skipping' % ffname
+            print('%s is an empty file ... skipping' % ffname)
             continue
 
         data = parse_file(adate,fname)
-        print 'number of observations in %s = %d ' % (ffname,len(data))
+        print('number of observations in %s = %d ' % (ffname,len(data)))
 
         nobs += len(data)
         bufr.append(data)
@@ -298,7 +298,7 @@ if __name__ == '__main__':
         if os.path.isfile(fname_out): os.remove(fname_out)
         lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
-    print 'total number of observations for %s = %d' % (args.adate, nobs)
+    print('total number of observations for %s = %d' % (args.adate, nobs))
 
     shutil.rmtree(workdir)
 

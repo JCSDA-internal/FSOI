@@ -8,11 +8,9 @@ import os
 import sys
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
-
-sys.path.append('../lib')
-import lib_mapping as lmapping
-import lib_utils as lutils
-import lib_obimpact as loi
+import fsoi.stats.lib_mapping as lmapping
+import fsoi.stats.lib_utils as lutils
+import fsoi.stats.lib_obimpact as loi
 
 def read_centers_raw():
     'Read data and return a dictionary of dataframes, one key per center'

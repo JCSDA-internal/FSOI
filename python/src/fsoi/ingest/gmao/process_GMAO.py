@@ -15,18 +15,30 @@ from datetime import datetime,timedelta
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 
 sys.path.append('../../lib')
-import lib_utils as lutils
-import lib_obimpact as loi
+import fsoi.stats.lib_utils as lutils
+import fsoi.stats.lib_obimpact as loi
 
 class ODS(object):
 
     def __init__(self,filename):
         try:
+            self.filename = filename
             self.file_ = Dataset(filename,'r')
+            self.qcexcl = None
+            self.xvec = []
+            self.kx = []
+            self.kt = []
+            self.lev = []
+            self.lon = []
+            self.lat = []
+            self.obs = []
+            self.omf = []
         except RuntimeError as e:
-            raise IOError(e.message + ' ' + filename)
+            raise IOError(str(e) + ' ' + filename)
 
     def read(self,only_good=True,platform=None):
+        # pylint wrongly believes self.file_.variables is not iterable or subscriptable
+        # pylint: disable=E1133, E1136
         for vname in self.file_.variables:
             if vname in ['days','syn_beg','syn_len']:
                 continue
@@ -36,7 +48,7 @@ class ODS(object):
                 for i in range(len(tmp)):
                     tmp2.append(self.__masked_array_to_str(tmp[i]))
                 tmp = tmp2
-            exec('self.%s = tmp' % vname)
+            self.__setattr__(vname, tmp)
 
         if only_good:
             indx = self.qcexcl == 0
@@ -74,7 +86,7 @@ class ODS(object):
         try:
             self.file_.close()
         except RuntimeError as e:
-            raise IOError(e.message + ' ' + filename)
+            raise IOError(str(e) + ' ' + self.filename)
 
 def kt_def():
     kt = {

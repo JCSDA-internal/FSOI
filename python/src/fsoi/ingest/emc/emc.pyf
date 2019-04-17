@@ -3,10 +3,10 @@
 
 python module emc ! in 
     interface  ! in :emc
-        module emc ! in :emc:emc.f90
-            logical, private,parameter,optional :: lverbose=.false.
+        module emc ! in :emc:../../../../../fortran/src/ingest/emc/emc.f90
             integer(kind=4), private,parameter,optional :: iunit=10
-            type diag_header ! in :emc:emc.f90:emc
+            logical, private,parameter,optional :: lverbose=.false.
+            type diag_header ! in :emc:../../../../../fortran/src/ingest/emc/emc.f90:emc
                 integer(kind=4) :: idate
                 integer(kind=4) :: obsnum
                 integer(kind=4) :: convnum
@@ -15,7 +15,7 @@ python module emc ! in
                 integer(kind=4) :: npred
                 integer(kind=4) :: nanals
             end type diag_header
-            type diag_data ! in :emc:emc.f90:emc
+            type diag_data ! in :emc:../../../../../fortran/src/ingest/emc/emc.f90:emc
                 real(kind=4) :: obfit_prior
                 real(kind=4) :: obsprd_prior
                 real(kind=4) :: ensmean_obnobc
@@ -34,7 +34,7 @@ python module emc ! in
                 real(kind=4) :: osense_dry
                 real(kind=4) :: osense_moist
             end type diag_data
-            subroutine get_header(ifile,x_idate,x_nobscon,x_nobsoz,x_nobssat,x_npred,x_nens,endian) ! in :emc:emc.f90:emc
+            subroutine get_header(ifile,x_idate,x_nobscon,x_nobsoz,x_nobssat,x_npred,x_nens,endian) ! in :emc:../../../../../fortran/src/ingest/emc/emc.f90:emc
                 character*255 intent(in) :: ifile
                 integer(kind=4) intent(out) :: x_idate
                 integer(kind=4) intent(out) :: x_nobscon
@@ -44,7 +44,7 @@ python module emc ! in
                 integer(kind=4) intent(out) :: x_nens
                 character*6, optional,intent(in) :: endian
             end subroutine get_header
-            subroutine get_data(ifile,nobstot,npred,nens,x_obtype,x_platform,x_channel,x_lat,x_lon,x_lev,x_omb,x_oberr,x_impact,endian) ! in :emc:emc.f90:emc
+            subroutine get_data(ifile,nobstot,npred,nens,x_obtype,x_platform,x_channel,x_lat,x_lon,x_lev,x_omb,x_oberr,x_impact,endian) ! in :emc:../../../../../fortran/src/ingest/emc/emc.f90:emc
                 character*255 intent(in) :: ifile
                 integer(kind=4) intent(in) :: nobstot
                 integer(kind=4) intent(in) :: npred
@@ -60,17 +60,17 @@ python module emc ! in
                 real(kind=4) dimension(nobstot,3),intent(out),depend(nobstot) :: x_impact
                 character*6, optional,intent(in) :: endian
             end subroutine get_data
-            subroutine strtoarr(strin,chararr,n_str) ! in :emc:emc.f90:emc
+            subroutine strtoarr(strin,chararr,n_str) ! in :emc:../../../../../fortran/src/ingest/emc/emc.f90:emc
                 character*n_str intent(in) :: strin
                 integer(kind=4) dimension(n_str + 1),intent(out),depend(n_str) :: chararr
                 integer(kind=4) intent(in) :: n_str
             end subroutine strtoarr
-            subroutine arrtostr(chararr,strout,n_str) ! in :emc:emc.f90:emc
+            subroutine arrtostr(chararr,strout,n_str) ! in :emc:../../../../../fortran/src/ingest/emc/emc.f90:emc
                 integer(kind=4) dimension(n_str + 1),intent(in) :: chararr
                 character*n_str intent(out) :: strout
                 integer(kind=4), optional,intent(in),check((len(chararr)-1)>=n_str),depend(chararr) :: n_str=(len(chararr)-1)
             end subroutine arrtostr
-            subroutine open_file(filename,endian) ! in :emc:emc.f90:emc
+            subroutine open_file(filename,endian) ! in :emc:../../../../../fortran/src/ingest/emc/emc.f90:emc
                 character*(*) intent(in) :: filename
                 character*(*), optional,intent(in) :: endian
             end subroutine open_file

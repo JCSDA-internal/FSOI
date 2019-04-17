@@ -3,7 +3,6 @@ These are functions commonly shared between Lambda and Batch processes
 """
 
 import sys
-import os
 import datetime
 import hashlib
 import hmac

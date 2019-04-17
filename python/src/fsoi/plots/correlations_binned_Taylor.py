@@ -6,10 +6,8 @@ correlations_binned_Taylor.py - make Taylor diagram of binned correlations
 
 import sys
 from matplotlib import pyplot as plt
-
-sys.path.append('../lib')
-import lib_utils as lutils
-from TaylorDiagram import TaylorDiagram
+import fsoi.stats.lib_utils as lutils
+from fsoi.stats.TaylorDiagram import TaylorDiagram
 
 colors = ["#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"]
 

@@ -8,11 +8,9 @@ import sys
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 import numpy as np
-
-sys.path.append('../lib')
-import lib_mapping as lmapping
-import lib_utils as lutils
-import lib_obimpact as loi
+import fsoi.stats.lib_mapping as lmapping
+import fsoi.stats.lib_utils as lutils
+import fsoi.stats.lib_obimpact as loi
 
 parser = ArgumentParser(description = 'Create and Plot Observation Impact Summary Maps',formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument('--rootdir',help='root path to directory',type=str,default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',required=False)

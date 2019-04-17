@@ -15,7 +15,7 @@ def test_process_sample_nrl_file():
     import bz2
     import gzip
     import hashlib
-    from process_NRL import main as process_nrl_main
+    from fsoi.ingest.nrl.process_NRL import main as process_nrl_main
 
     # get an S3 client
     s3 = boto3.client('s3')

@@ -10,11 +10,9 @@ from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-
-sys.path.append('../lib')
-import lib_utils as lutils
-import lib_obimpact as loi
-from TaylorDiagram import TaylorDiagram
+import fsoi.stats.lib_utils as lutils
+import fsoi.stats.lib_obimpact as loi
+from fsoi.stats.TaylorDiagram import TaylorDiagram
 
 def read_center_bulk(rootdir,center,norm,platform,cycle,obtype,channel):
     'Read data for a center'
@@ -65,7 +63,7 @@ def compute_std_corr_bulk_brute_force(df,centers):
 def plot_taylor(ref_center,stdv,corr,fig=None,full=False,norm=True,title=None,colors=None,center_names=None):
     '''Plot Taylor diagram'''
 
-    if colors == None: colors = lutils.discrete_colors(len(centers)-1)
+    if colors == None: colors = lutils.discrete_colors(len(center_names)-1)
     centers = corr.columns.get_values()
     if center_names == None:
         center_names = {}
@@ -151,7 +149,7 @@ if __name__ == '__main__':
         fig = plot_taylor(center,df_stdv,df_corr,title=titlestr,colors=fsoi.center_color,center_names=fsoi.center_name)
 
         if savefig:
-            fname = 'Taylor-%s-%s' % (ref_center,platform)
+            fname = 'Taylor-%s-%s' % (center,platform)
             lutils.savefigure(fname=fname,format='pdf',fh=fig)
 
     plt.close('all') if savefig else plt.show()

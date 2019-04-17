@@ -8,9 +8,7 @@ import os
 import sys
 import pandas as pd
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
-sys.path.append('../lib')
-import lib_utils as lutils
+import fsoi.stats.lib_utils as lutils
 
 if __name__ == '__main__':
 

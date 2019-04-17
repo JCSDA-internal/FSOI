@@ -125,7 +125,7 @@ def EmptyDataFrame(columns, names, dtype=None):
 
     levels = [[] for i in range(len(names))]
     labels = [[] for i in range(len(names))]
-    indices = _pd.MultiIndex(levels=levels, labels=labels, names=names)
+    indices = _pd.MultiIndex(levels=levels, codes=labels, names=names)
     df = _pd.DataFrame(index=indices, columns=columns, dtype=dtype)
 
     return df

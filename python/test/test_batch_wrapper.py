@@ -20,8 +20,8 @@ def test_pass_requests():
     """
     import time
     import yaml
-    from batch_wrapper import main
-    from serverless_tools import hash_request, RequestDao
+    from fsoi.web.batch_wrapper import main
+    from fsoi.web.serverless_tools import hash_request, RequestDao
 
     data = yaml.load(open('../test_resources/fsoi_sample_requests.yaml'))
 
@@ -51,8 +51,8 @@ def test_fail_requests():
     """
     import time
     import yaml
-    from batch_wrapper import main
-    from serverless_tools import hash_request, RequestDao
+    from fsoi.web.batch_wrapper import main
+    from fsoi.web.serverless_tools import hash_request, RequestDao
 
     data = yaml.load(open('../test_resources/fsoi_sample_requests.yaml'))
 
@@ -82,8 +82,8 @@ def test_focus_requests():
     """
     import time
     import yaml
-    from batch_wrapper import main
-    from serverless_tools import hash_request, RequestDao
+    from fsoi.web.batch_wrapper import main
+    from fsoi.web.serverless_tools import hash_request, RequestDao
 
     data = yaml.load(open('../test_resources/fsoi_sample_requests.yaml'))
 

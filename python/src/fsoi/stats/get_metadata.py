@@ -14,9 +14,7 @@ get_metadata.py - List metadata such as platform, observation types and channels
 
 import sys
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
-
-sys.path.append('../lib')
-import lib_utils as lutils
+import fsoi.stats.lib_utils as lutils
 
 parser = ArgumentParser(description = 'Get metadata from a center',formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument('--center',help='originating center',type=str,required=True,choices=['EMC','GMAO','NRL','JMA_adj','JMA_ens','MET','MeteoFr'])

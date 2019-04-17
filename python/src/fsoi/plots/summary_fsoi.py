@@ -12,15 +12,12 @@ __status__ = "Prototype"
 __version__ = "0.1"
 
 import os
-import sys
 import numpy as np
 import pandas as pd
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
-
-sys.path.append('../lib')
-import lib_utils as lutils
-import lib_obimpact as loi
+import fsoi.stats.lib_utils as lutils
+import fsoi.stats.lib_obimpact as loi
 
 
 def summary_fsoi_main():

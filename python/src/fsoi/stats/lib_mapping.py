@@ -109,7 +109,7 @@ class Projection(object):
                   '   valid options for projection are:\n' + \
                   '   "stere" | "npstere" | "spstere" | "mill" | "merc" | "lcc" | "ortho" | "robin"'
             print(msg)
-            raise
+            raise RuntimeError(msg)
 
         return
 
@@ -167,7 +167,7 @@ def createMap(proj, **kwargs):
               '   valid options for projection are:\n' + \
               '   "stere" | "npstere" | "spstere" | "mill" | "merc" | "lcc" | "ortho" | "robin"'
         print(msg)
-        raise
+        raise RuntimeError(msg)
 
     return bmap
 

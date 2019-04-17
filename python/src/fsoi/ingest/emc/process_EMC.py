@@ -12,12 +12,11 @@ import sys
 import numpy as np
 from datetime import datetime
 from argparse import ArgumentParser,ArgumentDefaultsHelpFormatter
-
 from emc import emc
 
 sys.path.append('../../lib')
-import lib_utils as lutils
-import lib_obimpact as loi
+import fsoi.stats.lib_utils as lutils
+import fsoi.stats.lib_obimpact as loi
 
 def kt_def():
     kt = {
@@ -111,7 +110,7 @@ def get_platform_con(plat):
     elif plat in map(str,list(np.arange(701,722)))+map(str,list(np.arange(723,739))):
         platform = 'Ozone'
     else:
-        print 'UNKNOWN : ', plat
+        print('UNKNOWN : ', plat)
 
     return platform
 
@@ -131,8 +130,8 @@ def main():
     nobs = nobscon + nobsoz + nobssat
     obtype,platform,chan,lat,lon,lev,omf,oberr,imp = emc.get_data(fname,nobs,npred,nens,endian='big')
 
-    obtype = (obtype.tostring()).replace('\x00','')[:-1].split('|')
-    platform = (platform.tostring()).replace('\x00','')[:-1].split('|')
+    obtype = (str(obtype)).replace('\x00','')[:-1].split('|')
+    platform = (str(platform)).replace('\x00','')[:-1].split('|')
 
     bufr = []
     for o in range(nobs):
@@ -142,11 +141,12 @@ def main():
         if o < (nobscon+nobsoz):
             plat = get_platform_con(platf)
             if plat in 'UNKNOWN':
-                print o+1,plat,platf
+                print(o+1, plat, platf)
         else:
             plat = get_platform_rad(platf)
 
-        lon[o] = lon[o] if lon[o] >= 0.0 else lon[o] + 360.0
+        if lon[o] < 0.0:
+            lon[o] += 360.0
 
         line = [plat,obtyp,chan[o],lon[o],lat[o],lev[o],imp[o][0],omf[o],oberr[o]]
 
@@ -157,7 +157,7 @@ def main():
         if os.path.isfile(fname_out): os.remove(fname_out)
         lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
-    print 'Total obs = %d' % (nobs)
+    print('Total obs = %d' % (nobs))
 
     sys.exit(0)
 
