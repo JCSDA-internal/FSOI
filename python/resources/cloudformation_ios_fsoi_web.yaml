@@ -275,7 +275,7 @@ Resources:
       Code:
         S3Bucket: jcsda-scratch
         S3Key: fsoi_lambda.zip
-      Runtime: python3.6
+      Runtime: python3.7
       Timeout: 30
       MemorySize: 512
       Environment:
@@ -364,7 +364,7 @@ Resources:
       JobDefinitionName: fsoi_job
       ContainerProperties:
         Command:
-          - batch_wrapper.py
+          - batch_wrapper
           - Ref::request
         Memory: 32768
         JobRoleArn:

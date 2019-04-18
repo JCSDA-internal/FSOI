@@ -19,6 +19,7 @@ RUN pip install pandas
 RUN pip install tables
 RUN pip install requests
 RUN pip install netCDF4
+RUN pip install fortranformat
 RUN easy_install-3.7 fsoi-0.1-py3.7.egg
 
 CMD ["batch_wrapper"]

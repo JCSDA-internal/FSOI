@@ -83,7 +83,7 @@ def submit_request(request, hash_value, client_url, ref_id):
     res = batch.submit_job(
         jobName=hash_value,
         jobQueue='fsoi_queue',
-        jobDefinition='fsoi_job:9',
+        jobDefinition='fsoi_job:11',
         parameters={'request': json.dumps(request)}
     )
     submitted = res['ResponseMetadata']['HTTPStatusCode'] == 200

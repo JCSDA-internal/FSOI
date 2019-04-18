@@ -153,7 +153,7 @@ def ingest_gmao_aws_lambda(event, context):
         batch.submit_job(
             jobName='GMAO-Ingest-%s-00Z' % date_str,
             jobQueue='fsoi_ingest_queue',
-            jobDefinition='fsoi_ingest_gmao_job:1',
+            jobDefinition='fsoi_ingest_gmao_job:2',
             parameters={'date': date_str, 'output_url': output_url}
         )
 

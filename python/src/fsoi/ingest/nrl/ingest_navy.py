@@ -87,7 +87,7 @@ def ingest_navy_aws_lambda(event, context):
         batch.submit_job(
             jobName='NRL-Ingest-%s-00Z' % date_str,
             jobQueue='fsoi_ingest_queue',
-            jobDefinition='fsoi_ingest_nrl_job:8',
+            jobDefinition='fsoi_ingest_nrl_job:10',
             parameters={'input_url': input_url, 'output_url': output_url}
         )
 

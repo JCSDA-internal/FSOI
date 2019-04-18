@@ -121,7 +121,7 @@ Resources:
       - FsoiIngestLambdaRole
     Properties:
       FunctionName: fsoi_ingest_nrl
-      Handler: fsoi.ingest.nrl.ingest_navy.ingest_navy_aws_lambda
+      Handler: ingest_navy.ingest_navy_aws_lambda
       Role: arn:aws:iam::469205354006:role/fsoi_ingest_lambda_role
       Code:
         S3Bucket: jcsda-scratch
@@ -144,7 +144,7 @@ Resources:
       - FsoiIngestLambdaRole
     Properties:
       FunctionName: fsoi_ingest_gmao
-      Handler: fsoi.ingest.gmao.ingest_gmao.ingest_gmao_aws_lambda
+      Handler: ingest_gmao.ingest_gmao_aws_lambda
       Role: arn:aws:iam::469205354006:role/fsoi_ingest_lambda_role
       Code:
         S3Bucket: jcsda-scratch
