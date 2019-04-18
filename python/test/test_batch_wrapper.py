@@ -50,7 +50,7 @@ def test_fail_requests():
     """
     import time
     import yaml
-    from fsoi.web.batch_wrapper import main
+    from fsoi.web.batch_wrapper import handler
     from fsoi.web.serverless_tools import hash_request, RequestDao
 
     data = yaml.load(open('../test_resources/fsoi_sample_requests.yaml'))
@@ -69,7 +69,7 @@ def test_fail_requests():
         req_hash = hash_request(req)
 
         # run the batch process
-        main(req)
+        handler(req)
 
         req_status = RequestDao.get_request(req_hash)
         assert req_status['status_id'] == 'FAIL'
@@ -81,7 +81,7 @@ def test_focus_requests():
     """
     import time
     import yaml
-    from fsoi.web.batch_wrapper import main
+    from fsoi.web.batch_wrapper import handler
     from fsoi.web.serverless_tools import hash_request, RequestDao
 
     data = yaml.load(open('../test_resources/fsoi_sample_requests.yaml'))
@@ -103,7 +103,7 @@ def test_focus_requests():
             req_hash = hash_request(req)
 
             # run the batch process
-            main(req)
+            handler(req)
 
             req_status = RequestDao.get_request(req_hash)
             assert req_status['status_id'] == 'SUCCESS'
