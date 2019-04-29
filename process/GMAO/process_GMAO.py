@@ -23,17 +23,18 @@ class ODS(object):
     def __init__(self,filename):
         try:
             self.file_ = Dataset(filename,'r')
-        except RuntimeError,e:
+        except RuntimeError as e:
             raise IOError(e.message + ' ' + filename)
 
     def read(self,only_good=True,platform=None):
         for vname in self.file_.variables:
-            if vname in ['days','syn_beg','syn_len']: continue
+            if vname in ['days','syn_beg','syn_len']:
+                continue
             tmp = self.file_.variables[vname][:]
             if vname in ['kt_names','kt_units','kx_names','kx_meta','qcx_names']:
                 tmp2 = []
                 for i in range(len(tmp)):
-                    tmp2.append(''.join(tmp[i]).strip())
+                    tmp2.append(self.__masked_array_to_str(tmp[i]))
                 tmp = tmp2
             exec('self.%s = tmp' % vname)
 
@@ -47,7 +48,7 @@ class ODS(object):
         # These observations are assigned ZERO impact value.
         # See email correspondence with Ron.Gelaro dated September 27, 2016
         if platform not in ['CONV']:
-            indx = np.ma.logical_and(indx,np.abs(self.xvec)>1.e-30)
+            indx = np.ma.logical_and(indx,np.abs(self.xvec) > 1.e-30)
 
         for name in ['lat','lon','lev','time','kt','kx','ks','xm','obs','omf','oma','xvec','qcexcl','qchist']:
             exec('self.%s = self.%s[indx]'%(name,name))
@@ -56,10 +57,23 @@ class ODS(object):
 
         return self
 
+    @staticmethod
+    def __masked_array_to_str(data):
+        """
+        Convert a {MaskedArray} to a {str}
+        :param data: {MaskedArray} data
+        :return: {str}
+        """
+        s = ''
+        for c in data:
+            s += bytes(c).decode()
+
+        return s
+
     def close(self):
         try:
             self.file_.close()
-        except RuntimeError,e:
+        except RuntimeError as e:
             raise IOError(e.message + ' ' + filename)
 
 def kt_def():
@@ -171,9 +185,16 @@ def main():
         if norm not in fname:
             continue
 
-        print 'processing %s' % fname
+        print('processing %s' % fname)
 
-        platform = fname.split('.')[1].split('imp3_%s_'%norm)[-1].upper()
+        # TODO: Request that NASA adds the platform name as a global attribute in the NetCDF file
+        #       rather than trying to parse the platform name from the file name.
+        platform = fname.split('.')[3].split('imp3_%s_'%norm)[-1].upper()
+
+        # Skip the CONV platform for now
+        # TODO: Fix the bug with processing data from the CONV platform
+        if platform == 'CONV':
+            continue
 
         fname = os.path.join(datadir,fname)
         ods = ODS(fname)
@@ -182,7 +203,7 @@ def main():
 
         nobs += ods.nobs
 
-        print 'platform = %s, nobs = %d' % (platform,ods.nobs)
+        print('platform = %s, nobs = %d' % (platform,ods.nobs))
 
         for o in range(ods.nobs):
 
@@ -199,7 +220,7 @@ def main():
                 lev = ods.lev[o]
             imp = ods.xvec[o]
             omf = ods.omf[o]
-            oberr = -999. # GMAO does not provide obs. error in the impact ODS files
+            oberr = -999.  # GMAO does not provide obs. error in the impact ODS files
 
             line = [plat,obtype,channel,lon,lat,lev,imp,omf,oberr]
 
@@ -210,9 +231,8 @@ def main():
         if os.path.isfile(fname_out): os.remove(fname_out)
         lutils.writeHDF(fname_out,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
-    print 'Total obs used in %s = %d' % (adate.strftime('%Y%m%d%H'),nobs)
+    print('Total obs used in %s = %d' % (adate.strftime('%Y%m%d%H'),nobs))
 
-    sys.exit(0)
 
 if __name__ == '__main__':
     main()

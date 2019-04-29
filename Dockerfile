@@ -9,10 +9,7 @@ ADD process/MET/*.py /
 ADD process/MeteoFr/*.py /
 ADD process/NRL/*.py /
 ADD Scientific.tar.gz /
-ADD docker/usr/bin/* /usr/bin/
-ADD docker/usr/include/* /usr/include/
-ADD docker/usr/lib/* /usr/lib/
-ADD docker/usr/share/* /usr/share/
+ADD docker/hdf5.tar.gz /
 
 ENV HDF5_DIR /usr
 ENV LD_LIBRARY_PATH /opt/hdf5/lib
@@ -29,5 +26,6 @@ RUN pip install numpy
 RUN pip install pandas
 RUN pip install tables
 RUN pip install requests
+RUN pip install netCDF4
 
 CMD [ "python", "./batch_wrapper.py" ]

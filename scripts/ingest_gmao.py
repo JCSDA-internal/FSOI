@@ -146,8 +146,16 @@ def main(event, context):
                 log['size'] += thread.download_size
                 log['ok'] = True
 
-        # TODO: submit a Batch job to process the new data
-        # submit_batch_job(s3_bucket, s3_key_template, files)
+        # submit a batch job to convert the file to HDF5 format
+        date_str = '%04d%02d%02d00' % (date.year, date.month, date.day)
+        output_url = os.environ['OUTPUT_URL_TEMPLATE'].replace('DATE', date_str)
+        batch = boto3.client('batch')
+        batch.submit_job(
+            jobName='GMAO-Ingest-%s-00Z' % date_str,
+            jobQueue='fsoi_ingest_queue',
+            jobDefinition='fsoi_ingest_gmao_job:1',
+            parameters={'date': date_str, 'output_url': output_url}
+        )
 
         # print the log info for CloudWatch
         print(json.dumps(log))
@@ -162,7 +170,7 @@ if __name__ == '__main__':
     from argparse import ArgumentDefaultsHelpFormatter as HelpFormatter
 
     DEFAULT_HOST = 'portal.nccs.nasa.gov'
-    DEFAULT_PATH = '/datashare/gmao_ops/pub/f522_fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d'
+    DEFAULT_PATH = '/datashare/gmao_ops/pub/fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d'
     DEFAULT_BUCKET = 'fsoi-gmao-ingest'
     PARSER = ArgumentParser(description='Download GMAO data', formatter_class=HelpFormatter)
     PARSER.add_argument('--lag', help='download data from N days ago', type=str, required=True)

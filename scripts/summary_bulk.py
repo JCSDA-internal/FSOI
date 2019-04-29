@@ -67,6 +67,7 @@ def summary_bulk_main():
             print('%s : %s does not exist, SKIPPING ...' % (adatestr, fname))
             continue
         df = lutils.readHDF(fname,'df')
+        # TODO: After process_GMAO is called, call this line to create the daily HDF5 bulk stats file
         df = loi.BulkStats(df)
         lutils.writeHDF(fname_bulk,'df',df,complevel=1,complib='zlib',fletcher32=True)
 
