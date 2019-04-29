@@ -9,7 +9,7 @@
 #   > docker push 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch
 
 # 2. Create a zip file with code for AWS Lambda and copy it to s3://jcsda-scratch/fsoi_lambda.zip
-#   > ./build/update_lambda.sh
+#   > ./FSOI/build/update_lambda.sh
 
 # 3a. Launch the CloudFormation stack (if the stack is NOT already running):
 #   > aws cloudformation create-stack --stack-name IOSingest --template-body \

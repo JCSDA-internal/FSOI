@@ -1,14 +1,6 @@
 FROM python:3
 
-ADD scripts/*.py /
-ADD lib/*.py /
-ADD process/EMC/*.py /
-ADD process/GMAO/*.py /
-ADD process/JMA/*.py /
-ADD process/MET/*.py /
-ADD process/MeteoFr/*.py /
-ADD process/NRL/*.py /
-ADD Scientific.tar.gz /
+ADD python/dist/fsoi-0.1-py3.7.egg /
 ADD docker/hdf5.tar.gz /
 
 ENV HDF5_DIR /usr
@@ -27,5 +19,7 @@ RUN pip install pandas
 RUN pip install tables
 RUN pip install requests
 RUN pip install netCDF4
+RUN pip install fortranformat
+RUN easy_install-3.7 fsoi-0.1-py3.7.egg
 
-CMD [ "python", "./batch_wrapper.py" ]
+CMD ["batch_wrapper"]
