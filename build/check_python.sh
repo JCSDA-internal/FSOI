@@ -1,3 +1,3 @@
 #! /bin/sh
 
-pylint --rcfile=.pylintrc -E ../scripts/*
+pylint --rcfile=.pylintrc -E ../python/src/fsoi

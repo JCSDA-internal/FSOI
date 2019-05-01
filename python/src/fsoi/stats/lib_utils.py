@@ -6,6 +6,7 @@ import numpy as _np
 import pickle as _pickle
 import pandas as _pd
 import matplotlib.pyplot as _plt
+from fsoi import log
 
 
 def float10Power(value):
@@ -51,7 +52,7 @@ def pickle(fname, data, mode='wb'):
     :param mode: mode to pickle (default: wb)
     :return:
     """
-    print('pickling ... %s' % fname)
+    log.debug('pickling ... %s' % fname)
     try:
         _pickle.dump(data, open(fname, mode))
     except _pickle.PicklingError:
@@ -66,7 +67,7 @@ def unpickle(fname, mode='rb'):
     :param mode: mode to unpickle (default: rb)
     :return:
     """
-    print('unpickling ... %s' % fname)
+    log.debug('unpickling ... %s' % fname)
     try:
         data = _pickle.load(open(fname, mode))
     except _pickle.UnpicklingError:
@@ -85,7 +86,7 @@ def writeHDF(fname, vname, data, complevel=0, complib=None, fletcher32=False):
     :param fletcher32:
     :return:
     """
-    print('writing ... %s' % fname)
+    log.debug('writing ... %s' % fname)
     try:
         hdf = _pd.HDFStore(fname,
                            complevel=complevel, complib=complib,
@@ -105,7 +106,7 @@ def readHDF(fname, vname, **kwargs):
     :param kwargs:
     :return:
     """
-    print('reading ... %s' % fname)
+    log.debug('reading ... %s' % fname)
     try:
         data = _pd.read_hdf(fname, vname, **kwargs)
     except RuntimeError:
