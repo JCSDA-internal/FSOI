@@ -1,6 +1,19 @@
 requests:
   batch:
     focus:
+    - start_date: '20150220'
+      end_date: '20150220'
+      cycles:
+        - '6'
+        - '12'
+      interval: '24'
+      centers:
+        - EMC
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    pass:
     - start_date: '20190413'
       end_date: '20190413'
       centers:
@@ -12,7 +25,6 @@ requests:
       platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
         Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
         Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS
-    pass:
     - start_date: '20141201'
       end_date: '20141202'
       cycles:
@@ -112,20 +124,6 @@ requests:
         Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
         Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
     fail:
-    # This request produces an error: 'Failed to generate plots'
-    - start_date: '20150220'
-      end_date: '20150220'
-      cycles:
-        - '6'
-        - '12'
-      interval: '24'
-      centers:
-        - EMC
-      norm: dry
-      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
-        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
-        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
-
     # This request produces an error: 'Missing data from S3'
     - start_date: '20150201'
       end_date: '20150201'
