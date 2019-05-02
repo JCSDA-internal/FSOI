@@ -1,3 +1,11 @@
+"""
+This utility will be useful to have around for a while, but should eventually be removed.
+The 'process_stats' command will 1) do a listing of all objects in S3 for a given center; 2) check
+to see if the bulk, accumbulk, and groupbulk stats have already been calculated; and if not, 3)
+download the file, compute these statistics, and upload them to S3.
+"""
+
+
 import os
 import sys
 import boto3
