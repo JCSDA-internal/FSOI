@@ -71,36 +71,38 @@ def process_file(key, center):
     s3.download_file(
         Bucket='fsoi',
         Key=key,
-        Filename='/tmp/file.h5'
+        Filename='/tmp/%s/file.h5' % center
     )
 
     # process the data
     print('  Processing %s' % key)
-    df0 = readHDF('/tmp/file.h5', 'df')
+    df0 = readHDF('/tmp/%s/file.h5' % center, 'df')
     df1 = BulkStats(df0)
-    writeHDF('/tmp/bulk.file.h5', 'df', df1)
+    writeHDF('/tmp/%s/bulk.file.h5' % center, 'df', df1)
     df2 = accumBulkStats(df1)
-    writeHDF('/tmp/accumbulk.file.h5', 'df', df2)
+    writeHDF('/tmp/%s/accumbulk.file.h5' % center, 'df', df2)
     platforms = Platforms(center)
     df3 = groupBulkStats(df2, platforms)
-    writeHDF('/tmp/groupbulk.file.h5', 'df', df3)
+    writeHDF('/tmp/%s/groupbulk.file.h5' % center, 'df', df3)
     del df0, df1, df2, df3
 
     # upload the processed data to S3
-    os.remove('/tmp/file.h5')
+    os.remove('/tmp/%s/file.h5' % center)
     for type in ['bulk', 'accumbulk', 'groupbulk']:
         print('  Uploading %s/%s.%s' % (prefix, type, name))
         s3.upload_file(
-            Filename='/tmp/%s.file.h5' % type,
+            Filename='/tmp/%s/%s.file.h5' % (center, type),
             Bucket='fsoi',
             Key='%s/%s.%s' % (prefix, type, name)
         )
-        os.remove('/tmp/%s.file.h5' % type)
+        os.remove('/tmp/%s/%s.file.h5' % (center, type))
 
 
 def main():
     center = sys.argv[1]
     keys = list_files(center)
+
+    os.makedirs('/tmp/%s' % center, exist_ok=True)
 
     # for key in keys:
     for key in keys:
