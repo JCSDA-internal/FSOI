@@ -1,0 +1,99 @@
+import os
+import sys
+import boto3
+from botocore.exceptions import ClientError
+from fsoi.stats.lib_utils import readHDF
+from fsoi.stats.lib_utils import writeHDF
+from fsoi.stats.lib_obimpact import BulkStats
+from fsoi.stats.lib_obimpact import accumBulkStats
+from fsoi.stats.lib_obimpact import Platforms
+from fsoi.stats.lib_obimpact import groupBulkStats
+
+
+def list_files(center):
+    """
+    List all of the hdf5 files for the given center in S3
+    :param center: The center
+    :return: {list} List of S3 keys
+    """
+    s3 = boto3.client('s3')
+    response = s3.list_objects(
+        Bucket='fsoi',
+        Prefix='intercomp/hdf5/%s' % center
+    )
+
+    contents = response['Contents']
+    keys = []
+    for item in contents:
+        keys.append(item['Key'])
+
+    return keys
+
+
+def process_file(key, center):
+    """
+    Download a data from S3 and process the file
+    :param key: The key in S3 (fsoi bucket)
+    :param center: The center name
+    :return: None
+    """
+    # get an S3 client
+    s3 = boto3.client('s3')
+
+    # make sure this has not been processed already
+    prefix = '/'.join(key.split('/')[0:-1])
+    name = key.split('/')[-1]
+    try:
+        response = s3.head_object(
+            Bucket='fsoi',
+            Key='%s/%s.%s' % (prefix, 'groupbulk', name)
+        )
+        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+            print('  Already processed %s' % key)
+            return
+    except ClientError as ignore:
+        pass
+
+    # download an S3 object
+    print('  Downloading %s' % key)
+    s3.download_file(
+        Bucket='fsoi',
+        Key=key,
+        Filename='/tmp/file.h5'
+    )
+
+    # process the data
+    print('  Processing %s' % key)
+    df0 = readHDF('/tmp/file.h5', 'df')
+    df1 = BulkStats(df0)
+    writeHDF('/tmp/bulk.file.h5', 'df', df1)
+    df2 = accumBulkStats(df1)
+    writeHDF('/tmp/accumbulk.file.h5', 'df', df2)
+    platforms = Platforms(center)
+    df3 = groupBulkStats(df2, platforms)
+    writeHDF('/tmp/groupbulk.file.h5', 'df', df3)
+    del df0, df1, df2, df3
+
+    # upload the processed data to S3
+    os.remove('/tmp/file.h5')
+    for type in ['bulk', 'accumbulk', 'groupbulk']:
+        print('  Uploading %s/%s.%s' % (prefix, type, name))
+        s3.upload_file(
+            Filename='/tmp/%s.file.h5' % type,
+            Bucket='fsoi',
+            Key='%s/%s.%s' % (prefix, type, name)
+        )
+        os.remove('/tmp/%s.file.h5' % type)
+
+
+def main():
+    center = sys.argv[1]
+    keys = list_files(center)
+
+    # for key in keys:
+    for key in keys:
+        process_file(key, center)
+
+
+if __name__ == '__main__':
+    main()
