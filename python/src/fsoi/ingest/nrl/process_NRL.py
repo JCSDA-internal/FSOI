@@ -307,7 +307,7 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
     return output_files
 
 
-def process_only():
+def main():
     """
     Parse command line parameters and run the process_nrl function
     :return: None

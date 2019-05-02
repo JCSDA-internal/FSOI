@@ -105,7 +105,6 @@ def main():
     ftp_host = config['ftp_host']
     lag_in_days = config['lag_in_days']
     file = config['remote_path']
-    output_url_template = config['raw_url_template']
 
     # setup the arg parser
     parser = ArgumentParser(description='Download GMAO data', formatter_class=HelpFormatter)
@@ -113,7 +112,6 @@ def main():
     parser.add_argument('--host', help='ftp-ex.nrlmry.navy.mil', type=str, default=ftp_host)
     parser.add_argument('--remote-path', help='Remote path template', default=file)
     parser.add_argument('--s3-bucket', help='Store in this bucket', default=bucket)
-    parser.add_argument('--output-url', help='Final processing target', default=output_url_template)
     args = parser.parse_args()
 
     s3_url = download_nrl(args.lag, args.host, args.remote_path, args.s3_bucket)

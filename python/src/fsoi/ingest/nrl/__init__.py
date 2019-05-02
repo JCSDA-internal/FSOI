@@ -9,7 +9,6 @@ import yaml
 import pkgutil
 from argparse import ArgumentParser
 from argparse import ArgumentDefaultsHelpFormatter as HelpFormatter
-from fsoi import log
 from fsoi.ingest.nrl.download_nrl import download_nrl
 from fsoi.ingest.nrl.process_nrl import prepare_workspace
 from fsoi.ingest.nrl.process_nrl import download_from_s3
@@ -19,7 +18,7 @@ from fsoi.ingest.nrl.process_nrl import upload_to_s3
 
 def download_and_process_nrl():
     """
-    Convert a raw navy file to an HDF5 file
+    Download NRL data and convert to HDF5 files
     :return: None
     """
     # load default values from the resource file
