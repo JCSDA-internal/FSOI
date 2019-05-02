@@ -37,12 +37,16 @@ def process_file(key, center):
     :param center: The center name
     :return: None
     """
+    prefix = '/'.join(key.split('/')[0:-1])
+    name = key.split('/')[-1]
+    if not name.startswith(center):
+        print('  Ignoring invalid file type: %s' % key)
+        return
+
     # get an S3 client
     s3 = boto3.client('s3')
 
     # make sure this has not been processed already
-    prefix = '/'.join(key.split('/')[0:-1])
-    name = key.split('/')[-1]
     try:
         response = s3.head_object(
             Bucket='fsoi',
@@ -92,7 +96,11 @@ def main():
 
     # for key in keys:
     for key in keys:
-        process_file(key, center)
+        try:
+            process_file(key, center)
+        except Exception as e:
+            print('Failed to process %s' % key)
+            print(e)
 
 
 if __name__ == '__main__':
