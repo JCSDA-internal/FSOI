@@ -33,7 +33,7 @@ setup(
       'process_gmao=fsoi.ingest.gmao.process_gmao:main',
       'ingest_gmao=fsoi.ingest.gmao.__init__:download_and_process_gmao',
 
-      'process_stats=fsoi.ingest.process_stats:main',
+      'process_stats=fsoi.stats.process_stats:main',
       'batch_wrapper=fsoi.web.batch_wrapper:main'
     ]
   }
