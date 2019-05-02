@@ -111,67 +111,15 @@ Resources:
               - arn:aws:batch:us-east-1:469205354006:job-queue/fsoi_ingest_queue
 
   #
-  # LAMBDA
-  #
-
-  # Function to download NRL data and submit a batch job to process
-  LambdaFunctionFsoiIngestNrl:
-    Type: AWS::Lambda::Function
-    DependsOn:
-      - FsoiIngestLambdaRole
-    Properties:
-      FunctionName: fsoi_ingest_nrl
-      Handler: ingest_navy.ingest_navy_aws_lambda
-      Role: arn:aws:iam::469205354006:role/fsoi_ingest_lambda_role
-      Code:
-        S3Bucket: jcsda-scratch
-        S3Key: fsoi_lambda.zip
-      Runtime: python3.7
-      Timeout: 300
-      MemorySize: 256
-      Environment:
-        Variables:
-          BUCKET_NAME: fsoi-navy-ingest
-          FTP_HOST: ftp-ex.nrlmry.navy.mil
-          LAG_IN_DAYS: 4
-          REMOTE_FILE_TEMPLATE: receive/obimpact_gemops_DATE00.bz2
-          OUTPUT_URL_TEMPLATE: s3://fsoi/intercomp/hdf5/NRL/NRL.dry.DATE00.h5
-
-  # Function to handle
-  LambdaFunctionFsoiIngestGmao:
-    Type: AWS::Lambda::Function
-    DependsOn:
-      - FsoiIngestLambdaRole
-    Properties:
-      FunctionName: fsoi_ingest_gmao
-      Handler: ingest_gmao.ingest_gmao_aws_lambda
-      Role: arn:aws:iam::469205354006:role/fsoi_ingest_lambda_role
-      Code:
-        S3Bucket: jcsda-scratch
-        S3Key: fsoi_lambda.zip
-      Runtime: python3.7
-      Timeout: 300
-      MemorySize: 2048
-      Environment:
-        Variables:
-          BUCKET_NAME: fsoi-gmao-ingest
-          HTTPS_HOST: portal.nccs.nasa.gov
-          LAG_IN_DAYS: 3
-          REMOTE_PATH: /datashare/gmao_ops/pub/fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d
-          OUTPUT_URL_TEMPLATE: s3://fsoi/intercomp/hdf5/GMAO/GMAO.moist.DATE.h5
-
-  #
   # CLOUDWATCH EVENTS, METRICS, and ALARMS
   #
 
   # Run NRL ingest function once daily
   DailyFsoiIngestNrlEvent:
     Type: AWS::Events::Rule
-    DependsOn:
-      - LambdaFunctionFsoiIngestNrl
     Properties:
-      Description: Ingest NRL data daily at 18:45 UTC
-      ScheduleExpression: cron(45 18 * * ? *)
+      Description: Ingest NRL data daily at 19:45 UTC
+      ScheduleExpression: cron(45 19 * * ? *)
       Name: fsoi_ingest_nrl_daily
       State: ENABLED
       Targets:
@@ -181,8 +129,6 @@ Resources:
   # Run GMAO ingest function once daily
   DailyFsoiIngestGmaoEvent:
     Type: AWS::Events::Rule
-    DependsOn:
-      - LambdaFunctionFsoiIngestGmao
     Properties:
       Description: Ingest GMAO data daily at 18:45 UTC
       ScheduleExpression: cron(45 18 * * ? *)
@@ -385,11 +331,7 @@ Resources:
       JobDefinitionName: fsoi_ingest_nrl_job
       ContainerProperties:
         Command:
-          - convert_navy
-          - --input
-          - Ref::input_url
-          - --output
-          - Ref::output_url
+          - ingest_nrl
         Memory: 4096
         JobRoleArn:
           Ref: FsoiIngestBatchRole
@@ -406,11 +348,7 @@ Resources:
       JobDefinitionName: fsoi_ingest_gmao_job
       ContainerProperties:
         Command:
-          - convert_gmao
-          - --date
-          - Ref::date
-          - --output
-          - Ref::output_url
+          - ingest_gmao
         Memory: 4096
         JobRoleArn:
           Ref: FsoiIngestBatchRole

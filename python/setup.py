@@ -1,19 +1,10 @@
 # coding: utf-8
-import os.path
-import io
-import re
-
-from setuptools import setup, find_packages
-
-here = os.path.abspath(os.path.dirname(__file__))
-
-with io.open(os.path.join(here, 'src/fsoi', '__init__.py'), encoding='utf8') as version_file:
-  metadata = dict(re.findall(r"""__([a-z]+)__ = "([^"]+)""", version_file.read()))
+from setuptools import setup
 
 setup(
   name='fsoi',
-  version=metadata['version'],
-  description='JCSDA - Command Line Tools',
+  version='0.1',
+  description='Forecast Sensitivity - Observational Impact',
   author='Rahul Mahajan',
   author_email='rahul.mahajan@noaa.gov',
   maintainer='David Hahn',
@@ -22,17 +13,26 @@ setup(
             'fsoi.ingest.met', 'fsoi.ingest.meteofr', 'fsoi.ingest.nrl', 'fsoi.plots', 'fsoi.stats',
             'fsoi.web'],
   requires=['pyyaml', 'boto3', 'botocore', 'certifi', 'matplotlib', 'numpy', 'pandas', 'requests',
-            'urllib3', 'pyyaml'],
+            'urllib3', 'pyyaml', 'fortranformat', 'netCDF4'],
   package_dir={'fsoi': 'src/fsoi'},
-  package_data={'fsoi': ['resources/*.yaml']},
+  package_data={
+    'fsoi': [
+      'resources/fsoi/ingest/nrl/*.yaml',
+      'resources/fsoi/ingest/gmao/*.yaml'
+    ]
+  },
   include_package_data=True,
   zip_safe=False,
   entry_points={
     'console_scripts': [
-      'ingest_navy=fsoi.ingest.nrl.ingest_navy:main',
-      'ingest_gmao=fsoi.ingest.gmao.ingest_gmao:main',
-      'convert_navy=fsoi.ingest.nrl.convert_navy:main',
-      'convert_gmao=fsoi.ingest.gmao.convert_gmao:main',
+      'download_nrl=fsoi.ingest.nrl.download_nrl:main',
+      'process_nrl=fsoi.ingest.nrl.process_nrl:main',
+      'ingest_nrl=fsoi.ingest.nrl.__init__:download_and_process_nrl',
+
+      'download_gmao=fsoi.ingest.gmao.download_gmao:main',
+      'process_gmao=fsoi.ingest.gmao.process_gmao:main',
+      'ingest_gmao=fsoi.ingest.gmao.__init__:download_and_process_gmao',
+
       'batch_wrapper=fsoi.web.batch_wrapper:main'
     ]
   }

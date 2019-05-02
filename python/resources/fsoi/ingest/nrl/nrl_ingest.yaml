@@ -1,0 +1,140 @@
+# This file contains constant values used to download and process NRL data
+---
+raw_data_bucket: fsoi-navy-ingest
+ftp_host: ftp-ex.nrlmry.navy.mil
+remote_path: receive/obimpact_gemops_DATE00.bz2
+lag_in_days: '4'
+processed_data_bucket: fsoi
+processed_data_prefix: intercomp/hdf5/NRL
+fortran_format_string: i7,f9.3,1x,f8.2,1x,f8.2,1x,f8.2,f9.3,1x,f9.2,1x,f9.2,1x,f9.2,1x,f11.5,1x,i2,1x,i3,4x,i2,4x,i1,3x,i5,2x,a16,a12,4x,i1,2x,i1,3x,i1,1x,e13.6,1x,e13.6,1x,e13.6,1x,e13.6
+kx:
+  1: Land_Surface
+  10:
+  - Ship
+  - Drifting_Buoy
+  - Moored_Buoy
+  20: MIL_ACARS
+  23: MIL_ACARS
+  25: AIREP
+  26: AIREP
+  30: AIREP
+  31: AIREP
+  32: AIREP
+  33: AIREP
+  34: AIREP
+  35: AMDAR
+  36: AMDAR
+  37: AMDAR
+  38: AMDAR
+  45: MDCARS
+  46: MDCARS
+  47: MDCARS
+  48: MDCARS
+  50: Sat_Wind
+  51: Sat_Wind
+  52: Sat_Wind
+  53: Sat_Wind
+  54: Sat_Wind
+  55: Sat_Wind
+  56: Sat_Wind
+  57: Sat_Wind
+  58: Sat_Wind
+  59: Sat_Wind
+  60: SSMI_Wind
+  65: Sat_Wind
+  66: Sat_Wind
+  67: R/S_AMV
+  70: SCAT_Wind
+  71: SCAT_Wind
+  72: WINDSAT
+  73: ASCAT_Wind
+  80: MODIS_Wind
+  81: MODIS_Wind
+  82: AVHRR_Wind
+  83: AVHRR_Wind
+  84: AVHRR_Wind
+  85: AVHRR_Wind
+  86: AVHRR_Wind
+  87: AVHRR_Wind
+  88: MODIS_Wind
+  89: LEO-GEO
+  90: UW_wiIR
+  91: GAVHR
+  93: UW_wiIR
+  101:
+  - Radiosonde
+  - PIBAL
+  - Dropsonde
+  121: MIL_ACARS
+  125: SSMI_PRH
+  126: WINDSAT_PRH
+  131: AIREP
+  132: AIREP
+  136: AMDAR
+  137: AMDAR
+  146: MDCARS
+  147: MDCARS
+  160: SBUV2
+  166: OMPS
+  179: GPSRO
+  184: MHS
+  185: SSMIS
+  186: UAS
+  187: AIRS
+  188: IASI
+  190: TCBogus
+  194: SEVIRI
+  196: CrIS
+  197: ATMS
+  198: GMI
+  199: SAPHIR
+  200: AMSR2
+  201: wndmi
+  210: AMSUA
+  250: SSMI_TPW
+  251: WINDSAT_TPW
+kt:
+  1:
+    - z
+    - Geopotential Height
+    - m
+  2:
+    - T
+    - Temperature
+    - K
+  3:
+    - u
+    - U-wind component
+    - m/s
+  4:
+    - v
+    - V-wind component
+    - m/s
+  5:
+    - q
+    - Humidity
+    - ''
+  6:
+    - ozone
+    - Ozone Percentage Backscatter
+    - '%'
+  8:
+    - wspd
+    - Surface Wind Speed
+    - m/s
+  11:
+    - ps
+    - Surface Pressure
+    - hPa
+  13:
+    - Tb
+    - Brightness Temperature
+    - K
+  14:
+    - tpw
+    - Total Precipitable Water
+    - ''
+  18:
+    - ba
+    - Bending Angle
+    - N

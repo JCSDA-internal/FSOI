@@ -11,6 +11,7 @@ import matplotlib.colors as _colors
 from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 import itertools as _itertools
 import fsoi.stats.lib_utils as _lutils
+from fsoi import log
 
 
 class FSOI(object):
@@ -52,7 +53,7 @@ def RefPlatform(plat_type):
     :return:
     """
     if plat_type not in ['full', 'conv', 'rad']:
-        print('Input to RefPlatform must be "full", "conv" or "rad", instead got %s' % plat_type)
+        log.error('Input to RefPlatform must be "full", "conv" or "rad", instead got %s' % plat_type)
         raise Exception()
 
     conv = [
@@ -609,7 +610,7 @@ def read_ascii(adate, fname):
               'OBERR': _np.float}
 
     # read data into a DataFrame object
-    print('reading ... %s' % fname)
+    log.debug('reading ... %s' % fname)
     try:
         df = _pd.read_csv(fname, delim_whitespace=True, header=None, names=names,
                           index_col=index_cols, dtype=dtypes)
@@ -720,7 +721,7 @@ def BulkStats(DF, threshold=1.e-10):
     :param threshold:
     :return:
     """
-    print('... computing bulk statistics ...')
+    log.debug('... computing bulk statistics ...')
 
     columns = ['TotImp', 'ObCnt', 'ObCntBen', 'ObCntNeu']
     names = ['DATETIME', 'PLATFORM', 'OBTYPE', 'CHANNEL']
@@ -747,7 +748,7 @@ def accumBulkStats(DF):
     :return:
     """
 
-    print('... accumulating bulk statistics ...')
+    log.debug('... accumulating bulk statistics ...')
 
     columns = ['TotImp', 'ObCnt', 'ObCntBen', 'ObCntNeu']
     names = ['DATETIME', 'PLATFORM']
@@ -771,7 +772,7 @@ def groupBulkStats(DF, Platforms):
     :param Platforms:
     :return:
     """
-    print('... grouping bulk statistics ...')
+    log.debug('... grouping bulk statistics ...')
 
     tmp = DF.reset_index()
 
@@ -795,10 +796,10 @@ def tavg(DF, level=None):
     :return:
     """
     if level is None:
-        print('A level is needed to do averaging over, e.g. PLATFORM or CHANNEL')
+        log.error('A level is needed to do averaging over, e.g. PLATFORM or CHANNEL')
         raise Exception()
 
-    print('... time-averaging bulk statistics over level = %s' % level)
+    log.debug('... time-averaging bulk statistics over level = %s' % level)
 
     df = DF.mean(level=level)
     df2 = DF.std(level=level)

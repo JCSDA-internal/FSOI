@@ -1,10 +1,15 @@
 import os
-from datetime import datetime, timedelta
+import yaml
+import pkgutil
+import shutil
+import boto3
 from netCDF4 import Dataset
 import numpy as np
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from argparse import ArgumentParser
+from argparse import ArgumentDefaultsHelpFormatter as FormatHelper
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
+from fsoi import log
 
 
 class ODS:
@@ -29,6 +34,7 @@ class ODS:
             self.lat = []
             self.obs = []
             self.omf = []
+            self.n_obs = 0
         except RuntimeError as e:
             raise IOError(str(e) + ' ' + filename)
 
@@ -68,7 +74,7 @@ class ODS:
                      'xvec', 'qcexcl', 'qchist']:
             exec('self.%s = self.%s[indx]' % (name, name))
 
-        self.nobs = len(self.kx)
+        self.n_obs = len(self.kx)
 
         return self
 
@@ -96,161 +102,144 @@ class ODS:
             raise IOError(str(e) + ' ' + self.filename)
 
 
-def kt_def():
+def prepare_workspace():
     """
-
-    :return:
+    Prepare workspace
+    :return: {str} Full path to the workspace, or None if could not create
     """
-    kt = {
-        4: ['u', 'Upper-air zonal wind', 'm/sec'],
-        5: ['v', 'Upper-air meridional wind', 'm/sec'],
-        11: ['q', 'Upper-air specific humidity', 'g/kg'],
-        12: ['w10', 'Surface (10m) wind speed', 'm/sec'],
-        17: ['rr', 'Rain Rate', 'mm/hr'],
-        18: ['tpw', 'Total Precipitable Water', ''],
-        21: ['col_o3', 'Total column ozone', 'DU'],
-        22: ['lyr_o3', 'Layer ozone', 'DU'],
-        33: ['ps', 'Surface (2m) pressure', 'hPa'],
-        39: ['sst', 'Sea-surface temperature', 'K'],
-        40: ['Tb', 'Brightness temperature', 'K'],
-        44: ['Tv', 'Upper-air virtual temperature', 'K'],
-        89: ['ba', 'Bending Angle', 'N'],
-        101: ['zt', 'Sub-surface temperature', 'C'],
-        102: ['zs', 'Sub-surface salinity', ''],
-        103: ['ssh', 'Sea-surface height anomaly', 'm'],
-        104: ['zu', 'Sub-surface zonal velocity', 'm/s'],
-        105: ['zv', 'Sub-surface meridional velocity', 'm/s'],
-        106: ['ss', 'Synthetic Salinity', '']
-    }
-    return kt
+    try:
+        work_dir = '/tmp/work'
+        if os.path.exists(work_dir):
+            shutil.rmtree(work_dir)
+        os.makedirs(work_dir)
+        return work_dir
+    except Exception as e:
+        log.error('Failed to create workspace: /tmp/work')
+        log.error(e)
+        return None
 
 
-def kx_def():
+def download_from_s3(s3url, local_dir):
     """
-
-    :return:
+    Download all of the S3 objects with the given URL (bucket and prefix)
+    :param s3url: {str} The S3 URL prefix
+    :param local_dir: {str} Download data to this local directory
+    :return: {list} A list of local files, or None if there was an error
     """
-    kx = {}
-    for key in [120, 220]:
-        kx[key] = 'Radiosonde'
-    for key in [221, 229]:
-        kx[key] = 'PIBAL'
-    for key in [132, 182, 232]:
-        kx[key] = 'Dropsonde'
-    for key in [130, 230]:
-        kx[key] = 'AIREP'
-    for key in [131, 231]:
-        kx[key] = 'ASDAR'
-    for key in [133, 233]:
-        kx[key] = 'MDCARS'
-    for key in [180, 280]:
-        kx[key] = 'Ship'
-    for key in [282]:
-        kx[key] = 'Moored_Buoy'
-    for key in [181]:
-        kx[key] = 'Land_Surface'
-    for key in [187]:
-        kx[key] = 'METAR'
-    for key in [199, 299]:
-        kx[key] = 'Drifting_Buoy'
-    for key in [223]:
-        kx[key] = 'Profiler_Wind'
-    for key in [224]:
-        kx[key] = 'NEXRAD_Wind'
-    for key in [242, 243, 245, 246, 250, 252, 253]:
-        kx[key] = 'Geo_Wind'
-    for key in [244]:
-        kx[key] = 'AVHRR_Wind'
-    for key in [257, 258, 259]:
-        kx[key] = 'MODIS_Wind'
-    for key in [285]:
-        kx[key] = 'RAPIDSCAT_Wind'
-    for key in [290]:
-        kx[key] = 'ASCAT_Wind'
-    for key in [3, 4, 42, 43, 722, 740, 741, 743, 744, 745]:
-        kx[key] = 'GPSRO'
-    for key in [112, 210]:
-        kx[key] = 'TCBogus'
+    # create an s3 client
+    s3 = boto3.client('s3')
 
-    return kx
+    # parse a few things from the url
+    bucket = s3url.split('/')[2]
+    prefix = s3url.split(bucket + '/')[1]
 
+    # list the objects in the bucket at the prefix
+    response = s3.list_objects(
+        Bucket=bucket,
+        Prefix=prefix
+    )
 
-def get_files(datadir, adate):
-    """
+    # check for an error response
+    if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        log.error('Error listing objects in bucket: %s' % s3url)
+        return None
 
-    :param datadir:
-    :param adate:
-    :return:
-    """
-    vdate = adate + timedelta(hours=24)
-    idate = adate - timedelta(hours=9)
-    idatestr = idate.strftime('%Y%m%d_%Hz')
-    vdatestr = vdate.strftime('%Y%m%d_%Hz')
-    adatestr = adate.strftime('%Y%m%d_%Hz')
-    strmatch = '.%s+%s-%s.' % (idatestr, vdatestr, adatestr)
-    files = [f for f in os.listdir(datadir) if strmatch in f]
+    # ensure the local directory exists
+    os.makedirs(local_dir, exist_ok=True)
+
+    # download each of the objects to a local file
+    files = []
+    for object_data in response['Contents']:
+        # get the key and local file
+        key = object_data['Key']
+        local_file = key.split('/')[-1]
+        full_local_file_path = '%s/%s' % (local_dir, local_file)
+
+        # download the data object from S3 to a file
+        with open(full_local_file_path, 'wb') as file:
+            s3.download_fileobj(bucket, key, file)
+            file.close()
+            files.append(full_local_file_path)
+
     return files
 
 
-def main():
+def upload_to_s3(file, s3url):
     """
-
-    :return:
+    Upload a file to S3
+    :param file: Path to the local file
+    :param s3url: An S3 URL for the target
+    :return: True if successful, otherwise false
     """
-    parser = ArgumentParser(description='Process GMAO data',
-                            formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--indir', help='path to ODS directory', type=str, required=True)
-    parser.add_argument('-o', '--output', help='Processed GMAO HDF file', type=str, required=True)
-    parser.add_argument('-a', '--adate', help='analysis date to process', metavar='YYYYMMDDHH',
-                        required=True)
-    parser.add_argument('-n', '--norm', help='norm to process', type=str, default='dry',
-                        choices=['dry', 'moist'], required=False)
-    args = parser.parse_args()
+    try:
+        # log debug
+        log.debug('Uploading %s to %s' % (file, s3url))
 
-    datapth = args.indir
-    fname_out = args.output
-    adate = datetime.strptime(args.adate, '%Y%m%d%H')
-    norm = args.norm
-    if norm in ['dry']:
-        norm = 'txe'
-    elif norm in ['moist']:
-        norm = 'twe'
+        # create an s3 client
+        s3 = boto3.client('s3')
 
-    kx = kx_def()
-    kt = kt_def()
+        # parse a few things from the url
+        bucket = s3url.split('/')[2]
+        key = s3url.split(bucket + '/')[1]
 
-    datadir = os.path.join(datapth, adate.strftime('Y%Y'), adate.strftime('M%m'),
-                           adate.strftime('D%d'))
-    flist = get_files(datadir, adate)
-    nobs = 0
+        # upload the file to the S3 bucket
+        with open(file, 'rb') as file:
+            s3.upload_fileobj(file, bucket, key)
+        return True
+
+    except Exception as e:
+        log.error('Failed to upload file to S3: %s to %s' % (file, s3url))
+        return False
+
+
+def process_gmao(norm, date):
+    """
+    Process the GMAO data from a given day for the specified norm
+    :param norm: {str} moist or dry
+    :param date: {str} Date string in the format YYYYMMDDHH
+    :return: {list} List of local files
+    """
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/ingest/gmao/gmao_ingest.yaml'))
+    kx = config['kx']
+    kt = config['kt']
+    file_norm = config['norm'][norm]
+    input_bucket = config['raw_data_bucket']
+
+    work_dir = prepare_workspace()
+    s3_prefix = 's3://%s/Y%s/M%s/D%s/H%s/' % (input_bucket, date[0:4], date[4:6], date[6:8], date[8:10])
+    file_list = download_from_s3(s3_prefix, work_dir)
+
+    n_obs = 0
     bufr = []
-    for fname in flist:
+    for file in file_list:
 
-        if norm not in fname:
+        # skip if the norm is not in the file name
+        if file_norm not in file.split('/')[-1]:
             continue
 
-        print('processing %s' % fname)
+        # log debug
+        log.debug('processing %s' % file)
 
         # TODO: Request that NASA adds the platform name as a global attribute in the NetCDF file
         #       rather than trying to parse the platform name from the file name.
-        platform = fname.split('.')[3].split('imp3_%s_' % norm)[-1].upper()
+        platform = file.split('/')[-1].split('.')[3].split('imp3_%s_' % file_norm)[-1].upper()
 
         # Skip the CONV platform for now
         # TODO: Fix the bug with processing data from the CONV platform
         if platform == 'CONV':
             continue
 
-        fname = os.path.join(datadir, fname)
-        ods = ODS(fname)
+        # read the data from the file
+        ods = ODS(file)
         ods = ods.read(only_good=True, platform=platform)
         ods.close()
 
-        nobs += ods.nobs
+        # update the total obs count
+        n_obs += ods.n_obs
+        log.debug('platform = %s, nobs = %d' % (platform, ods.n_obs))
 
-        print('platform = %s, nobs = %d' % (platform, ods.nobs))
-
-        for o in range(ods.nobs):
-
+        # iterate over each observation
+        for o in range(ods.n_obs):
             plat = kx[ods.kx[o]] if platform in ['CONV'] else platform
             obtype = kt[ods.kt[o]][0]
             channel = -999 if platform in ['CONV'] else np.int(ods.lev[o])
@@ -264,18 +253,68 @@ def main():
                 lev = ods.lev[o]
             imp = ods.xvec[o]
             omf = ods.omf[o]
-            oberr = -999.  # GMAO does not provide obs. error in the impact ODS files
+            oberr = -999.  # GMAO does not provide obs error in the impact ODS files
+            bufr.append([plat, obtype, channel, lon, lat, lev, imp, omf, oberr])
 
-            line = [plat, obtype, channel, lon, lat, lev, imp, omf, oberr]
+    log.debug('Total obs used in %s = %d' % (date, n_obs))
 
-            bufr.append(line)
+    # write the output files and upload to S3
+    if not bufr:
+        return None
 
-    if bufr != []:
-        df = loi.list_to_dataframe(adate, bufr)
-        if os.path.isfile(fname_out): os.remove(fname_out)
-        lutils.writeHDF(fname_out, 'df', df, complevel=1, complib='zlib', fletcher32=True)
+    out_file_list = []
 
-    print('Total obs used in %s = %d' % (adate.strftime('%Y%m%d%H'), nobs))
+    out_file = 'GMAO.%s.%s.h5' % (norm, date)
+    s3_template = 's3://fsoi/intercomp/hdf5/GMAO/%s'
+
+    df = loi.list_to_dataframe(date, bufr)
+    of = '%s/%s' % (work_dir, out_file)
+    lutils.writeHDF(of, 'df', df, complevel=1, complib='zlib', fletcher32=True)
+    out_file_list.append(of)
+    if not upload_to_s3(of, s3_template % of.split('/')[-1]):
+        log.error('Failed to upload file to S3: %s' % of)
+
+    df = loi.BulkStats(df)
+    of = '%s/bulk.%s' % (work_dir, out_file)
+    out_file_list.append(of)
+    lutils.writeHDF(of, 'df', df)
+    if not upload_to_s3(of, s3_template % of.split('/')[-1]):
+        log.error('Failed to upload file to S3: %s' % of)
+
+    df = loi.accumBulkStats(df)
+    of = '%s/accumbulk.%s' % (work_dir, out_file)
+    out_file_list.append(of)
+    lutils.writeHDF(of, 'df', df)
+    if not upload_to_s3(of, s3_template % of.split('/')[-1]):
+        log.error('Failed to upload file to S3: %s' % of)
+
+    platforms = loi.Platforms('GMAO')
+    df = loi.groupBulkStats(df, platforms)
+    of = '%s/groupbulk.%s' % (work_dir, out_file)
+    out_file_list.append(of)
+    lutils.writeHDF(of, 'df', df)
+    if not upload_to_s3(of, s3_template % of.split('/')[-1]):
+        log.error('Failed to upload file to S3: %s' % of)
+
+    return out_file_list
+
+
+def main():
+    """
+
+    :return:
+    """
+    parser = ArgumentParser(description='Process GMAO data', formatter_class=FormatHelper)
+    parser.add_argument('-d', '--date', help='analysis date to process', metavar='YYYYMMDDHH',
+                        required=True)
+    parser.add_argument('-n', '--norm', help='norm to process', type=str, default='moist',
+                        choices=['dry', 'moist'], required=False)
+    args = parser.parse_args()
+
+    files = process_gmao(args.norm, args.date)
+    log.info('Processed GMAO files:')
+    for file in files:
+        log.info(file)
 
 
 if __name__ == '__main__':
