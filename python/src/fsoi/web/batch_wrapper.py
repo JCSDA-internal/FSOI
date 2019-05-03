@@ -104,14 +104,13 @@ def process_request(validated_request):
     validated_request['centers'] = centers
 
     # create the comparison summary plots
-    # TODO: Add the comparison plots back in once everything else is working
-    # if not errors:
-    #     update_all_clients(hash_value, 'RUNNING', 'Creating comparison plots', progress)
-    #     process_fsoi_compare(validated_request)
-    #     progress += 3
-    #     update_all_clients(hash_value, 'RUNNING', 'Storing comparison plots', progress)
-    #     key_list += cache_compare_plots_in_s3(hash_value, validated_request)
-    #     progress += 1
+    if not errors:
+        update_all_clients(hash_value, 'RUNNING', 'Creating comparison plots', progress)
+        process_fsoi_compare(validated_request)
+        progress += 3
+        update_all_clients(hash_value, 'RUNNING', 'Storing comparison plots', progress)
+        key_list += cache_compare_plots_in_s3(hash_value, validated_request)
+        progress += 1
 
     # clean up the working directory
     clean_up(validated_request)
@@ -352,8 +351,17 @@ def create_plots(request, center, objects):
     for (i, file) in enumerate(files):
         ddf[i] = lutils.readHDF(file, 'df')
 
-    # concatenate and time-average the data frames
-    df, df_std = loi.tavg(pd.concat(ddf, axis=0), 'PLATFORM')
+    # concatenate the group bulk data and save to a pickle
+    concatenated = pd.concat(ddf, axis=0)
+    pickle_dir = '%s/work/%s/%s' % (request['root_dir'], center, request['norm'])
+    pickle_file = '%s/group_stats.pkl' % pickle_dir
+    os.makedirs(pickle_dir, exist_ok=True)
+    if os.path.exists(pickle_file):
+        os.remove(pickle_file)
+    lutils.pickle(pickle_file, concatenated)
+
+    # time-average the data frames
+    df, df_std = loi.tavg(concatenated, 'PLATFORM')
     df = loi.summarymetrics(df)
 
     # create the cycle identifier
@@ -402,7 +410,7 @@ def process_fsoi_compare(request):
         print('running compare_fsoi_main: %s' % ' '.join(sys.argv))
         compare_fsoi_main()
     except Exception as e:
-        errors.append('Error creating FSOI comparison plots')
+        warns.append('Error creating FSOI comparison plots')
         print(e)
 
 
