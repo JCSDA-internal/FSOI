@@ -18,7 +18,8 @@ setup(
   package_data={
     'fsoi': [
       'resources/fsoi/ingest/nrl/*.yaml',
-      'resources/fsoi/ingest/gmao/*.yaml'
+      'resources/fsoi/ingest/gmao/*.yaml',
+      'resources/fsoi/*.yaml'
     ]
   },
   include_package_data=True,

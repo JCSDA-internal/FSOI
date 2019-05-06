@@ -1,0 +1,580 @@
+EMC:
+  AIRS:
+    - AIRS281SUBSET_AQUA
+  AMSUA:
+    - AMSUA_N15
+    - AMSUA_N18
+    - AMSUA_N19
+    - AMSUA_AQUA
+    - AMSUA_METOP-A
+    - AMSUA_METOP-B
+  ASCAT Wind:
+    - ASCAT_Wind
+  ATMS:
+    - ATMS_NPP
+  AVHRR Wind:
+    - AVHRR_Wind
+  Aircraft:
+    - Aircraft
+  Buoy:
+    - Drifting_Buoy
+  CrIS:
+    - CRIS_NPP
+  Dropsonde:
+    - Dropsonde
+  GOES:
+    - SNDRD1_G15
+    - SNDRD2_G15
+    - SNDRD3_G15
+    - SNDRD4_G15
+  GPSRO:
+    - GPSRO
+  Geo Wind:
+    - Sat_Wind
+  HIRS:
+    - HIRS4_METOP-A
+  IASI:
+    - IASI616_METOP-A
+  Land Surface:
+    - Land_Surface
+  MHS:
+    - MHS_N18
+    - MHS_N19
+    - MHS_METOP-A
+    - MHS_METOP-B
+  MODIS Wind:
+    - MODIS_Wind
+  NEXRAD Wind:
+    - NEXRAD_Wind
+  Ozone:
+    - Ozone
+  PIBAL:
+    - PIBAL
+  Profiler Wind:
+    - Profiler_Wind
+  RAPIDSCAT Wind:
+    - RAPIDSCAT_Wind
+  Radiosonde:
+    - Radiosonde
+  SSMIS:
+    - SSMIS_F17
+    - SSMIS_F18
+  Seviri:
+    - SEVIRI10
+  Ship:
+    - Mobile_Marine_Surface
+    - Moored_Buoy
+  Synthetic:
+    - TCBogus
+  TMI Rain Rate:
+    - PCP_TMI_TRMM
+  UNKNOWN:
+    - UNKNOWN
+JMA_ens:
+  AIRS:
+    - AIRS_Aqua
+  AMSR:
+    - AMSRE_GCOM-W1
+    - AMSR2_GCOM-W1
+  AMSUA:
+    - AMSUA_NOAA15
+    - AMSUA_NOAA18
+    - AMSUA_NOAA19
+    - AMSUA_Aqua
+    - AMSUA_Metop-A
+    - AMSUA_Metop-B
+  ASCAT Wind:
+    - SCATWIND
+  ATMS:
+    - ATMS_NPP
+  AVHRR Wind:
+    - AMV-AVHRR
+  Aircraft:
+    - AIRCRAFT
+  Buoy:
+    - DRIFTING_BUOY
+    - BUOY
+  CrIS:
+    - CrIS_NPP
+  Dropsonde:
+    - Dropsonde
+  GOES:
+    - CSR_GOES13
+    - CSR_GOES15
+  GPSRO:
+    - GNSSRO
+  Geo Wind:
+    - AMV-GEOSTAT
+  HIRS:
+    - HIRS4_NOAA18
+    - HIRS4_NOAA19
+    - HIRS4_Metop-A
+    - HIRS4_Metop-B
+  IASI:
+    - IASI_Metop-A
+    - IASI_Metop-B
+  LEO-GEO:
+    - AMV-LEOGEO
+  Land Surface:
+    - SYNOP
+  MHS:
+    - MHS_NOAA18
+    - MHS_NOAA19
+    - MHS_Metop-A
+    - MHS_Metop-B
+  MODIS Wind:
+    - AMV-MODIS
+  MTSAT:
+    - CSR_MTSAT-2
+  MVIRI:
+    - CSR_METEOSAT7
+    - CSR_METEOSAT10
+  NEXRAD Wind:
+    - NEXRAD_Wind
+  Ozone:
+    - Ozone
+    - OMI_AURA
+  PIBAL:
+    - PILOT
+  Profiler Wind:
+    - PROFILER
+  RAPIDSCAT Wind:
+    - RAPIDSCAT_Wind
+  Radiosonde:
+    - RADIOSONDE
+  SSMIS:
+    - SSMIS_DMSP-F16
+    - SSMIS_DMSP-F17
+    - SSMIS_DMSP-F18
+  Seviri:
+    - SEVIRI_M10
+  Ship:
+    - SHIP
+    - MOORED_BUOY
+  Synthetic:
+    - TYBOGUS
+  TMI Rain Rate:
+    - TMI_TRMM
+JMA_adj:
+  AIRS:
+    - AIRS_Aqua
+  AMSR:
+    - AMSRE_GCOM-W1
+    - AMSR2_GCOM-W1
+  AMSUA:
+    - AMSUA_NOAA15
+    - AMSUA_NOAA18
+    - AMSUA_NOAA19
+    - AMSUA_Aqua
+    - AMSUA_Metop-A
+    - AMSUA_Metop-B
+  ASCAT Wind:
+    - SCATWIND
+  ATMS:
+    - ATMS_NPP
+  AVHRR Wind:
+    - AMV-AVHRR
+  Aircraft:
+    - AIRCRAFT
+  Buoy:
+    - DRIFTING_BUOY
+    - BUOY
+  CrIS:
+    - CrIS_NPP
+  Dropsonde:
+    - Dropsonde
+  GOES:
+    - CSR_GOES13
+    - CSR_GOES15
+  GPSRO:
+    - GNSSRO
+  Geo Wind:
+    - AMV-GEOSTAT
+  HIRS:
+    - HIRS4_NOAA18
+    - HIRS4_NOAA19
+    - HIRS4_Metop-A
+    - HIRS4_Metop-B
+  IASI:
+    - IASI_Metop-A
+    - IASI_Metop-B
+  LEO-GEO:
+    - AMV-LEOGEO
+  Land Surface:
+    - SYNOP
+  MHS:
+    - MHS_NOAA18
+    - MHS_NOAA19
+    - MHS_Metop-A
+    - MHS_Metop-B
+  MODIS Wind:
+    - AMV-MODIS
+  MTSAT:
+    - CSR_MTSAT-2
+  MVIRI:
+    - CSR_METEOSAT7
+    - CSR_METEOSAT10
+  NEXRAD Wind:
+    - NEXRAD_Wind
+  Ozone:
+    - Ozone
+    - OMI_AURA
+  PIBAL:
+    - PILOT
+  Profiler Wind:
+    - PROFILER
+  RAPIDSCAT Wind:
+    - RAPIDSCAT_Wind
+  Radiosonde:
+    - RADIOSONDE
+  SSMIS:
+    - SSMIS_DMSP-F16
+    - SSMIS_DMSP-F17
+    - SSMIS_DMSP-F18
+  Seviri:
+    - SEVIRI_M10
+  Ship:
+    - SHIP
+    - MOORED_BUOY
+  Synthetic:
+    - TYBOGUS
+  TMI Rain Rate:
+    - TMI_TRMM
+GMAO:
+  AIRS:
+    - AIRS_AQUA
+  AMSUA:
+    - AMSUA_N15
+    - AMSUA_N18
+    - AMSUA_N19
+    - AMSUA_AQUA
+    - AMSUA_METOP-A
+    - AMSUA_METOP-B
+  ASCAT Wind:
+    - ASCAT_Wind
+  ATMS:
+    - ATMS_NPP
+  AVHRR Wind:
+    - AVHRR_Wind
+  Aircraft:
+    - AIREP
+    - ASDAR
+    - MDCARS
+  Buoy:
+    - Drifting_Buoy
+  CrIS:
+    - CRIS_NPP
+  Dropsonde:
+    - Dropsonde
+  GOES:
+    - SNDRD1_G13
+    - SNDRD2_G13
+    - SNDRD3_G13
+    - SNDRD4_G13
+    - SNDRD1_G15
+    - SNDRD2_G15
+    - SNDRD3_G15
+    - SNDRD4_G15
+  GPSRO:
+    - GPSRO
+  Geo Wind:
+    - Geo_Wind
+  HIRS:
+    - HIRS4_N18
+    - HIRS4_N19
+    - HIRS4_METOP-A
+    - HIRS4_METOP-B
+  IASI:
+    - IASI_METOP-A
+    - IASI_METOP-B
+  Land Surface:
+    - Land_Surface
+    - METAR
+  MHS:
+    - MHS_N18
+    - MHS_N19
+    - MHS_METOP-A
+    - MHS_METOP-B
+  MODIS Wind:
+    - MODIS_Wind
+  NEXRAD Wind:
+    - NEXRAD_Wind
+  Ozone:
+    - Ozone
+    - OMI_AURA
+  PIBAL:
+    - PIBAL
+  Profiler Wind:
+    - Profiler_Wind
+  RAPIDSCAT Wind:
+    - RAPIDSCAT_Wind
+  Radiosonde:
+    - Radiosonde
+  SSMIS:
+    - SSMIS_F17
+    - SSMIS_F18
+  Seviri:
+    - SEVIRI_M10
+  Ship:
+    - Ship
+    - Moored_Buoy
+  Synthetic:
+    - TCBogus
+  TMI Rain Rate:
+    - PCP_TMI_TRMM
+NRL:
+  AIRS:
+    - AIRS
+  AMSUA:
+    - AMSUA_N15
+    - AMSUA_N18
+    - AMSUA_N19
+    - AMSUA_AQUA
+    - AMSUA_METOP-A
+    - AMSUA_METOP-B
+  ASCAT Wind:
+    - ASCAT_Wind
+  ATMS:
+    - ATMS_NPP
+  AVHRR Wind:
+    - AVHRR_Wind
+  Aircraft:
+    - AIREP
+    - AMDAR
+    - MDCARS
+    - MIL_ACARS
+  Aus Syn:
+    - UW_wiIR
+  Buoy:
+    - Drifting_Buoy
+  CrIS:
+    - CrIS_NPP
+  Dropsonde:
+    - Dropsonde
+  GOES:
+    - SNDRD1_G13
+    - SNDRD2_G13
+    - SNDRD3_G13
+    - SNDRD4_G13
+    - SNDRD1_G15
+    - SNDRD2_G15
+    - SNDRD3_G15
+    - SNDRD4_G15
+  GPSRO:
+    - GPSRO
+  Geo Wind:
+    - Sat_Wind
+  HIRS:
+    - HIRS4_N18
+    - HIRS4_N19
+    - HIRS4_METOP-A
+    - HIRS4_METOP-B
+  IASI:
+    - IASI_METOP-A
+    - IASI_METOP-B
+  LEO-GEO:
+    - LEO-GEO
+  Land Surface:
+    - Land_Surface
+  MHS:
+    - MHS_N18
+    - MHS_N19
+    - MHS_METOP-A
+    - MHS_METOP-B
+  MODIS Wind:
+    - MODIS_Wind
+  NEXRAD Wind:
+    - NEXRAD_Wind
+  Ozone:
+    - Ozone
+    - OMI_AURA
+  PIBAL:
+    - PIBAL
+  PRH:
+    - SSMI_PRH
+    - WINDSAT_PRH
+  Profiler Wind:
+    - Profiler_Wind
+  R/S AMV:
+    - R/S_AMV
+  RAPIDSCAT Wind:
+    - RAPIDSCAT_Wind
+  Radiosonde:
+    - Radiosonde
+  SSMIS:
+    - SSMIS
+  Seviri:
+    - SEVIRI
+  Ship:
+    - Ship
+    - Moored_Buoy
+  Synthetic:
+    - TCBogus
+  TMI Rain Rate:
+    - PCP_TMI_TRMM
+  TPW:
+    - SSMI_TPW
+    - WINDSAT_TPW
+  UAS:
+    - UAS
+  WindSat:
+    - WINDSAT
+MET:
+  AIRS:
+    - AIRS_Aqua
+  AMSUA:
+    - AMSUA_N15
+    - AMSUA_N18
+    - AMSUA_N19
+    - AMSUA_METOP-A
+    - AMSUA_METOP-B
+  ASCAT Wind:
+    - ASCAT_Wind
+  ATMS:
+    - ATMS_NPP
+  AVHRR Wind:
+    - AVHRR_Wind
+  Aircraft:
+    - Aircraft
+  Buoy:
+    - Drifting_Buoy
+    - Platform_Buoy
+  CrIS:
+    - CrIS_NPP
+  Dropsonde:
+    - Dropsonde
+  GOES:
+    - GOES_CSR
+  GPSRO:
+    - GPSRO
+  Geo Wind:
+    - Geo_Wind
+  Ground GPS:
+    - GroundGPS
+  HIRS:
+    - HIRS_METOP-A
+    - HIRS_METOP-B
+  IASI:
+    - IASI_METOP-A
+    - IASI_METOP-B
+  LEO-GEO:
+    - LEO-GEO
+  Land Surface:
+    - SYNOP
+    - METAR
+  MHS:
+    - MHS_N18
+    - MHS_N19
+    - MHS_METOP-A
+    - MHS_METOP-B
+  MODIS Wind:
+    - MODIS_Wind
+  MTSAT:
+    - MTSAT_CSR
+  MVIRI:
+    - MVIRI_CSR
+  NEXRAD Wind:
+    - NEXRAD_Wind
+  Ozone:
+    - Ozone
+    - OMI_AURA
+  PIBAL:
+    - PILOT
+  Profiler Wind:
+    - Profiler_Wind
+  RAPIDSCAT Wind:
+    - RAPIDSCAT_Wind
+  Radiosonde:
+    - Radiosonde
+  SSMIS:
+    - SSMIS_F17
+    - SSMIS_F18
+  Seviri:
+    - SEVIRI_MSR
+  Ship:
+    - Ship
+    - Moored_Buoy
+  Synthetic:
+    - TCBogus
+  TMI Rain Rate:
+    - PCP_TMI_TRMM
+MeteoFr:
+  AIRS:
+    - AIRS_AQUA
+  AMSUA:
+    - AMSUA_AQUA
+    - AMSUA_NOAA15
+    - AMSUA_NOAA16
+    - AMSUA_NOAA18
+    - AMSUA_NOAA19
+    - AMSUA_METOP-A
+    - AMSUA_METOP-B
+  ASCAT Wind:
+    - ASCAT_METOP-A
+    - ASCAT_METOP-B
+  ATMS:
+    - ATMS_NPP
+  AVHRR Wind:
+    - AVHRR_NOAA15
+    - AVHRR_NOAA16
+    - AVHRR_NOAA18
+    - AVHRR_NOAA19
+  Aircraft:
+    - AIREP
+    - AMDAR
+    - ACARS
+  Buoy:
+    - Drifting_Buoy
+  CrIS:
+    - CRIS_NPP
+  Dropsonde:
+    - Dropsonde
+  GMS Wind:
+    - Imgr_GMS
+  GOES:
+    - GOESIMG_GOES13
+    - GOESIMG_GOES15
+  GOES Wind:
+    - Imgr_GOES13
+    - Imgr_GOES15
+  GPSRO:
+    - GPSRO
+  Ground GPS:
+    - GPSZTD
+  HIRS:
+    - HIRS_METOP-A
+    - HIRS_METOP-B
+  IASI:
+    - IASI_METOP-A
+    - IASI_METOP-B
+  Land Surface:
+    - Land_Surface
+    - RADOME
+  METEOSAT Wind:
+    - Imgr_METEOSAT7
+    - Imgr_METEOSAT10
+  MHS:
+    - MHS_NOAA19
+    - MHS_METOP-A
+    - MHS_METOP-B
+  MODIS Wind:
+    - MODIS_TERRA
+    - MODIS_AQUA
+  Misc SatWind:
+    - Misc_SatWind
+  PIBAL:
+    - Pilot
+  Profiler Wind:
+    - Profiler
+  Radiosonde:
+    - Radiosonde
+  SSMIS:
+    - SSMIS_DMSP16
+    - SSMIS_DMSP17
+    - SSMIS_DMSP18
+  Seviri:
+    - SEVIRI_METEOSAT10
+  Ship:
+    - Ship
+  Synthetic:
+    - TCBogus

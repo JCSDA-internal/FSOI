@@ -461,7 +461,7 @@ def get_s3_object_urls(request):
         for center in centers:
             for cycle in cycles:
                 s3_objects.append([
-                    '%s/groupbulk.%s.%s.%s%s.h5' % (center, center, norm, date, cycle),
+                    '%s/groupbulk.%s.%s.%s%02d.h5' % (center, center, norm, date, int(cycle)),
                     center,
                     norm,
                     date,
