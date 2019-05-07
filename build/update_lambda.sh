@@ -3,11 +3,14 @@
 zip_file=fsoi-request-handler-deployed-`date +%Y%m%d%H%M%S`.zip
 cd x
 cp -R ../FSOI/python/src/fsoi .
+rm -f ./fsoi/resources
+cp -R ../FSOI/python/resources ./fsoi/
 rm -f ingest_navy.py ingest_gmao.py lambda_wrapper.py
 ln -s fsoi/ingest/nrl/ingest_navy.py .
 ln -s fsoi/ingest/gmao/ingest_gmao.py .
 ln -s fsoi/web/lambda_wrapper.py .
 find . -type f -name \*.py -exec chmod ugo+rx {} \;
+find . -type f -exec chmod ugo+r {} \;
 find . -type d -exec chmod ugo+rx {} \;
 zip -r ../$zip_file ingest_navy.py ingest_gmao.py lambda_wrapper.py fsoi chardet requests urllib3 certifi idna
 cd ../

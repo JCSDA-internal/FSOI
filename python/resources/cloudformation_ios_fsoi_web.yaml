@@ -1,5 +1,5 @@
 ---
-Description: JCSDA's IOS FSOI Web Application
+Description: JCSDA's IOS FSOI Web Application (Performance Enhanced)
 AWSTemplateFormatVersion: '2010-09-09'
 
 Resources:
@@ -9,7 +9,7 @@ Resources:
   #
 
   # Role for the lambda function
-  FsoiLambdaRole:
+  IosLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -21,43 +21,23 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
-      RoleName: fsoi_lambda_role
+      RoleName: ios_lambda_role
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  # Role for the batch jobs
-  FsoiBatchRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - batch.amazonaws.com
-                - ecs.amazonaws.com
-                - ecs-tasks.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      RoleName: fsoi_batch_role
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
-
 
   #
   # IAM Policies
   #
 
   # Policy to allow read access to s3://fsoi
-  AllowReadS3Fsoi:
+  AllowReadS3Ios:
     Type: AWS::IAM::Policy
     DependsOn:
-      - FsoiBatchRole
+      - IosLambdaRole
     Properties:
-      PolicyName: allow_read_s3_fsoi
+      PolicyName: allow_read_s3_ios
       Roles:
-        - fsoi_batch_role
+        - ios_lambda_role
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -75,16 +55,14 @@ Resources:
             - arn:aws:s3:::fsoi
 
   # Policy to allow CRUD operations on the DynamoDB table for requests
-  AllowCrudDynamodbFsoiRequests:
+  AllowCrudDynamodbIosRequests:
     Type: AWS::IAM::Policy
     DependsOn:
-      - FsoiBatchRole
-      - FsoiLambdaRole
+      - IosLambdaRole
     Properties:
-      PolicyName: allow_crud_dynamodb_fsoi_requests
+      PolicyName: allow_crud_dynamodb_ios_requests
       Roles:
-        - fsoi_batch_role
-        - fsoi_lambda_role
+        - ios_lambda_role
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -102,24 +80,22 @@ Resources:
           - dynamodb:UpdateTable
           - dynamodb:GetRecords
           Resource:
-            - arn:aws:dynamodb:us-east-1:469205354006:table/fsoi_requests
-            - arn:aws:dynamodb:us-east-1:469205354006:table/fsoi_requests/stream/*
+            - arn:aws:dynamodb:us-east-1:469205354006:table/ios_requests
+            - arn:aws:dynamodb:us-east-1:469205354006:table/ios_requests/stream/*
         - Effect: Allow
           Action: dynamodb:ListTables
           Resource:
             - arn:aws:dynamodb:us-east-1:*:*
 
   # Policy to allow read/write to s3://fsoi-image-cache
-  AllowRwS3FsoiImageCache:
+  AllowRwS3IosImageCache:
     Type: AWS::IAM::Policy
     DependsOn:
-      - FsoiBatchRole
-      - FsoiLambdaRole
+      - IosLambdaRole
     Properties:
-      PolicyName: allow_rw_s3_fsoi_image_cache
+      PolicyName: allow_rw_s3_ios_image_cache
       Roles:
-        - fsoi_batch_role
-        - fsoi_lambda_role
+        - ios_lambda_role
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -201,13 +177,11 @@ Resources:
   AllowPostExecuteApi:
     Type: AWS::IAM::Policy
     DependsOn:
-      - FsoiBatchRole
-      - FsoiLambdaRole
+      - IosLambdaRole
     Properties:
       PolicyName: allow_post_execute_api
       Roles:
-        - fsoi_batch_role
-        - fsoi_lambda_role
+        - ios_lambda_role
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -215,30 +189,12 @@ Resources:
             Action: execute-api:*
             Resource: arn:aws:execute-api:us-east-1:469205354006:*/*/*/*
 
-  # Policy to allow lambda to submit batch jobs
-  AllowSubmitBatchJobs:
-    Type: AWS::IAM::Policy
-    DependsOn:
-      - FsoiLambdaRole
-    Properties:
-      PolicyName: allow_submit_batch_jobs
-      Roles:
-        - fsoi_lambda_role
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Action: batch:SubmitJob
-            Effect: Allow
-            Resource:
-              - arn:aws:batch:us-east-1:469205354006:job-definition/fsoi_job:*
-              - arn:aws:batch:us-east-1:469205354006:job-queue/fsoi_queue
-
   #
   # DYNAMODB
   #
 
   # Create the DynamoDB Table
-  DynamoTableFsoiRequests:
+  DynamoTableIosRequests:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
@@ -250,124 +206,84 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
-      TableName: fsoi_requests
+      TableName: ios_requests
 
 
   #
   # API GATEWAY
   #
-  # TODO: The websocket protocol is not currently supported in CloudFormation (2019-Jan-16)
+  IosWebsocket:
+    Type: AWS::ApiGatewayV2::Api
+    DependsOn: LambdaIosRequestHandler
+    Properties:
+      Name: IOS Websocket API Gateway
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "\\$default"
 
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref IosWebsocket
+      RouteKey: $connect
+      AuthorizationType: NONE
+      OperationName: Default
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref IosWebsocket
+      RouteKey: $default
+      AuthorizationType: NONE
+      OperationName: Default
+
+  DefaultIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - LambdaIosRequestHandler
+    Properties:
+      ApiId: !Ref IosWebsocket
+      Description: Forward to Lambda function
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::Sub:
+          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaIosRequestHandler.Arn}/invocations
+
+  Deployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - DefaultRoute
+    Properties:
+      ApiId: !Ref IosWebsocket
+
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: v2
+      DeploymentId: !Ref Deployment
+      ApiId: !Ref IosWebsocket
 
   #
   # LAMBDA
   #
 
-  # Function to handle requests from the API Gateway
-  LambdaFunctionHandleFsoiRequests:
+  # Function to handle user requests
+  LambdaIosRequestHandler:
     Type: AWS::Lambda::Function
     DependsOn:
-      - FsoiLambdaRole
+      - IosLambdaRole
     Properties:
-      FunctionName: fsoi_request_handler
-      Handler: lambda_wrapper.main
-      Role: arn:aws:iam::469205354006:role/fsoi_lambda_role
+      FunctionName: ios_request_handler
+      Handler: lambda_wrapper.handle_request
+      Role: arn:aws:iam::469205354006:role/ios_lambda_role
       Code:
         S3Bucket: jcsda-scratch
         S3Key: fsoi_lambda.zip
       Runtime: python3.7
-      Timeout: 30
-      MemorySize: 512
+      Timeout: 600
+      MemorySize: 3008
       Environment:
         Variables:
           CACHE_BUCKET: fsoi-image-cache
           FSOI_ROOT_DIR: /tmp/fsoi
           REGION: us-east-1
-
-
-  #
-  # BATCH
-  #
-
-  # Security group
-  BatchEnvSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow egress only
-      SecurityGroupIngress:
-        - CidrIp: 127.0.0.1/32
-          IpProtocol: -1
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: -1
-          FromPort: -1
-          ToPort: -1
-      VpcId: vpc-4a9db231
-
-  # Subnet
-  BatchEnvSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: vpc-4a9db231
-      CidrBlock: 172.31.96.0/20
-      AvailabilityZone: us-east-1a
-      MapPublicIpOnLaunch: true
-
-  # Compute environment
-  BatchEnvFsoi:
-    Type: AWS::Batch::ComputeEnvironment
-    DependsOn:
-      - BatchEnvSecurityGroup
-      - BatchEnvSubnet
-    Properties:
-      Type: MANAGED
-      ServiceRole: arn:aws:iam::469205354006:role/service-role/AWSBatchServiceRole
-      ComputeEnvironmentName: fsoi_webapp_env_v3
-      ComputeResources:
-        MinvCpus: 8
-        MaxvCpus: 24
-        DesiredvCpus: 8
-        SecurityGroupIds:
-          - Ref: BatchEnvSecurityGroup
-        Type: EC2
-        InstanceTypes:
-          - optimal
-        # This AMI has a larger LVM partition to allow more storage for the docker containers
-        # Some fun reading: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-ami-storage-config.html
-        ImageId: ami-07ee9fed984790191
-        Ec2KeyPair: ios-webapp-batch
-        InstanceRole: arn:aws:iam::469205354006:instance-profile/ecsInstanceRole
-        Subnets:
-          - Ref: BatchEnvSubnet
-      State: ENABLED
-
-  # Job queue
-  BatchQueueFsoi:
-    Type: AWS::Batch::JobQueue
-    DependsOn:
-      - BatchEnvFsoi
-    Properties:
-      ComputeEnvironmentOrder:
-        - Order: 1
-          ComputeEnvironment: fsoi_webapp_env_v3
-      State: ENABLED
-      Priority: 100
-      JobQueueName: fsoi_queue
-
-  # Job definition
-  BatchJobDefinitionFsoi:
-    Type: AWS::Batch::JobDefinition
-    DependsOn:
-      - FsoiBatchRole
-    Properties:
-      Type: container
-      JobDefinitionName: fsoi_job
-      ContainerProperties:
-        Command:
-          - batch_wrapper
-          - Ref::request
-        Memory: 32768
-        JobRoleArn:
-          Ref: FsoiBatchRole
-        Vcpus: 2
-        Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch
