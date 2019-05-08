@@ -3,6 +3,8 @@ lib_obimpact.py contains functions for FSOI project
 Some functions can be used elsewhere
 """
 
+import yaml
+import pkgutil
 import numpy as _np
 import pandas as _pd
 from matplotlib import pyplot as _plt
@@ -294,286 +296,16 @@ def OnePlatform():
 
 def Platforms(center):
     """
-
-    :param center:
-    :return:
+    Get a list of platforms for a specified center
+    :param center: {str} Name of the center
+    :return: {dict} A dictionary of platforms for the given center
     """
-    platforms = {}
-    exec('platforms = %s_platforms()' % center)
-    return platforms
+    platforms = yaml.load(pkgutil.get_data('fsoi', 'resources/fsoi/platforms.yaml'))
+    if center not in platforms:
+        log.warn('Unknown center requested: %s' % center)
+        return None
 
-
-def GMAO_platforms():
-    """
-
-    :return:
-    """
-    platforms = {
-        'Radiosonde': ['Radiosonde'],
-        'Dropsonde': ['Dropsonde'],
-        'Ship': ['Ship', 'Moored_Buoy'],
-        'Buoy': ['Drifting_Buoy'],
-        'Land Surface': ['Land_Surface', 'METAR'],
-        'Aircraft': ['AIREP', 'ASDAR', 'MDCARS'],
-        'PIBAL': ['PIBAL'],
-        'GPSRO': ['GPSRO'],
-        'Profiler Wind': ['Profiler_Wind'],
-        'NEXRAD Wind': ['NEXRAD_Wind'],
-        'Geo Wind': ['Geo_Wind'],
-        'MODIS Wind': ['MODIS_Wind'],
-        'AVHRR Wind': ['AVHRR_Wind'],
-        'ASCAT Wind': ['ASCAT_Wind'],
-        'RAPIDSCAT Wind': ['RAPIDSCAT_Wind'],
-        'Ozone': ['Ozone', 'OMI_AURA'],
-        'TMI Rain Rate': ['PCP_TMI_TRMM'],
-        'Synthetic': ['TCBogus'],
-        'AIRS': ['AIRS_AQUA'],
-        'AMSUA': ['AMSUA_N15', 'AMSUA_N18', 'AMSUA_N19', 'AMSUA_AQUA', 'AMSUA_METOP-A',
-                  'AMSUA_METOP-B'],
-        'MHS': ['MHS_N18', 'MHS_N19', 'MHS_METOP-A', 'MHS_METOP-B'],
-        'ATMS': ['ATMS_NPP'],
-        'CrIS': ['CRIS_NPP'],
-        'HIRS': ['HIRS4_N18', 'HIRS4_N19', 'HIRS4_METOP-A', 'HIRS4_METOP-B'],
-        'IASI': ['IASI_METOP-A', 'IASI_METOP-B'],
-        'Seviri': ['SEVIRI_M10'],
-        'GOES': ['SNDRD1_G13', 'SNDRD2_G13', 'SNDRD3_G13', 'SNDRD4_G13', 'SNDRD1_G15', 'SNDRD2_G15',
-                 'SNDRD3_G15', 'SNDRD4_G15'],
-        'SSMIS': ['SSMIS_F17', 'SSMIS_F18']
-    }
-
-    return platforms
-
-
-def NRL_platforms():
-    """
-
-    :return:
-    """
-    platforms = {
-        'Radiosonde': ['Radiosonde'],
-        'Dropsonde': ['Dropsonde'],
-        'Ship': ['Ship', 'Moored_Buoy'],
-        'Buoy': ['Drifting_Buoy'],
-        'Land Surface': ['Land_Surface'],
-        'Aircraft': ['AIREP', 'AMDAR', 'MDCARS', 'MIL_ACARS'],
-        'PIBAL': ['PIBAL'],
-        'GPSRO': ['GPSRO'],
-        'Profiler Wind': ['Profiler_Wind'],
-        'NEXRAD Wind': ['NEXRAD_Wind'],
-        'Geo Wind': ['Sat_Wind'],
-        'MODIS Wind': ['MODIS_Wind'],
-        'AVHRR Wind': ['AVHRR_Wind'],
-        'ASCAT Wind': ['ASCAT_Wind'],
-        'RAPIDSCAT Wind': ['RAPIDSCAT_Wind'],
-        'Ozone': ['Ozone', 'OMI_AURA'],
-        'TMI Rain Rate': ['PCP_TMI_TRMM'],
-        'Synthetic': ['TCBogus'],
-        'AIRS': ['AIRS'],
-        'AMSUA': ['AMSUA_N15', 'AMSUA_N18', 'AMSUA_N19', 'AMSUA_AQUA', 'AMSUA_METOP-A',
-                  'AMSUA_METOP-B'],
-        'MHS': ['MHS_N18', 'MHS_N19', 'MHS_METOP-A', 'MHS_METOP-B'],
-        'ATMS': ['ATMS_NPP'],
-        'CrIS': ['CrIS_NPP'],
-        'HIRS': ['HIRS4_N18', 'HIRS4_N19', 'HIRS4_METOP-A', 'HIRS4_METOP-B'],
-        'IASI': ['IASI_METOP-A', 'IASI_METOP-B'],
-        'Seviri': ['SEVIRI'],
-        'GOES': ['SNDRD1_G13', 'SNDRD2_G13', 'SNDRD3_G13', 'SNDRD4_G13', 'SNDRD1_G15', 'SNDRD2_G15',
-                 'SNDRD3_G15', 'SNDRD4_G15'],
-        'SSMIS': ['SSMIS'],
-        'LEO-GEO': ['LEO-GEO'],
-        'WindSat': ['WINDSAT'],
-        'R/S AMV': ['R/S_AMV'],
-        'Aus Syn': ['UW_wiIR'],
-        'UAS': ['UAS'],
-        'TPW': ['SSMI_TPW', 'WINDSAT_TPW'],
-        'PRH': ['SSMI_PRH', 'WINDSAT_PRH']
-    }
-
-    return platforms
-
-
-def EMC_platforms():
-    """
-
-    :return:
-    """
-    platforms = {
-        'Radiosonde': ['Radiosonde'],
-        'Dropsonde': ['Dropsonde'],
-        'Ship': ['Mobile_Marine_Surface', 'Moored_Buoy'],
-        'Buoy': ['Drifting_Buoy'],
-        'Land Surface': ['Land_Surface'],
-        'Aircraft': ['Aircraft'],
-        'PIBAL': ['PIBAL'],
-        'GPSRO': ['GPSRO'],
-        'Profiler Wind': ['Profiler_Wind'],
-        'NEXRAD Wind': ['NEXRAD_Wind'],
-        'Geo Wind': ['Sat_Wind'],
-        'MODIS Wind': ['MODIS_Wind'],
-        'AVHRR Wind': ['AVHRR_Wind'],
-        'ASCAT Wind': ['ASCAT_Wind'],
-        'RAPIDSCAT Wind': ['RAPIDSCAT_Wind'],
-        'Ozone': ['Ozone'],
-        'TMI Rain Rate': ['PCP_TMI_TRMM'],
-        'Synthetic': ['TCBogus'],
-        'AIRS': ['AIRS281SUBSET_AQUA'],
-        'AMSUA': ['AMSUA_N15', 'AMSUA_N18', 'AMSUA_N19', 'AMSUA_AQUA', 'AMSUA_METOP-A',
-                  'AMSUA_METOP-B'],
-        'MHS': ['MHS_N18', 'MHS_N19', 'MHS_METOP-A', 'MHS_METOP-B'],
-        'ATMS': ['ATMS_NPP'],
-        'CrIS': ['CRIS_NPP'],
-        'HIRS': ['HIRS4_METOP-A'],
-        'IASI': ['IASI616_METOP-A'],
-        'Seviri': ['SEVIRI10'],
-        'GOES': ['SNDRD1_G15', 'SNDRD2_G15', 'SNDRD3_G15', 'SNDRD4_G15'],
-        'SSMIS': ['SSMIS_F17', 'SSMIS_F18'],
-        'UNKNOWN': ['UNKNOWN']
-    }
-
-    return platforms
-
-
-def JMA_adj_platforms():
-    """
-
-    :return:
-    """
-    return JMA_platforms()
-
-
-def JMA_ens_platforms():
-    """
-
-    :return:
-    """
-    return JMA_platforms()
-
-
-def JMA_platforms():
-    """
-
-    :return:
-    """
-    platforms = {
-        'Radiosonde': ['RADIOSONDE'],
-        'Dropsonde': ['Dropsonde'],
-        'Ship': ['SHIP', 'MOORED_BUOY'],
-        'Buoy': ['DRIFTING_BUOY', 'BUOY'],
-        'Land Surface': ['SYNOP'],
-        'Aircraft': ['AIRCRAFT'],
-        'PIBAL': ['PILOT'],
-        'GPSRO': ['GNSSRO'],
-        'Profiler Wind': ['PROFILER'],
-        'NEXRAD Wind': ['NEXRAD_Wind'],
-        'Geo Wind': ['AMV-GEOSTAT'],
-        'MODIS Wind': ['AMV-MODIS'],
-        'AVHRR Wind': ['AMV-AVHRR'],
-        'ASCAT Wind': ['SCATWIND'],
-        'RAPIDSCAT Wind': ['RAPIDSCAT_Wind'],
-        'Ozone': ['Ozone', 'OMI_AURA'],
-        'TMI Rain Rate': ['TMI_TRMM'],
-        'Synthetic': ['TYBOGUS'],
-        'AIRS': ['AIRS_Aqua'],
-        'AMSUA': ['AMSUA_NOAA15', 'AMSUA_NOAA18', 'AMSUA_NOAA19', 'AMSUA_Aqua', 'AMSUA_Metop-A',
-                  'AMSUA_Metop-B'],
-        'MHS': ['MHS_NOAA18', 'MHS_NOAA19', 'MHS_Metop-A', 'MHS_Metop-B'],
-        'ATMS': ['ATMS_NPP'],
-        'CrIS': ['CrIS_NPP'],
-        'HIRS': ['HIRS4_NOAA18', 'HIRS4_NOAA19', 'HIRS4_Metop-A', 'HIRS4_Metop-B'],
-        'IASI': ['IASI_Metop-A', 'IASI_Metop-B'],
-        'Seviri': ['SEVIRI_M10'],
-        'GOES': ['CSR_GOES13', 'CSR_GOES15'],
-        'SSMIS': ['SSMIS_DMSP-F16', 'SSMIS_DMSP-F17', 'SSMIS_DMSP-F18'],
-        'LEO-GEO': ['AMV-LEOGEO'],
-        'MTSAT': ['CSR_MTSAT-2'],
-        'MVIRI': ['CSR_METEOSAT7', 'CSR_METEOSAT10'],
-        'AMSR': ['AMSRE_GCOM-W1', 'AMSR2_GCOM-W1'],
-    }
-
-    return platforms
-
-
-def MET_platforms():
-    """
-
-    :return:
-    """
-    platforms = {
-        'Radiosonde': ['Radiosonde'],
-        'Dropsonde': ['Dropsonde'],
-        'Ship': ['Ship', 'Moored_Buoy'],
-        'Buoy': ['Drifting_Buoy', 'Platform_Buoy'],
-        'Land Surface': ['SYNOP', 'METAR'],
-        'Aircraft': ['Aircraft'],
-        'PIBAL': ['PILOT'],
-        'GPSRO': ['GPSRO'],
-        'Profiler Wind': ['Profiler_Wind'],
-        'NEXRAD Wind': ['NEXRAD_Wind'],
-        'Geo Wind': ['Geo_Wind'],
-        'MODIS Wind': ['MODIS_Wind'],
-        'AVHRR Wind': ['AVHRR_Wind'],
-        'ASCAT Wind': ['ASCAT_Wind'],
-        'RAPIDSCAT Wind': ['RAPIDSCAT_Wind'],
-        'Ozone': ['Ozone', 'OMI_AURA'],
-        'TMI Rain Rate': ['PCP_TMI_TRMM'],
-        'Synthetic': ['TCBogus'],
-        'AIRS': ['AIRS_Aqua'],
-        'AMSUA': ['AMSUA_N15', 'AMSUA_N18', 'AMSUA_N19', 'AMSUA_METOP-A', 'AMSUA_METOP-B'],
-        'MHS': ['MHS_N18', 'MHS_N19', 'MHS_METOP-A', 'MHS_METOP-B'],
-        'ATMS': ['ATMS_NPP'],
-        'CrIS': ['CrIS_NPP'],
-        'HIRS': ['HIRS_METOP-A', 'HIRS_METOP-B'],
-        'IASI': ['IASI_METOP-A', 'IASI_METOP-B'],
-        'Seviri': ['SEVIRI_MSR'],
-        'GOES': ['GOES_CSR'],
-        'SSMIS': ['SSMIS_F17', 'SSMIS_F18'],
-        'LEO-GEO': ['LEO-GEO'],
-        'MTSAT': ['MTSAT_CSR'],
-        'MVIRI': ['MVIRI_CSR'],
-        'Ground GPS': ['GroundGPS']
-    }
-
-    return platforms
-
-
-def MeteoFr_platforms():
-    """
-
-    :return:
-    """
-    platforms = {
-        'Radiosonde': ['Radiosonde'],
-        'Dropsonde': ['Dropsonde'],
-        'Ship': ['Ship'],
-        'Buoy': ['Drifting_Buoy'],
-        'Land Surface': ['Land_Surface', 'RADOME'],
-        'Aircraft': ['AIREP', 'AMDAR', 'ACARS'],
-        'PIBAL': ['Pilot'],
-        'GPSRO': ['GPSRO'],
-        'Profiler Wind': ['Profiler'],
-        'GOES Wind': ['Imgr_GOES13', 'Imgr_GOES15'],
-        'GMS Wind': ['Imgr_GMS'],
-        'Misc SatWind': ['Misc_SatWind'],
-        'METEOSAT Wind': ['Imgr_METEOSAT7', 'Imgr_METEOSAT10'],
-        'MODIS Wind': ['MODIS_TERRA', 'MODIS_AQUA'],
-        'AVHRR Wind': ['AVHRR_NOAA15', 'AVHRR_NOAA16', 'AVHRR_NOAA18', 'AVHRR_NOAA19'],
-        'ASCAT Wind': ['ASCAT_METOP-A', 'ASCAT_METOP-B'],
-        'Synthetic': ['TCBogus'],
-        'AIRS': ['AIRS_AQUA'],
-        'AMSUA': ['AMSUA_AQUA', 'AMSUA_NOAA15', 'AMSUA_NOAA16', 'AMSUA_NOAA18', 'AMSUA_NOAA19',
-                  'AMSUA_METOP-A', 'AMSUA_METOP-B'],
-        'MHS': ['MHS_NOAA19', 'MHS_METOP-A', 'MHS_METOP-B'],
-        'ATMS': ['ATMS_NPP'],
-        'CrIS': ['CRIS_NPP'],
-        'HIRS': ['HIRS_METOP-A', 'HIRS_METOP-B'],
-        'IASI': ['IASI_METOP-A', 'IASI_METOP-B'],
-        'GOES': ['GOESIMG_GOES13', 'GOESIMG_GOES15'],
-        'Seviri': ['SEVIRI_METEOSAT10'],
-        'SSMIS': ['SSMIS_DMSP16', 'SSMIS_DMSP17', 'SSMIS_DMSP18'],
-        'Ground GPS': ['GPSZTD']
-    }
-
-    return platforms
+    return platforms[center]
 
 
 def add_dicts(dicts, unique=False):
@@ -1013,7 +745,7 @@ def summaryplot(df, qty='TotImp', plotOpt={}, std=None):
         df = df[_np.isfinite(df[qty])]
 
     if plotOpt['platform']:
-        df.sort_index(ascending=True, inplace=True)
+        df.sort_index(ascending=False, inplace=True)
     else:
         if qty in ['FracBenNeuObs']:
             df.sort_values(by='FracBenObs', ascending=plotOpt['sortAscending'], inplace=True,
