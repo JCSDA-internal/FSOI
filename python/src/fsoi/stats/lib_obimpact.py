@@ -661,7 +661,7 @@ def getPlotOpt(qty='TotImp', **kwargs):
 
     domain_str = '' if plotOpt['domain'] is None else '%s,' % plotOpt['domain']
 
-    plotOpt['title'] = '%s 24h Observation Impact Summary\n%s %s DJF 2014-15' % (
+    plotOpt['title'] = '%s 24h Observation Impact Summary\n%s %s' % (
     str(plotOpt['center_name']), domain_str, plotOpt['cycle'])
     plotOpt['figname'] = '%s' % qty if plotOpt['center'] is None else '%s_%s' % (
     plotOpt['center'], qty)
@@ -695,7 +695,7 @@ def getPlotOpt(qty='TotImp', **kwargs):
         plotOpt['xlabel'] = '%s (%%)' % plotOpt['name']
         plotOpt['sortAscending'] = True
 
-    plotOpt['title'] = '%s\n%s %s' % (plotOpt['title'], plotOpt['platform'], plotOpt['xlabel'])
+    plotOpt['title'] = '%s\n%s' % (plotOpt['title'], plotOpt['xlabel'])
 
     plotOpt['legend'] = None
 
