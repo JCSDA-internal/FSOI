@@ -274,9 +274,9 @@ def download_s3_objects(request):
                     obj.append('%s/%s' % (local_dir, local_file))
             except Exception as e:
                 tokens = key.split('.')
-                center = tokens[0]
-                date = tokens[2][0:8]
-                cycle = tokens[2][8:]
+                center = tokens[1]
+                date = tokens[3][0:8]
+                cycle = tokens[3][8:]
                 s3msgs.append('Missing data: %s %s %sZ' % (center, date, cycle))
                 obj.append(False)
                 print(e)

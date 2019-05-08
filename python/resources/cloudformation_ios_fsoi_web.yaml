@@ -1,11 +1,12 @@
 ---
 Description: JCSDA's IOS FSOI Web Application (Performance Enhanced)
 AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
 
 Resources:
 
   #
-  # IAM ROLES
+  # PERMISSIONS
   #
 
   # Role for the lambda function
@@ -24,10 +25,6 @@ Resources:
       RoleName: ios_lambda_role
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  #
-  # IAM Policies
-  #
 
   # Policy to allow read access to s3://fsoi
   AllowReadS3Ios:
@@ -189,6 +186,18 @@ Resources:
             Action: execute-api:*
             Resource: arn:aws:execute-api:us-east-1:469205354006:*/*/*/*
 
+  # Permission to allow API Gateway to invoke the lambda function
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - IosWebsocket
+      - LambdaIosRequestHandler
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaIosRequestHandler
+      Principal: apigateway.amazonaws.com
+
+
   #
   # DYNAMODB
   #
@@ -214,7 +223,6 @@ Resources:
   #
   IosWebsocket:
     Type: AWS::ApiGatewayV2::Api
-    DependsOn: LambdaIosRequestHandler
     Properties:
       Name: IOS Websocket API Gateway
       ProtocolType: WEBSOCKET
@@ -235,6 +243,10 @@ Resources:
       RouteKey: $default
       AuthorizationType: NONE
       OperationName: Default
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref DefaultIntegration
 
   DefaultIntegration:
     Type: AWS::ApiGatewayV2::Integration
@@ -244,9 +256,7 @@ Resources:
       ApiId: !Ref IosWebsocket
       Description: Forward to Lambda function
       IntegrationType: AWS_PROXY
-      IntegrationUri:
-        Fn::Sub:
-          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaIosRequestHandler.Arn}/invocations
+      IntegrationUri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:469205354006:function:ios_request_handler/invocations
 
   Deployment:
     Type: AWS::ApiGatewayV2::Deployment
@@ -287,3 +297,5 @@ Resources:
           CACHE_BUCKET: fsoi-image-cache
           FSOI_ROOT_DIR: /tmp/fsoi
           REGION: us-east-1
+          DATA_BUCKET: fsoi
+          OBJECT_PREFIX: intercomp/hdf5
