@@ -18,8 +18,6 @@ cd ../
 
 aws s3 cp $zip_file s3://jcsda-scratch/fsoi_lambda.zip
 aws s3 cp $zip_file s3://jcsda-scratch/$zip_file
-echo aws lambda update-function-code --function-name fsoi_request_handler --zip-file fileb://$zip_file
-echo aws lambda update-function-code --function-name ios_request_handler --zip-file fileb://$zip_file
 echo aws lambda update-function-code --function-name ios_request_handler --s3-bucket jcsda-scratch --s3-key $zip_file
 echo aws lambda update-function-code --function-name fsoi_ingest_nrl --zip-file fileb://$zip_file
 echo aws lambda update-function-code --function-name fsoi_ingest_gmao --zip-file fileb://$zip_file
