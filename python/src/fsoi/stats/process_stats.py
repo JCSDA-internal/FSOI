@@ -25,13 +25,19 @@ def list_files(center):
     :return: {list} List of S3 keys
     """
     s3 = boto3.client('s3')
-    response = s3.list_objects(
+    paginator = s3.get_paginator('list_objects')
+
+    has_more = True
+    keys = []
+    response = paginator.paginate(
         Bucket='fsoi',
-        Prefix='intercomp/hdf5/%s' % center
-    )
+        Prefix='intercomp/hdf5/%s' % center,
+        PaginationConfig={
+            'PageSize': 1000
+        }
+    ).build_full_result()
 
     contents = response['Contents']
-    keys = []
     for item in contents:
         keys.append(item['Key'])
 
@@ -45,10 +51,12 @@ def process_file(key, center):
     :param center: The center name
     :return: None
     """
+    # compute the prefix and key
     prefix = '/'.join(key.split('/')[0:-1])
     name = key.split('/')[-1]
+
+    # skip object if the name does not start with the provided center (e.g., NRL)
     if not name.startswith(center):
-        print('  Ignoring invalid file type: %s' % key)
         return
 
     # get an S3 client
