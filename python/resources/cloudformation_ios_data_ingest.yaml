@@ -8,25 +8,8 @@ Resources:
   # IAM ROLES
   #
 
-  # Role for the lambda function
-  FsoiIngestLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      RoleName: fsoi_ingest_lambda_role
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
   # Role for the batch jobs
-  FsoiIngestBatchRole:
+  IosIngestBatchRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -40,26 +23,38 @@ Resources:
                 - ecs-tasks.amazonaws.com
             Action:
               - sts:AssumeRole
-      RoleName: fsoi_ingest_batch_role
+      RoleName: ios_ingest_batch_role
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
 
+  # Role for events to submit batch jobs
+  IosIngestEventsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      RoleName: ios_ingest_events_role
 
   #
   # IAM POLICIES
   #
 
   # Policy to allow read/write access to s3://fsoi and s3://fsoi-navy-ingest
-  AllowReadWriteS3Fsoi:
+  AllowReadWriteS3Ios:
     Type: AWS::IAM::Policy
     DependsOn:
-      - FsoiIngestBatchRole
-      - FsoiIngestLambdaRole
+      - IosIngestBatchRole
     Properties:
-      PolicyName: allow_read_write_s3_fsoi_ingest
+      PolicyName: allow_read_write_s3_ios_ingest
       Roles:
-        - fsoi_ingest_batch_role
-        - fsoi_ingest_lambda_role
+        - ios_ingest_batch_role
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -91,170 +86,173 @@ Resources:
             - arn:aws:s3:::fsoi-navy-ingest
             - arn:aws:s3:::fsoi-gmao-ingest
 
-  # Policy to allow lambda to submit batch jobs
-  AllowFsoiIngestSubmitBatchJobs:
+  # Policy to allow CloudWatch events to submit batch jobs
+  AllowIosIngestSubmitBatchJobs:
     Type: AWS::IAM::Policy
     DependsOn:
-      - FsoiIngestLambdaRole
+      - IosIngestEventsRole
     Properties:
-      PolicyName: allow_fsoi_ingest_submit_batch_jobs
+      PolicyName: allow_submit_batch_jobs
       Roles:
-        - fsoi_ingest_lambda_role
+        - ios_ingest_events_role
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Action: batch:SubmitJob
             Effect: Allow
             Resource:
-              - arn:aws:batch:us-east-1:469205354006:job-definition/fsoi_ingest_nrl_job:*
-              - arn:aws:batch:us-east-1:469205354006:job-definition/fsoi_ingest_gmao_job:*
-              - arn:aws:batch:us-east-1:469205354006:job-queue/fsoi_ingest_queue
+              - arn:aws:batch:us-east-1:469205354006:job-definition/ios_ingest_nrl_job:*
+              - arn:aws:batch:us-east-1:469205354006:job-definition/ios_ingest_gmao_job:*
+              - arn:aws:batch:us-east-1:469205354006:job-queue/ios_ingest_queue
 
   #
   # CLOUDWATCH EVENTS, METRICS, and ALARMS
   #
 
   # Run NRL ingest function once daily
-  DailyFsoiIngestNrlEvent:
+  DailyIosIngestNrlEvent:
     Type: AWS::Events::Rule
     Properties:
       Description: Ingest NRL data daily at 19:45 UTC
       ScheduleExpression: cron(45 19 * * ? *)
-      Name: fsoi_ingest_nrl_daily
+      Name: ios_ingest_nrl_daily
       State: ENABLED
       Targets:
-        - Arn: arn:aws:lambda:us-east-1:469205354006:function:fsoi_ingest_nrl
-          Id: fsoi_ingest_nrl
+        - Id: ios_ingest_nrl
+          Arn: !Ref BatchQueueIosIngest
+          BatchParameters:
+            JobDefinition: !Ref BatchJobDefinitionIosNrlIngest
+            JobName: ingest_nrl
 
   # Run GMAO ingest function once daily
-  DailyFsoiIngestGmaoEvent:
+  DailyIosIngestGmaoEvent:
     Type: AWS::Events::Rule
     Properties:
       Description: Ingest GMAO data daily at 18:45 UTC
       ScheduleExpression: cron(45 18 * * ? *)
-      Name: fsoi_ingest_gmao_daily
+      Name: ios_ingest_gmao_daily
       State: ENABLED
       Targets:
-        - Arn: arn:aws:lambda:us-east-1:469205354006:function:fsoi_ingest_gmao
-          Id: fsoi_ingest_gmao
+        - Arn: arn:aws:lambda:us-east-1:469205354006:function:ios_ingest_gmao
+          Id: ios_ingest_gmao
 
   # Allow CloudWatch Events to invoke the NRL ingest function
-  PermissionForEventsToInvokeNrlLambda:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName:
-        Ref: LambdaFunctionFsoiIngestNrl
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      SourceArn: arn:aws:events:us-east-1:469205354006:rule/fsoi_ingest_nrl_daily
+#  PermissionForEventsToInvokeNrlLambda:
+#    Type: AWS::Lambda::Permission
+#    Properties:
+#      FunctionName:
+#        Ref: LambdaFunctionIosIngestNrl
+#      Action: lambda:InvokeFunction
+#      Principal: events.amazonaws.com
+#      SourceArn: arn:aws:events:us-east-1:469205354006:rule/ios_ingest_nrl_daily
 
   # Allow CloudWatch Events to invoke the GMAO ingest function
-  PermissionForEventsToInvokeGmaoLambda:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName:
-        Ref: LambdaFunctionFsoiIngestGmao
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      SourceArn: arn:aws:events:us-east-1:469205354006:rule/fsoi_ingest_gmao_daily
+#  PermissionForEventsToInvokeGmaoLambda:
+#    Type: AWS::Lambda::Permission
+#    Properties:
+#      FunctionName:
+#        Ref: LambdaFunctionIosIngestGmao
+#      Action: lambda:InvokeFunction
+#      Principal: events.amazonaws.com
+#      SourceArn: arn:aws:events:us-east-1:469205354006:rule/ios_ingest_gmao_daily
 
   # Create a metric filter that will parse the downloaded file size from the NRL log files
-  FsoiIngestNrlDownloadSizeMetric:
-    Type: AWS::Logs::MetricFilter
-    Properties:
-      LogGroupName: /aws/lambda/fsoi_ingest_nrl
-      FilterPattern: "{ $.ok IS TRUE }"
-      MetricTransformations:
-        - MetricName: fsoi_ingest_nrl_download_size
-          MetricValue: "$.size"
-          MetricNamespace: FSOI
+#  IosIngestNrlDownloadSizeMetric:
+#    Type: AWS::Logs::MetricFilter
+#    Properties:
+#      LogGroupName: /aws/lambda/ios_ingest_nrl
+#      FilterPattern: "{ $.ok IS TRUE }"
+#      MetricTransformations:
+#        - MetricName: ios_ingest_nrl_download_size
+#          MetricValue: "$.size"
+#          MetricNamespace: FSOI
 
   # Create a metric filter that will parse the downloaded file size from the GMAO log files
-  FsoiIngestGmaoDownloadSizeMetric:
-    Type: AWS::Logs::MetricFilter
-    DependsOn:
-      - FsoiIngestGmaoLogGroup
-    Properties:
-      LogGroupName: /aws/lambda/fsoi_ingest_gmao
-      FilterPattern: "{ $.ok IS TRUE }"
-      MetricTransformations:
-        - MetricName: fsoi_ingest_gmao_download_size
-          MetricValue: "$.size"
-          MetricNamespace: FSOI
+#  IosIngestGmaoDownloadSizeMetric:
+#    Type: AWS::Logs::MetricFilter
+#    DependsOn:
+#      - IosIngestGmaoLogGroup
+#    Properties:
+#      LogGroupName: /aws/lambda/ios_ingest_gmao
+#      FilterPattern: "{ $.ok IS TRUE }"
+#      MetricTransformations:
+#        - MetricName: ios_ingest_gmao_download_size
+#          MetricValue: "$.size"
+#          MetricNamespace: FSOI
 
   # Create a metric filter that will parse the downloaded file count from the GMAO log files
-  FsoiIngestGmaoFileCountMetric:
-    Type: AWS::Logs::MetricFilter
-    DependsOn:
-      - FsoiIngestGmaoLogGroup
-    Properties:
-      LogGroupName: /aws/lambda/fsoi_ingest_gmao
-      FilterPattern: "{ $.ok IS TRUE }"
-      MetricTransformations:
-        - MetricName: fsoi_ingest_gmao_file_count
-          MetricValue: "$.file_count"
-          MetricNamespace: FSOI
+#  IosIngestGmaoFileCountMetric:
+#    Type: AWS::Logs::MetricFilter
+#    DependsOn:
+#      - IosIngestGmaoLogGroup
+#    Properties:
+#      LogGroupName: /aws/lambda/ios_ingest_gmao
+#      FilterPattern: "{ $.ok IS TRUE }"
+#      MetricTransformations:
+#        - MetricName: ios_ingest_gmao_file_count
+#          MetricValue: "$.file_count"
+#          MetricNamespace: FSOI
 
   # Create a log group for the GMAO lambda function to write to
-  FsoiIngestGmaoLogGroup:
+  IosIngestGmaoLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /aws/lambda/fsoi_ingest_gmao
+      LogGroupName: /aws/batch/ios_ingest_gmao
 
   # Create a topic for FSOI alarms and subscribe my email
-  FsoiAlarmTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      TopicName: fsoi_alarm
-      Subscription:
-        - Endpoint: hahnd@ucar.edu
-          Protocol: email
+#  IosAlarmTopic:
+#    Type: AWS::SNS::Topic
+#    Properties:
+#      TopicName: ios_alarm
+#      Subscription:
+#        - Endpoint: hahnd@ucar.edu
+#          Protocol: email
 
   # Send an alarm when NRL data was not downloaded
-  FsoiIngestNrlAlarm:
-    Type: AWS::CloudWatch::Alarm
-    DependsOn:
-      - FsoiAlarmTopic
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - Ref: FsoiAlarmTopic
-      InsufficientDataActions:
-        - Ref: FsoiAlarmTopic
-      AlarmName: fsoi_ingest_nrl_alarm
-      ComparisonOperator: LessThanOrEqualToThreshold
-      DatapointsToAlarm: 1
-      EvaluationPeriods: 1
-      MetricName: fsoi_ingest_nrl_download_size
-      Namespace: FSOI
-      Period: 86400
-      Statistic: Maximum
-      Threshold: 20971520
-      TreatMissingData: breaching
-      Unit: Bytes
+#  IosIngestNrlAlarm:
+#    Type: AWS::CloudWatch::Alarm
+#    DependsOn:
+#      - IosAlarmTopic
+#    Properties:
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - Ref: IosAlarmTopic
+#      InsufficientDataActions:
+#        - Ref: IosAlarmTopic
+#      AlarmName: ios_ingest_nrl_alarm
+#      ComparisonOperator: LessThanOrEqualToThreshold
+#      DatapointsToAlarm: 1
+#      EvaluationPeriods: 1
+#      MetricName: ios_ingest_nrl_download_size
+#      Namespace: FSOI
+#      Period: 86400
+#      Statistic: Maximum
+#      Threshold: 20971520
+#      TreatMissingData: breaching
+#      Unit: Bytes
 
   # Send an alarm when NRL data was not downloaded
-  FsoiIngestGmaoAlarm:
-    Type: AWS::CloudWatch::Alarm
-    DependsOn:
-      - FsoiAlarmTopic
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - Ref: FsoiAlarmTopic
-      InsufficientDataActions:
-        - Ref: FsoiAlarmTopic
-      AlarmName: fsoi_ingest_gmao_alarm
-      ComparisonOperator: LessThanOrEqualToThreshold
-      DatapointsToAlarm: 1
-      EvaluationPeriods: 1
-      MetricName: fsoi_ingest_gmao_download_size
-      Namespace: FSOI
-      Period: 86400
-      Statistic: Maximum
-      Threshold: 669888434
-      TreatMissingData: breaching
-      Unit: Bytes
+#  IosIngestGmaoAlarm:
+#    Type: AWS::CloudWatch::Alarm
+#    DependsOn:
+#      - IosAlarmTopic
+#    Properties:
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - Ref: IosAlarmTopic
+#      InsufficientDataActions:
+#        - Ref: IosAlarmTopic
+#      AlarmName: ios_ingest_gmao_alarm
+#      ComparisonOperator: LessThanOrEqualToThreshold
+#      DatapointsToAlarm: 1
+#      EvaluationPeriods: 1
+#      MetricName: ios_ingest_gmao_download_size
+#      Namespace: FSOI
+#      Period: 86400
+#      Statistic: Maximum
+#      Threshold: 669888434
+#      TreatMissingData: breaching
+#      Unit: Bytes
 
   #
   # BATCH
@@ -285,7 +283,7 @@ Resources:
       MapPublicIpOnLaunch: true
 
   # Compute environment
-  BatchEnvFsoiIngest:
+  BatchEnvIosIngest:
     Type: AWS::Batch::ComputeEnvironment
     DependsOn:
       - BatchEnvSecurityGroup
@@ -293,64 +291,64 @@ Resources:
     Properties:
       Type: MANAGED
       ServiceRole: arn:aws:iam::469205354006:role/service-role/AWSBatchServiceRole
-      ComputeEnvironmentName: fsoi_ingest_env
+      ComputeEnvironmentName: ios_ingest_env
       ComputeResources:
         MinvCpus: 0
-        MaxvCpus: 64
+        MaxvCpus: 8
         DesiredvCpus: 0
         SecurityGroupIds:
           - Ref: BatchEnvSecurityGroup
         Type: EC2
         InstanceTypes:
-          - optimal
+          - c5.large
         InstanceRole: arn:aws:iam::469205354006:instance-profile/ecsInstanceRole
         Subnets:
           - Ref: BatchEnvSubnet
       State: ENABLED
 
   # Job queue
-  BatchQueueFsoiIngest:
+  BatchQueueIosIngest:
     Type: AWS::Batch::JobQueue
     DependsOn:
-      - BatchEnvFsoiIngest
+      - BatchEnvIosIngest
     Properties:
       ComputeEnvironmentOrder:
         - Order: 1
-          ComputeEnvironment: fsoi_ingest_env
+          ComputeEnvironment: ios_ingest_env
       State: ENABLED
       Priority: 100
-      JobQueueName: fsoi_ingest_queue
+      JobQueueName: ios_ingest_queue
 
   # Job definition
-  BatchJobDefinitionFsoiIngest:
+  BatchJobDefinitionIosNrlIngest:
     Type: AWS::Batch::JobDefinition
     DependsOn:
-      - FsoiIngestBatchRole
+      - IosIngestBatchRole
     Properties:
       Type: container
-      JobDefinitionName: fsoi_ingest_nrl_job
+      JobDefinitionName: ios_ingest_nrl_job
       ContainerProperties:
         Command:
           - ingest_nrl
         Memory: 4096
         JobRoleArn:
-          Ref: FsoiIngestBatchRole
+          Ref: IosIngestBatchRole
         Vcpus: 2
         Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch
 
   # Job definition
-  BatchJobDefinitionFsoiGmaoIngest:
+  BatchJobDefinitionIosGmaoIngest:
     Type: AWS::Batch::JobDefinition
     DependsOn:
-      - FsoiIngestBatchRole
+      - IosIngestBatchRole
     Properties:
       Type: container
-      JobDefinitionName: fsoi_ingest_gmao_job
+      JobDefinitionName: ios_ingest_gmao_job
       ContainerProperties:
         Command:
           - ingest_gmao
         Memory: 4096
         JobRoleArn:
-          Ref: FsoiIngestBatchRole
+          Ref: IosIngestBatchRole
         Vcpus: 2
         Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch
