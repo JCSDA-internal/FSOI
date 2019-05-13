@@ -291,7 +291,11 @@ Resources:
           - Ref: BatchEnvSecurityGroup
         Type: EC2
         InstanceTypes:
-          - c5.large
+          - optimal
+        # This AMI has a larger LVM partition to allow more storage for the docker containers
+        # Some fun reading: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-ami-storage-config.html
+        ImageId: ami-07ee9fed984790191
+        Ec2KeyPair: ios-webapp-batch
         InstanceRole: arn:aws:iam::469205354006:instance-profile/ecsInstanceRole
         Subnets:
           - Ref: BatchEnvSubnet
