@@ -10,12 +10,12 @@
 
 # 2a. Launch the CloudFormation stack (if the stack is NOT already running):
 #   > aws cloudformation create-stack --stack-name IOSingest --template-body \
-#   >     fileb://resources/cloudformation_ios_data_ingest.yaml
+#   >     fileb://resources/cloudformation_ios_ingest.yaml
 #   Progress can be monitored on the AWS Console under the CloudFormation service
 
 # 2b. Update the CloudFormation stack (if the stack IS already running):
 #   > aws cloudformation update-stack --stack-name IOSingest --template-body \
-#   >     fileb://resources/cloudformation_ios_data_ingest.yaml
+#   >     fileb://resources/cloudformation_ios_ingest.yaml
 #   # Update lambda code if it has changed:
 #   > aws lambda update-function-code --function-name fsoi_ingest_nrl --s3-bucket jcsda-scratch \
 #         --s3-key fsoi_lambda.zip

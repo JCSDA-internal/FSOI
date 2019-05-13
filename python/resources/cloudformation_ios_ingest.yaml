@@ -117,12 +117,6 @@ Resources:
       ScheduleExpression: cron(45 19 * * ? *)
       Name: ios_ingest_nrl_daily
       State: ENABLED
-      Targets:
-        - Id: ios_ingest_nrl
-          Arn: !Ref BatchQueueIosIngest
-          BatchParameters:
-            JobDefinition: !Ref BatchJobDefinitionIosNrlIngest
-            JobName: ingest_nrl
 
   # Run GMAO ingest function once daily
   DailyIosIngestGmaoEvent:
@@ -132,9 +126,6 @@ Resources:
       ScheduleExpression: cron(45 18 * * ? *)
       Name: ios_ingest_gmao_daily
       State: ENABLED
-      Targets:
-        - Arn: arn:aws:lambda:us-east-1:469205354006:function:ios_ingest_gmao
-          Id: ios_ingest_gmao
 
   # Allow CloudWatch Events to invoke the NRL ingest function
 #  PermissionForEventsToInvokeNrlLambda:
