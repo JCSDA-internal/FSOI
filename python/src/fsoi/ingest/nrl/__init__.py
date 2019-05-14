@@ -14,6 +14,7 @@ from fsoi.ingest.nrl.process_nrl import prepare_workspace
 from fsoi.ingest.nrl.process_nrl import download_from_s3
 from fsoi.ingest.nrl.process_nrl import process_nrl
 from fsoi.ingest.nrl.process_nrl import upload_to_s3
+from fsoi import log
 
 
 def download_and_process_nrl():
