@@ -8,9 +8,10 @@ import json
 import boto3
 from fsoi.web.serverless_tools import ApiGatewaySender, RequestDao, get_reference_id, hash_request, \
     create_response_body
+from fsoi.web.batch_wrapper import handler
 
 
-def main(event, context):
+def handle_request(event, context):
     """
     Create a chart as a PNG based on the input parameters
     :param event: Contains the HTTP request
@@ -37,20 +38,21 @@ def main(event, context):
         return
 
     # validate the request
-    request = validate_request(request)
-    if request is None:
+    validated_request = validate_request(request)
+    del request
+    if validated_request is None:
         send_response('Request is invalid', client_url)
         return
 
     # get the request hash value
-    hash_value = hash_request(request)
+    hash_value = hash_request(validated_request)
 
     # get the status of the request
     job = RequestDao.get_request(hash_value)
 
     # if the job has not previously been requested, or it failed, then submit a new request
     if job is None or 'status_id' not in job or job['status_id'] == 'FAIL':
-        submit_request(request, hash_value, client_url, ref_id)
+        process_here(validated_request, hash_value, client_url, ref_id)
 
     # if the job is currently running or pending, notify the client and add their URL to the DB
     elif job['status_id'] in ['PENDING', 'RUNNING']:
@@ -66,7 +68,35 @@ def main(event, context):
         send_response({'error': ['Error processing job.', ref_id]}, client_url)
 
 
-def submit_request(request, hash_value, client_url, ref_id):
+def process_here(validated_request, hash_value, client_url, ref_id):
+    """
+    Process there request "here" (presumably in AWS Lambda)
+    :param validated_request: All of the request parameters
+    :param hash_value: A hash of the request
+    :param client_url: A URL to contact the client
+    :param ref_id: A text marker in the CloudWatch Logs, user can include as ref for debugging
+    :return: None
+    """
+    # log info
+    print('%s: Processing the request in AWS Lambda' % ref_id)
+
+    # add the request to the DB and send status to client
+    job = {
+        'req_hash': hash_value,
+        'status_id': 'PENDING',
+        'message': 'Pending',
+        'progress': '0',
+        'connections': [client_url],
+        'req_obj': json.dumps(validated_request)
+    }
+    RequestDao.add_request(job)
+    ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
+
+    # call the request handler directly
+    handler(validated_request)
+
+
+def submit_request_to_batch(request, hash_value, client_url, ref_id):
     """
     Submit a new request to run in AWS batch
     :param request: All of the request parameters

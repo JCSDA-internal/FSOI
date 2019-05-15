@@ -171,7 +171,7 @@ def main():
     bmap = lmapping.createMap(proj)
     xg, yg = bmap(lons, lats)
 
-    title_substr = '%s DJF 2014-15\n%s' % (cyclestr, platform)
+    title_substr = '%s' % cyclestr
     if channel is not None:
         title_substr = '%s, ch. %s' % (title_substr, channelstr)
 

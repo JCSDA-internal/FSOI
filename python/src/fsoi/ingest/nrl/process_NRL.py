@@ -1,105 +1,27 @@
 import os
-import gzip
+import bz2
+import pkgutil
+import yaml
+import boto3
+import shutil
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
 from datetime import datetime
 from fortranformat import FortranRecordReader
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from fsoi import log
 
 
-def kt_def():
+def _parse_line(line, kt, kx, fortran_format):
     """
-
-    :return:
-    """
-    kt = {
-        1: ['z', 'Geopotential Height', 'm'],
-        2: ['T', 'Temperature', 'K'],
-        3: ['u', 'U-wind component', 'm/s'],
-        4: ['v', 'V-wind component', 'm/s'],
-        5: ['q', 'Humidity', ''],
-        6: ['ozone', 'Ozone Percentage Backscatter', '%'],
-        8: ['wspd', 'Surface Wind Speed', 'm/s'],
-        11: ['ps', 'Surface Pressure', 'hPa'],
-        13: ['Tb', 'Brightness Temperature', 'K'],
-        14: ['tpw', 'Total Precipitable Water', ''],
-        18: ['ba', 'Bending Angle', 'N'],
-    }
-    return kt
-
-
-def kx_def():
-    """
-
-    :return:
-    """
-    kx = {}
-    kx[1] = 'Land_Surface'
-    kx[10] = ['Ship', 'Drifting_Buoy', 'Moored_Buoy']
-    for key in [20, 23, 121]:
-        kx[key] = 'MIL_ACARS'
-    for key in [25, 26, 30, 31, 32, 33, 34, 131, 132]:
-        kx[key] = 'AIREP'
-    for key in [35, 36, 37, 38, 136, 137]:
-        kx[key] = 'AMDAR'
-    for key in [45, 46, 47, 48, 146, 147]:
-        kx[key] = 'MDCARS'
-    for key in [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 65, 66]:
-        kx[key] = 'Sat_Wind'
-    kx[60] = 'SSMI_Wind'
-    kx[67] = 'R/S_AMV'
-    for key in [70, 71]:
-        kx[key] = 'SCAT_Wind'
-    kx[72] = 'WINDSAT'
-    kx[73] = 'ASCAT_Wind'
-    for key in [80, 81, 88]:
-        kx[key] = 'MODIS_Wind'
-    for key in [82, 83, 84, 85, 86, 87]:
-        kx[key] = 'AVHRR_Wind'
-    kx[89] = 'LEO-GEO'
-    kx[90] = 'UW_wiIR'
-    kx[91] = 'GAVHR'
-    kx[93] = 'UW_wiIR'
-    kx[101] = ['Radiosonde', 'PIBAL', 'Dropsonde']
-    kx[125] = 'SSMI_PRH'
-    kx[126] = 'WINDSAT_PRH'
-    kx[160] = 'SBUV2'
-    kx[166] = 'OMPS'
-    kx[179] = 'GPSRO'
-    kx[184] = 'MHS'
-    kx[185] = 'SSMIS'
-    kx[186] = 'UAS'
-    kx[187] = 'AIRS'
-    kx[188] = 'IASI'
-    kx[190] = 'TCBogus'
-    kx[194] = 'SEVIRI'
-    kx[196] = 'CrIS'
-    kx[197] = 'ATMS'
-    kx[198] = 'GMI'
-    kx[199] = 'SAPHIR'
-    kx[200] = 'AMSR2'
-    kx[201] = 'wndmi'
-    kx[210] = 'AMSUA'
-    kx[250] = 'SSMI_TPW'
-    kx[251] = 'WINDSAT_TPW'
-
-    return kx
-
-
-def parse_line(line, kt, kx):
-    """
-
     :param line:
     :param kt:
     :param kx:
+    :param fortran_format: The fortran format of the line parameter
     :return:
     """
-    fmtstr = 'i7,f9.3,1x,f8.2,1x,f8.2,1x,f8.2,f9.3,1x,f9.2,1x,f9.2,1x,f9.2,1x,f11.5,1x,i2,1x,i3,' \
-             '4x,i2,4x,i1,3x,i5,2x,a16,a12,4x,i1,2x,i1,3x,i1,1x,e13.6,1x,e13.6,1x,e13.6,1x,e13.6'
-
     # pylint wrongly believes that the FortranRecordReader constructor is not callable
     # pylint: disable=E1102
-    line_reader = FortranRecordReader(fmtstr)
+    line_reader = FortranRecordReader(fortran_format)
     datain = line_reader.read(line)
 
     ob = datain[1]
@@ -118,33 +40,31 @@ def parse_line(line, kt, kx):
 
     impact = omf * sens
 
-    if skip_ob(instyp, oberr, num_reject, impact):
-        print(line.strip())
+    if _skip_ob(instyp, impact):
         return None
 
-    platform, channel = get_platform_channel(instyp, schar, kx)
+    platform, channel = _get_platform_channel(instyp, schar, kx)
 
-    dataout = {}
-    dataout['platform'] = platform
-    dataout['channel'] = channel
-    dataout['obtype'] = kt[obtyp][0]
-    dataout['lat'] = lat
-    dataout['lon'] = lon
-    dataout['lev'] = lev
-    dataout['impact'] = impact
-    dataout['omf'] = omf
-    dataout['ob'] = ob
-    dataout['oberr'] = oberr
-    dataout['oma'] = resid
+    dataout = {
+        'platform': platform,
+        'channel': channel,
+        'obtype': kt[obtyp][0],
+        'lat': lat,
+        'lon': lon,
+        'lev': lev,
+        'impact': impact,
+        'omf': omf,
+        'ob': ob,
+        'oberr': oberr,
+        'oma': resid
+    }
 
     return dataout
 
 
-def skip_ob(instyp, oberr, num_reject, impact):
+def _skip_ob(instyp, impact):
     """
     :param instyp:
-    :param oberr:
-    :param num_reject:
     :param impact:
     :return:
     """
@@ -164,7 +84,7 @@ def skip_ob(instyp, oberr, num_reject, impact):
     return False
 
 
-def get_platform_channel(instyp, schar, kx):
+def _get_platform_channel(instyp, schar, kx):
     """
 
     :param instyp:
@@ -172,7 +92,6 @@ def get_platform_channel(instyp, schar, kx):
     :param kx:
     :return:
     """
-    platform = 'UNKNOWN'
     channel = -999
 
     schar = schar.upper()
@@ -222,6 +141,7 @@ def get_platform_channel(instyp, schar, kx):
         elif 'METOPB' in schar:
             platform = '%s_METOP-B' % platform
 
+        ichan = 0
         chanmin, chanmax = 1, 16
         for ichan in range(chanmin, chanmax):
             if 'CH%2s' % ichan in schar:
@@ -235,6 +155,7 @@ def get_platform_channel(instyp, schar, kx):
         elif 'METOPB' in schar:
             platform = '%s_METOP-B' % platform
 
+        ichan = 0
         chanmin, chanmax = 51, 412
         for ichan in range(chanmin, chanmax):
             if 'CH%4s' % ichan in schar:
@@ -244,6 +165,7 @@ def get_platform_channel(instyp, schar, kx):
 
     elif platform in ['CrIS']:
         platform = '%s_NPP' % platform
+        ichan = 0
         chanmin, chanmax = 1, 1143
         for ichan in range(chanmin, chanmax):
             if 'CH%5s' % ichan in schar:
@@ -253,6 +175,7 @@ def get_platform_channel(instyp, schar, kx):
 
     elif platform in ['ATMS']:
         platform = '%s_NPP' % platform
+        ichan = 0
         chanmin, chanmax = 1, 23
         for ichan in range(chanmin, chanmax):
             if 'CH%5s' % ichan in schar:
@@ -270,6 +193,7 @@ def get_platform_channel(instyp, schar, kx):
         elif 'METOPB' in schar:
             platform = '%s_METOP-B' % platform
 
+        ichan = 0
         chanmin, chanmax = 4, 6
         for ichan in range(chanmin, chanmax):
             if 'CH%5s' % ichan in schar:
@@ -278,6 +202,7 @@ def get_platform_channel(instyp, schar, kx):
             channel = ichan
 
     elif platform in ['SSMIS']:
+        ichan = 0
         chanmin, chanmax = 2, 25
         for ichan in range(chanmin, chanmax):
             if 'CH%3s' % ichan in schar:
@@ -288,39 +213,41 @@ def get_platform_channel(instyp, schar, kx):
     return platform, channel
 
 
-def main():
+def process_nrl(raw_bzip2_file, output_path, output_file, date):
     """
-
-    :return:
+    Process a raw NRL file
+    :param raw_bzip2_file: {str} Full path to a raw NRL gzip file
+    :param output_path: {str} Full path to the output directory
+    :param output_file: {str} Output file name only (will also create files with some prefixes)
+    :param date: {str} Date and time string in the format YYYYMMDDHH
+    :return: {list} A list of output files, or None
     """
-    parser = ArgumentParser(description='Process NRL file',
-                            formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--input', help='Raw NRL file', type=str, required=True)
-    parser.add_argument('-o', '--output', help='Processed NRL HDF file', type=str, required=True)
-    parser.add_argument('-a', '--adate', help='analysis date to process', metavar='YYYYMMDDHH',
-                        required=True)
-    args = parser.parse_args()
+    parsed_date = datetime.strptime(date, '%Y%m%d%H')
 
-    fname = args.input
-    fname_out = args.output
-    adate = datetime.strptime(args.adate, '%Y%m%d%H')
-
+    # open the raw data file
     try:
-        fh = gzip.open(fname, 'rb')
+        fh = bz2.BZ2File(raw_bzip2_file, 'rb')
     except RuntimeError as e:
-        raise IOError(e + ' ' + fname)
+        log.error('Failed to open file: %s' % raw_bzip2_file)
+        return None
 
+    # skip the first 75 lines
     for _ in range(75):
         fh.readline()
 
-    kt = kt_def()
-    kx = kx_def()
-
+    # read the remaining lines and close the file
     lines = fh.readlines()
     fh.close()
 
+    # load constant values from a resources file
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/ingest/nrl/nrl_ingest.yaml'))
+    fortran_format = config['fortran_format_string']
+    kt = config['kt']
+    kx = config['kx']
+
+    # process each line
     line_number = 75
-    nobs = 0
+    n_obs = 0
     bufr = []
     for line in lines:
 
@@ -330,12 +257,12 @@ def main():
         if isinstance(line, bytes):
             line = line.decode()
 
-        data = parse_line(line, kt, kx)
+        data = _parse_line(line, kt, kx, fortran_format)
 
         if data is None:
             continue
 
-        nobs += 1
+        n_obs += 1
 
         plat = data['platform']
         channel = data['channel']
@@ -351,13 +278,128 @@ def main():
 
         bufr.append(line)
 
-    if bufr != []:
-        df = loi.list_to_dataframe(adate, bufr)
-        if os.path.isfile(fname_out): os.remove(fname_out)
-        lutils.writeHDF(fname_out, 'df', df, complevel=1, complib='zlib', fletcher32=True)
+    # write a file if bufr is not empty
+    output_files = []
+    if bufr:
+        out = '%s/%s' % (output_path, output_file)
+        df = loi.list_to_dataframe(parsed_date, bufr)
+        if os.path.isfile(out): os.remove(out)
+        lutils.writeHDF(out, 'df', df, complevel=1, complib='zlib', fletcher32=True)
+        output_files.append(out)
 
-    print('Total obs = %d' % (nobs))
+        df = loi.BulkStats(df)
+        lutils.writeHDF('%s/bulk.%s' % (output_path, output_file), 'df', df)
+        output_files.append('%s/bulk.%s' % (output_path, output_file))
+
+        df = loi.accumBulkStats(df)
+        lutils.writeHDF('%s/accumbulk.%s' % (output_path, output_file), 'df', df)
+        output_files.append('%s/accumbulk.%s' % (output_path, output_file))
+
+        platforms = loi.Platforms('GMAO')
+        df = loi.groupBulkStats(df, platforms)
+        lutils.writeHDF('%s/groupbulk.%s' % (output_path, output_file), 'df', df)
+        output_files.append('%s/groupbulk.%s' % (output_path, output_file))
+
+    else:
+        return None
+
+    log.debug('Total obs = %d' % n_obs)
+    return output_files
 
 
-if __name__ == '__main__':
-    main()
+def main():
+    """
+    Parse command line parameters and run the process_nrl function
+    :return: None
+    """
+    from argparse import ArgumentParser
+    from argparse import ArgumentDefaultsHelpFormatter
+
+    # setup the argument parser
+    parser = ArgumentParser(description='Process NRL file',
+                            formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-i', '--input', help='Raw NRL file', type=str, required=True)
+    parser.add_argument('-o', '--output', help='Processed NRL HDF file', type=str, required=True)
+    parser.add_argument('-a', '--adate', help='analysis date to process', metavar='YYYYMMDDHH',
+                        required=True)
+    args = parser.parse_args()
+
+    # extract command line parameters
+    input_file = args.input
+    output_file = args.output.split('/')[-1]
+    output_path = '/'.join(args.output.split('/')[0:-1])
+    date = args.adate
+
+    # process the data
+    output_files = process_nrl(input_file, output_path, output_file, date)
+    if not output_files:
+        log.error('Error processing file: %s' % input_file)
+    else:
+        log.info('Output files:')
+        for file in output_files:
+            log.info(file)
+
+
+def prepare_workspace():
+    """
+    Prepare workspace
+    :return: {str} Full path to the workspace, or None if could not create
+    """
+    try:
+        work_dir = '/tmp/work'
+        if os.path.exists(work_dir):
+            shutil.rmtree(work_dir)
+        os.makedirs(work_dir)
+        return work_dir
+    except Exception as e:
+        print('Failed to create workspace: /tmp/work')
+        print(e)
+        return None
+
+
+def download_from_s3(s3url):
+    """
+    Download a BZ2 object from S3 and uncompress it
+    :param s3url: {str} The S3 URL
+    :return: {str}
+    """
+    # create an s3 client
+    s3 = boto3.client('s3')
+
+    # parse a few things from the url
+    file_name = s3url.split('/')[-1]
+    bucket = s3url.split('/')[2]
+    key = s3url.split(bucket + '/')[1]
+
+    # download the data object from S3 to a file
+    with open(file_name, 'wb') as file:
+        s3.download_fileobj(bucket, key, file)
+        file.close()
+
+    return file_name
+
+
+def upload_to_s3(file, s3url):
+    """
+    Upload a file to S3
+    :param file: Path to the local file
+    :param s3url: An S3 URL for the target
+    :return: True if successful, otherwise false
+    """
+    try:
+        # create an s3 client
+        s3 = boto3.client('s3')
+
+        # parse a few things from the url
+        bucket = s3url.split('/')[2]
+        key = s3url.split(bucket + '/')[1]
+
+        # upload the file to the S3 bucket
+        with open(file, 'rb') as file:
+            s3.upload_fileobj(file, bucket, key)
+        return True
+
+    except Exception as e:
+        log.error('Failed to upload file to S3: %s to %s' % (file, s3url))
+        log.error(e)
+        return False

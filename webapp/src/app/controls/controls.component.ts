@@ -335,7 +335,7 @@ export class ControlsComponent implements OnInit
 
   /* Websocket connection */
   private websocket: WebSocket;
-  private websocketUrl = 'wss://0dsx2wip69.execute-api.us-east-1.amazonaws.com/v1';
+  private websocketUrl = ' wss://prw9exvaxi.execute-api.us-east-1.amazonaws.com/v2';
 
   /* Track all requests in this session */
   sessionRequests = [];
