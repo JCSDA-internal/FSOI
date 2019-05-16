@@ -44,11 +44,12 @@ def list_files(center):
     return keys
 
 
-def process_file(key, center):
+def process_file(key, center, force=False):
     """
     Download a data from S3 and process the file
     :param key: The key in S3 (fsoi bucket)
     :param center: The center name
+    :param force: Force the file to be re-processed even if it already has been
     :return: None
     """
     # compute the prefix and key
@@ -63,16 +64,17 @@ def process_file(key, center):
     s3 = boto3.client('s3')
 
     # make sure this has not been processed already
-    try:
-        response = s3.head_object(
-            Bucket='fsoi',
-            Key='%s/%s.%s' % (prefix, 'groupbulk', name)
-        )
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            print('  Already processed %s' % key)
-            return
-    except ClientError as ignore:
-        pass
+    if not force:
+        try:
+            response = s3.head_object(
+                Bucket='fsoi',
+                Key='%s/%s.%s' % (prefix, 'groupbulk', name)
+            )
+            if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                print('  Already processed %s' % key)
+                return
+        except ClientError as ignore:
+            pass
 
     # download an S3 object
     print('  Downloading %s' % key)
