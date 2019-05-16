@@ -84,7 +84,7 @@ def process_request(validated_request):
             warns.append('No data available for %s' % center)
             validated_request['centers'].remove(center)
 
-    # iterate over each of the requested centers
+    # iterate over each of the requested centers and create plots
     key_list = []
     centers = validated_request['centers']
     for center in centers:
@@ -295,41 +295,6 @@ def download_s3_objects(request):
         return objs
 
 
-def process_bulk_stats(request):
-    """
-    Run the summary_bulk.py script on the data we have downloaded
-    :param request: {dict} A validated and sanitized request object
-    :return: None
-    """
-    from fsoi.stats.summary_bulk import summary_bulk_main
-
-    try:
-        # delete previous work file
-        work_file = request['root_dir'] + 'work/' + request['centers'][0] + '/dry/bulk_stats.h5'
-        if os.path.exists(work_file):
-            os.remove(work_file)
-
-        sys.argv = ['script',
-                    '--center',
-                    ','.join(request['centers']),
-                    '--norm',
-                    request['norm'],
-                    '--rootdir',
-                    request['root_dir'],
-                    '--begin_date',
-                    request['start_date'] + request['cycles'][0],
-                    '--end_date',
-                    request['end_date'] + request['cycles'][-1],
-                    '--interval',
-                    str(request['interval'])]
-
-        print('running summary_bulk_main: %s' % ' '.join(sys.argv))
-        summary_bulk_main()
-    except Exception as e:
-        errors.append('Error computing bulk statistics')
-        print(e)
-
-
 def create_plots(request, center, objects):
     """
     Run the fsoi_summary.py script on the bulk statistics
@@ -453,20 +418,24 @@ def get_s3_object_urls(request):
     start_date = request['start_date']
     end_date = request['end_date']
     centers = request['centers']
-    norm = request['norm']
+    norms = request['norm']
     cycles = request['cycles']
+
+    # create a list of norm values
+    norms = ['dry', 'moist'] if norms == 'both' else [norms]
 
     s3_objects = []
     for date in dates_in_range(start_date, end_date):
         for center in centers:
             for cycle in cycles:
-                s3_objects.append([
-                    '%s/groupbulk.%s.%s.%s%02d.h5' % (center, center, norm, date, int(cycle)),
-                    center,
-                    norm,
-                    date,
-                    cycle]
-                )
+                for norm in norms:
+                    s3_objects.append([
+                        '%s/groupbulk.%s.%s.%s%02d.h5' % (center, center, norm, date, int(cycle)),
+                        center,
+                        norm,
+                        date,
+                        cycle]
+                    )
 
     return s3_objects
 

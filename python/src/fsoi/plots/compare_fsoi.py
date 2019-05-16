@@ -67,7 +67,7 @@ def compare_fsoi_main():
                         choices=['full', 'conv', 'rad'], required=False)
     parser.add_argument('--cycle', help='cycle to process', nargs='+', type=int,
                         choices=[0, 6, 12, 18], required=True)
-    parser.add_argument('--norm', help='metric norm', type=str, choices=['dry', 'moist'],
+    parser.add_argument('--norm', help='metric norm', type=str, choices=['dry', 'moist', 'both'],
                         required=True)
     parser.add_argument('--savefigure', help='save figures', action='store_true', required=False)
     parser.add_argument('--centers', help='list of centers', type=str, nargs='+',
