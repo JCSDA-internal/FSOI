@@ -45,22 +45,25 @@
   <!-- Norm selection -->
   <div class="control-label">NORM</div>
   <div class="control-option-list">
-    <button class="control-option-button" mat-stroked-button
-            (click)="showOptionDialog('norm', false)">{{normSummary}}</button>
+    <button class="control-option-button" mat-stroked-button (click)="showOptionDialog('norm', false)">
+      {{normSummary}}
+    </button>
   </div>
 
   <!-- Center selection -->
   <div class="control-label">CENTERS</div>
   <div class="control-option-list">
-    <button class="control-option-button" mat-stroked-button
-            (click)="showOptionDialog('center', false)">{{centersSummary}}</button>
+    <button class="control-option-button" mat-stroked-button (click)="showOptionDialog('center', true)">
+      {{centersSummary}}
+    </button>
   </div>
 
   <!-- Platform selection -->
   <div class="control-label">PLATFORMS</div>
   <div class="control-option-list">
-    <button class="control-option-button" mat-stroked-button
-            (click)="showOptionDialog('platform', true)">{{platformsSummary}}</button>
+    <button class="control-option-button" mat-stroked-button (click)="showOptionDialog('platform', true)">
+      {{platformsSummary}}
+    </button>
   </div>
 
   <!-- List of errors -->
