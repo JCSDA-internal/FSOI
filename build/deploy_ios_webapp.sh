@@ -47,7 +47,7 @@
 # 5. Deploy the front-end Angular code:
 #   > cd webapp
 #   > ./deploy.sh
-#   This will run 'ng-build --prod' on the front-end code and copy the result to s3://ios.jcsda.org.
+#   This will run 'ng build --prod' on the front-end code and copy the result to s3://ios.jcsda.org.
 
 # 6. Web application should be ready to go at http://ios.jcsda.org.  If the HTTPS protocol is desired
 #    in the future, CloudFront can be used.  Note that updates when using CloudFront are not
