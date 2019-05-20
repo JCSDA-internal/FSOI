@@ -1,4 +1,4 @@
-import {Component, Inject, OnInit} from '@angular/core';
+import {Component, Inject, OnInit, OnDestroy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 
 @Component({
@@ -6,10 +6,12 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
   templateUrl: './options.component.html',
   styleUrls: ['./options.component.css']
 })
-export class OptionsComponent implements OnInit
+export class OptionsComponent implements OnInit, OnDestroy
 {
   /* The options title */
   title = '';
+  selectMultiple = true;
+  selectedOption = null;
 
 
   /**
@@ -21,6 +23,12 @@ export class OptionsComponent implements OnInit
   constructor(public dialogRef: MatDialogRef<OptionsComponent>, @Inject(MAT_DIALOG_DATA) public data: object)
   {
     this.title = this.data['title'];
+    this.selectMultiple = this.data['selectMultiple'];
+
+    if (! this.selectMultiple)
+    {
+      this.selectOne();
+    }
   }
 
 
@@ -31,6 +39,20 @@ export class OptionsComponent implements OnInit
   {
   }
 
+
+  /**
+   * Update the list of options to match the selection
+   */
+  ngOnDestroy()
+  {
+    if (!this.selectMultiple)
+    {
+      for (let i = 0; i < this.data['list']['options'].length; i++)
+      {
+        this.data['list']['options'][i]['selected'] = (this.data['list']['options'][i]['name'] === this.selectedOption);
+      }
+    }
+  }
 
   /**
    * Select all options
@@ -52,6 +74,31 @@ export class OptionsComponent implements OnInit
     for (let i = 0; i < this.data['list']['options'].length; i++)
     {
       this.data['list']['options'][i].selected = false;
+    }
+  }
+
+
+  /**
+   * Make sure that only one option is selected
+   */
+  selectOne(): void
+  {
+    let oneSelected = false;
+
+    for (let i = 0; i < this.data['list']['options'].length; i++)
+    {
+      if (oneSelected)
+      {
+        this.data['list']['options'][i].selected = false;
+      }
+      else
+      {
+        oneSelected = this.data['list']['options'][i].selected;
+        if (oneSelected)
+        {
+          this.selectedOption = this.data['list']['options'][i]['name'];
+        }
+      }
     }
   }
 

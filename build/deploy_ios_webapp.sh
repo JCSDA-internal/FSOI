@@ -13,12 +13,12 @@
 
 # 3a. Launch the CloudFormation stack (if the stack is NOT already running):
 #   > aws cloudformation create-stack --stack-name IOSwebapp --template-body \
-#   >     fileb://resources/cloudformation_ios_fsoi_web.yaml
+#   >     fileb://resources/cloudformation_ios_webapp.yaml
 #   Progress can be monitored on the AWS Console under the CloudFormation service
 
 # 3b. Update the CloudFormation stack (if the stack IS already running):
 #   > aws cloudformation update-stack --stack-name IOSwebapp --template-body \
-#   >     fileb://resources/cloudformation_ios_fsoi_web.yaml
+#   >     fileb://resources/cloudformation_ios_webapp.yaml
 #   # Update lambda code if it has changed:
 #   > aws lambda update-function-code --function-name fsoi_request_handler \
 #         --s3-bucket jcsda-scratch --s3-key fsoi_lambda.zip
@@ -47,7 +47,7 @@
 # 5. Deploy the front-end Angular code:
 #   > cd webapp
 #   > ./deploy.sh
-#   This will run 'ng-build --prod' on the front-end code and copy the result to s3://ios.jcsda.org.
+#   This will run 'ng build --prod' on the front-end code and copy the result to s3://ios.jcsda.org.
 
 # 6. Web application should be ready to go at http://ios.jcsda.org.  If the HTTPS protocol is desired
 #    in the future, CloudFront can be used.  Note that updates when using CloudFront are not

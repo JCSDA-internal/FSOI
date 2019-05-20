@@ -37,7 +37,8 @@ export class ControlsComponent implements OnInit
   private norm = {
     'options': [
       {'name': 'dry', 'selected': true},
-      {'name': 'moist', 'selected': false}
+      {'name': 'moist', 'selected': false},
+      {'name': 'both', 'selected': false}
     ]
   };
 
@@ -335,7 +336,7 @@ export class ControlsComponent implements OnInit
 
   /* Websocket connection */
   private websocket: WebSocket;
-  private websocketUrl = 'wss://0dsx2wip69.execute-api.us-east-1.amazonaws.com/v1';
+  private websocketUrl = 'wss://prw9exvaxi.execute-api.us-east-1.amazonaws.com/v2';
 
   /* Track all requests in this session */
   sessionRequests = [];
@@ -506,7 +507,7 @@ export class ControlsComponent implements OnInit
     const dialogRef = this.dialog.open(OptionsComponent, {
       width: '600px',
       height: '800px',
-      data: {'title': option + 's', 'list': data}
+      data: {'title': option + 's', 'list': data, 'selectMultiple': selectMultiple}
     });
 
     dialogRef.afterClosed().subscribe(result =>

@@ -99,7 +99,7 @@ class RequestDao:
     """
 
     # The table name to store requests
-    REQUEST_TABLE_NAME = 'fsoi_requests'
+    REQUEST_TABLE_NAME = 'ios_requests'
 
     @staticmethod
     def add_request(req_data):
