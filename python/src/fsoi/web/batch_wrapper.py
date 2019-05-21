@@ -329,6 +329,9 @@ def create_plots(request, center, objects):
     df, df_std = loi.tavg(concatenated, 'PLATFORM')
     df = loi.summarymetrics(df)
 
+    # filter out the platforms that were not in the request
+    filter_platforms_from_data(df, request)
+
     # create the cycle identifier
     cycle_id = ''
     cycle_ints = []
@@ -347,6 +350,34 @@ def create_plots(request, center, objects):
             loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
         except Exception as e:
             print(e)
+
+
+def filter_platforms_from_data(df, request):
+    """
+    Filter out platforms that were not requested by the user
+    :param df: The summary metrics data frame
+    :param request: The user request, includes request['platforms']
+    :return: None - 'df' object is modified
+    """
+    # create a list of all upper case platform present in the request
+    included_platforms = []
+    for platform in request['platforms'].split(','):
+        included_platforms.append(platform.upper())
+
+    # create a list of all platforms present in the data frame, but not the request
+    excluded_platforms = []
+    case_sensitive_included_platforms = []
+    for platform in df.index:
+        if platform.upper() not in included_platforms:
+            excluded_platforms.append(platform)
+        else:
+            case_sensitive_included_platforms.append(platform)
+
+    # drop platforms from the data frame that were not in the request
+    df.drop(excluded_platforms, inplace=True)
+
+    # update the index (i.e., list of platforms) in the data frame
+    df.reindex(case_sensitive_included_platforms)
 
 
 def process_fsoi_compare(request):

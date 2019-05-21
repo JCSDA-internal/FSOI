@@ -63,19 +63,18 @@ def sort_centers(DF):
 
     df = []
     for i in range(len(DF)):
-        tmp = DF[i]
-        pcenter = list(tmp.index.get_level_values('PLATFORM').unique())
-        upper_map = {}
-        for platform in pcenter:
-            upper_map[platform.upper()] = platform
-        for j in range(len(pcenter)):
-            pcenter[j] = pcenter[j].upper()
-        exclude = list(set(pcenter) - set(pref))
-        exclude_case_sensitive = []
-        for item in exclude:
-            exclude_case_sensitive.append(upper_map[item])
-        tmp.drop(exclude_case_sensitive, inplace=True)
-        df.append(tmp)
+        # create a list of platforms to exclude
+        exclusion_list = []
+        for platform in DF[i].index.get_level_values('PLATFORM').unique():
+            if platform.upper() not in pref:
+                exclusion_list.append(platform)
+
+        # exclude the platforms in the list
+        DF[i].drop(exclusion_list, inplace=True)
+
+        # add the data frame to the list of data frames
+        df.append(DF[i])
+
     return df, pref
 
 
@@ -110,8 +109,6 @@ def compare_fsoi_main():
 
     cyclestr = ''.join('%02dZ' % c for c in cycle)
 
-    platforms = loi.RefPlatform(platform)
-
     DF = load_centers(rootdir, centers, norm, cycle)
     DF, platforms = sort_centers(DF)
 
@@ -127,7 +124,6 @@ def compare_fsoi_main():
             for single_platform in tmp.index:
                 index.append((single_platform.upper()))
             tmp.index = pd.CategoricalIndex(data=index, name='PLATFORM')
-            # tmp.index = pd.MultiIndex.from_arrays([index], names=['PLATFORM'])
             tmpdf.append(tmp)
 
         df = pd.concat(tmpdf, axis=1, sort=True)

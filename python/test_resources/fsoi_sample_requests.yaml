@@ -2,18 +2,28 @@ requests:
   batch:
     focus:
     - start_date: '20190501'
-      end_date: '20190511'
+      end_date: '20190516'
       cycles:
         - '0'
+        - '18'
       interval: 24
       centers:
         - GMAO
         - NRL
       norm: both
-      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
-                    Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
-                    Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS
+      platforms: IASI
     pass:
+    - start_date: '20150201'
+      end_date: '20150228'
+      interval: 24
+      norm: dry
+      centers:
+        - GMAO
+        - NRL
+        - JMA_adj
+      cycles:
+        - '00'
+      platforms: Radiosonde,Dro psonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI Rain Rate,Synthetic,AIRS,AMSUA,MHS ,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
     - start_date: '20190413'
       end_date: '20190413'
       centers:
