@@ -912,7 +912,7 @@ def comparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
     ax.xaxis.set_major_formatter(xfmt)
 
     ax.set_ylabel('', visible=False)
-    ax.set_yticklabels(df.index, fontsize=12)
+    ax.set_yticklabels(df.index, fontsize=10)
 
     ax.autoscale(enable=True, axis='y', tight=True)
     ax.grid(False)
