@@ -93,8 +93,8 @@ def compare_fsoi_main():
 
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         plotOpt = loi.getPlotOpt(qty, savefigure=savefig, center=None, cycle=cycle)
-        plotOpt['figname'] = '%s/plots/compare/%s/%s_%s' % (
-        rootdir, platform, plotOpt.get('figname'), cyclestr)
+        plotOpt['figname'] = '%s/plots/compare/%s/%s_%s' % \
+                             (rootdir, platform, plotOpt.get('figname'), cyclestr)
         tmpdf = []
         for c, center in enumerate(centers):
             tmp = DF[c][qty]

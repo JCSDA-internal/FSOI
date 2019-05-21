@@ -7,8 +7,11 @@ import sys
 import os
 import json
 import boto3
+import pandas as pd
 from fsoi.web.serverless_tools import hash_request, get_reference_id, create_response_body, \
     create_error_response_body, RequestDao, ApiGatewaySender
+from fsoi.stats import lib_obimpact as loi
+from fsoi.stats import lib_utils as lutils
 
 
 # List to hold errors and warnings encountered during processing
@@ -61,7 +64,7 @@ def process_request(validated_request):
 
     # track the progress percentage
     progress = 0
-    progress_step = int(90/len(validated_request['centers'])/3)
+    progress_step = int(90/len(validated_request['centers'])/2)
 
     # download data from S3
     update_all_clients(hash_value, 'RUNNING', 'Accessing data objects', progress)
@@ -89,15 +92,11 @@ def process_request(validated_request):
         if not errors:
             prepare_working_dir(validated_request)
         if not errors:
-            update_all_clients(hash_value, 'RUNNING', 'Processing bulk stats for %s' % center, progress)
-            process_bulk_stats(validated_request)
+            update_all_clients(hash_value, 'RUNNING', 'Creating plots for %s' % center, progress)
+            create_plots(validated_request, center, objects)
             progress += progress_step
         if not errors:
-            update_all_clients(hash_value, 'RUNNING', 'Processing FSOI summary for %s' % center, progress)
-            process_fsoi_summary(validated_request)
-            progress += progress_step
-        if not errors:
-            update_all_clients(hash_value, 'RUNNING', 'Storing images for %s' % center, progress)
+            update_all_clients(hash_value, 'RUNNING', 'Storing plots for %s' % center, progress)
             key_list += cache_summary_plots_in_s3(hash_value, validated_request)
             progress += progress_step
 
@@ -233,7 +232,7 @@ def download_s3_objects(request):
     :param request: {dict} A validated and sanitized request object
     :return: {list} A list of lists, where each item in the main list is an object that was expected
                     to be downloaded.  The sub lists contain [s3_key, center, norm, date, cycle,
-                    downloaded_boolean]
+                    downloaded_boolean, local_file]
     """
     try:
         bucket = os.environ['DATA_BUCKET']
@@ -259,6 +258,7 @@ def download_s3_objects(request):
             # check to see if we already have the file
             if os.path.exists(local_dir + local_file):
                 obj.append(True)
+                obj.append('%s/%s' % (local_dir, local_file))
                 continue
 
             # download the file from S3
@@ -271,11 +271,12 @@ def download_s3_objects(request):
                 else:
                     all_data_missing = False
                     obj.append(True)
+                    obj.append('%s/%s' % (local_dir, local_file))
             except Exception as e:
                 tokens = key.split('.')
-                center = tokens[0]
-                date = tokens[2][0:8]
-                cycle = tokens[2][8:]
+                center = tokens[1]
+                date = tokens[3][0:8]
+                cycle = tokens[3][8:]
                 s3msgs.append('Missing data: %s %s %sZ' % (center, date, cycle))
                 obj.append(False)
                 print(e)
@@ -329,36 +330,58 @@ def process_bulk_stats(request):
         print(e)
 
 
-def process_fsoi_summary(request):
+def create_plots(request, center, objects):
     """
     Run the fsoi_summary.py script on the bulk statistics
     :param request: {dict} A validated and sanitized request object
+    :param center: {str} Name of the center for which plots should be created
+    :param objects: {list} A list of lists, where each item in the main list is an object that was expected
+                    to be downloaded.  The sub lists contain [s3_key, center, norm, date, cycle,
+                    downloaded_boolean, local_file]  (as returned from @download_s3_objects)
     :return: None
     """
-    from fsoi.plots.summary_fsoi import summary_fsoi_main
+    # create a list of downloaded files for this center
+    files = []
+    for obj in objects:
+        if obj[1] == center and obj[5]:
+            files.append(obj[6])
 
-    try:
-        sys.argv = [
-            'script',
-            '--center',
-            request['centers'][0],
-            '--norm',
-            request['norm'],
-            '--rootdir',
-            request['root_dir'],
-            '--platform',
-            request['platforms'],
-            '--savefigure',
-            '--cycle'
-        ]
-        for cycle in request['cycles']:
-            sys.argv.append(cycle)
+    # read all of the files
+    ddf = {}
+    for (i, file) in enumerate(files):
+        ddf[i] = lutils.readHDF(file, 'df')
 
-        print('running summary_fsoi_main: %s' % ' '.join(sys.argv))
-        summary_fsoi_main()
-    except Exception as e:
-        errors.append('Error computing FSOI summary')
-        print(e)
+    # concatenate the group bulk data and save to a pickle
+    concatenated = pd.concat(ddf, axis=0)
+    pickle_dir = '%s/work/%s/%s' % (request['root_dir'], center, request['norm'])
+    pickle_file = '%s/group_stats.pkl' % pickle_dir
+    os.makedirs(pickle_dir, exist_ok=True)
+    if os.path.exists(pickle_file):
+        os.remove(pickle_file)
+    lutils.pickle(pickle_file, concatenated)
+
+    # time-average the data frames
+    df, df_std = loi.tavg(concatenated, 'PLATFORM')
+    df = loi.summarymetrics(df)
+
+    # create the cycle identifier
+    cycle_id = ''
+    cycle_ints = []
+    for c in request['cycles']:
+        cycle_id += '%02dZ' % int(c)
+        cycle_ints.append(int(c))
+
+    # create the plots
+    platform = loi.Platforms(center)
+    for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
+        try:
+            plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center,
+                                          savefigure=True, platform=platform, domain='Global')
+            plot_options['figname'] = '%s/plots/summary/%s/%s_%s_%s' % \
+                                      (request['root_dir'], center, center, qty, cycle_id)
+            loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
+        except Exception as e:
+            print(e)
 
 
 def process_fsoi_compare(request):
@@ -387,7 +410,7 @@ def process_fsoi_compare(request):
         print('running compare_fsoi_main: %s' % ' '.join(sys.argv))
         compare_fsoi_main()
     except Exception as e:
-        errors.append('Error creating FSOI comparison plots')
+        warns.append('Error creating FSOI comparison plots')
         print(e)
 
 
@@ -438,7 +461,7 @@ def get_s3_object_urls(request):
         for center in centers:
             for cycle in cycles:
                 s3_objects.append([
-                    '%s/%s.%s.%s%s.h5' % (center, center, norm, date, cycle),
+                    '%s/groupbulk.%s.%s.%s%02d.h5' % (center, center, norm, date, int(cycle)),
                     center,
                     norm,
                     date,
@@ -457,7 +480,7 @@ def cache_compare_plots_in_s3(hash_value, request):
     """
     # retrieve relevant environment variables
     bucket = os.environ['CACHE_BUCKET']
-    root_dir = os.environ['FSOI_ROOT_DIR']
+    root_dir = request['root_dir']
     img_dir = root_dir + '/plots/compare/full'
 
     # list of files to cache
@@ -497,11 +520,11 @@ def cache_summary_plots_in_s3(hash_value, request):
     Copy all of the new summary plots to S3
     :param hash_value: {str} The hash value of the request
     :param request: {dict} The full request
-    :return: None
+    :return: {list} A list of object keys for images in the S3 cache bucket
     """
     # retrieve relevant environment variables
     bucket = os.environ['CACHE_BUCKET']
-    root_dir = os.environ['FSOI_ROOT_DIR']
+    root_dir = request['root_dir']
     img_dir = root_dir + '/plots/summary'
 
     # list of files to cache
