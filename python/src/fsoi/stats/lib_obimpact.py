@@ -300,7 +300,7 @@ def Platforms(center):
     :param center: {str} Name of the center
     :return: {dict} A dictionary of platforms for the given center
     """
-    platforms = yaml.load(pkgutil.get_data('fsoi', 'resources/fsoi/platforms.yaml'))
+    platforms = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/platforms.yaml'))
     if center not in platforms:
         log.warn('Unknown center requested: %s' % center)
         return None
@@ -912,7 +912,7 @@ def comparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
     ax.xaxis.set_major_formatter(xfmt)
 
     ax.set_ylabel('', visible=False)
-    ax.set_yticklabels(df.index, fontsize=12)
+    ax.set_yticklabels(df.index, fontsize=10)
 
     ax.autoscale(enable=True, axis='y', tight=True)
     ax.grid(False)

@@ -38,21 +38,45 @@ def load_centers(rootdir, centers, norm, cycle):
     return DF
 
 
-def sort_centers(DF, pref):
+def sort_centers(DF):
     """
 
     :param DF:
-    :param pref:
     :return:
     """
+    # count the number of centers that use each platform
+    platform_count = {}
+    for i in range(len(DF)):
+        platforms_in_center = DF[i].index.get_level_values('PLATFORM').unique()
+        for platform in list(platforms_in_center):
+            platform = platform.upper()
+            if platform in platform_count:
+                platform_count[platform] += 1
+            else:
+                platform_count[platform] = 1
+
+    # set 'pref' to a list of platforms included by 2 or more centers
+    pref = []
+    for key in platform_count:
+        if platform_count[key] > 1:
+            pref.append(key)
+
     df = []
     for i in range(len(DF)):
         tmp = DF[i]
-        pcenter = tmp.index.get_level_values('PLATFORM').unique()
+        pcenter = list(tmp.index.get_level_values('PLATFORM').unique())
+        upper_map = {}
+        for platform in pcenter:
+            upper_map[platform.upper()] = platform
+        for j in range(len(pcenter)):
+            pcenter[j] = pcenter[j].upper()
         exclude = list(set(pcenter) - set(pref))
-        tmp.drop(exclude, inplace=True)
+        exclude_case_sensitive = []
+        for item in exclude:
+            exclude_case_sensitive.append(upper_map[item])
+        tmp.drop(exclude_case_sensitive, inplace=True)
         df.append(tmp)
-    return df
+    return df, pref
 
 
 def compare_fsoi_main():
@@ -67,7 +91,7 @@ def compare_fsoi_main():
                         choices=['full', 'conv', 'rad'], required=False)
     parser.add_argument('--cycle', help='cycle to process', nargs='+', type=int,
                         choices=[0, 6, 12, 18], required=True)
-    parser.add_argument('--norm', help='metric norm', type=str, choices=['dry', 'moist'],
+    parser.add_argument('--norm', help='metric norm', type=str, choices=['dry', 'moist', 'both'],
                         required=True)
     parser.add_argument('--savefigure', help='save figures', action='store_true', required=False)
     parser.add_argument('--centers', help='list of centers', type=str, nargs='+',
@@ -89,7 +113,7 @@ def compare_fsoi_main():
     platforms = loi.RefPlatform(platform)
 
     DF = load_centers(rootdir, centers, norm, cycle)
-    DF = sort_centers(DF, platforms)
+    DF, platforms = sort_centers(DF)
 
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         plotOpt = loi.getPlotOpt(qty, savefigure=savefig, center=None, cycle=cycle)
@@ -99,9 +123,16 @@ def compare_fsoi_main():
         for c, center in enumerate(centers):
             tmp = DF[c][qty]
             tmp.name = center
+            index = []
+            for single_platform in tmp.index:
+                index.append((single_platform.upper()))
+            tmp.index = pd.CategoricalIndex(data=index, name='PLATFORM')
+            # tmp.index = pd.MultiIndex.from_arrays([index], names=['PLATFORM'])
             tmpdf.append(tmp)
+
         df = pd.concat(tmpdf, axis=1, sort=True)
-        df = df.reindex(reversed(platforms))
+        platforms.reverse()
+        df = df.reindex(platforms)
         loi.comparesummaryplot(df, palette, qty=qty, plotOpt=plotOpt)
 
     if savefig:

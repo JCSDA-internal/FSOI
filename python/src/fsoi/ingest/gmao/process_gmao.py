@@ -3,6 +3,7 @@ import yaml
 import pkgutil
 import shutil
 import boto3
+from datetime import datetime
 from netCDF4 import Dataset
 import numpy as np
 from argparse import ArgumentParser
@@ -204,6 +205,7 @@ def process_gmao(norm, date):
     kt = config['kt']
     file_norm = config['norm'][norm]
     input_bucket = config['raw_data_bucket']
+    dt = datetime.strptime(date, '%Y%m%d%H')
 
     work_dir = prepare_workspace()
     s3_prefix = 's3://%s/Y%s/M%s/D%s/H%s/' % (input_bucket, date[0:4], date[4:6], date[6:8], date[8:10])
@@ -267,7 +269,7 @@ def process_gmao(norm, date):
     out_file = 'GMAO.%s.%s.h5' % (norm, date)
     s3_template = 's3://fsoi/intercomp/hdf5/GMAO/%s'
 
-    df = loi.list_to_dataframe(date, bufr)
+    df = loi.list_to_dataframe(dt, bufr)
     of = '%s/%s' % (work_dir, out_file)
     lutils.writeHDF(of, 'df', df, complevel=1, complib='zlib', fletcher32=True)
     out_file_list.append(of)
