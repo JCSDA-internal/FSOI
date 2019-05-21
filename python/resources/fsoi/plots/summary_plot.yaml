@@ -1,0 +1,62 @@
+default_options:
+  finite: true
+  log_scale: true
+  save_figure: true
+  dpi: 100
+  alpha: 0.7
+  width: 1.0
+  color_min: 1000
+  color_max: 1000000
+  title_font_size: 18
+  axis_label_font_size: 14
+  tick_labels_font_size: 12
+  title: '%s 24h Observation Impact Summary\n%s %s'
+  domain: Global
+  center: center - no default
+  metric: metric - no default
+  platform: ''
+  figure_name: figure_name - no default
+  orientation: landscape
+  ob_count_name: ObCnt
+  color_map_name: Blues
+  color_bar_label: Observation Count per Analysis
+  error_bar_color: '#FF6103'
+  format:
+    - png
+    - eps
+    - pdf
+
+center_names:
+  MET: Met Office
+  MeteoFr: Météo France
+  JMA_adj: JMA (Adjoint)
+  JMA_ens: JMA (Ensemble)
+  EMC: EMC
+  NRL: NRL
+  GMAO: GMAO
+
+metric_defaults:
+  TotImp:
+    name: Total Impact
+    units: (J/kg)
+    sort_acsending: false
+  ObCnt:
+    name: Observation Count
+    units: per Analysis
+    sort_acsending: true
+  ImpPerOb:
+    name: Impact per Observation
+    units: (J/kg)
+    sort_acsending: false
+  FracBenObs:
+    name: Fraction of Beneficial Observations
+    units: (%)
+    sort_ascending: true
+  FracNeuObs:
+    name: Fraction of Neutral Observations
+    units: (%)
+    sort_ascending: true
+  FracImp:
+    name: Fractional Impact
+    units: (%)
+    sort_ascending: true

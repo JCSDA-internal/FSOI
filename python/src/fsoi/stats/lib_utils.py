@@ -151,32 +151,3 @@ def discrete_colors(N, base_cmap=None, colormap=False):
 
     # return base.from_list(cmap_name, color_list, N)
     return _lscmap.from_list(cmap_name, color_list, N) if colormap else color_list
-
-
-def savefigure(fh=None, fname='test', format=['png', 'eps', 'pdf'], orientation='landscape',
-               dpi=100):
-    """
-    Save a figure in png, eps and pdf formats
-    :param fh:
-    :param fname:
-    :param format:
-    :param orientation:
-    :param dpi:
-    :return:
-    """
-    if fh is None:
-        fh = _plt
-    if 'png' in format:
-        fh.savefig('%s.png' % fname,
-                   format='png', dpi=1 * dpi,
-                   orientation=orientation)
-    if 'eps' in format:
-        fh.savefig('%s.eps' % fname,
-                   format='eps', dpi=2 * dpi,
-                   orientation=orientation)
-    if 'pdf' in format:
-        fh.savefig('%s.pdf' % fname,
-                   format='pdf', dpi=2 * dpi,
-                   orientation=orientation)
-
-    return

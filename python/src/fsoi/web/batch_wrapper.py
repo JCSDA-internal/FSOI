@@ -12,6 +12,7 @@ from fsoi.web.serverless_tools import hash_request, get_reference_id, create_res
     create_error_response_body, RequestDao, ApiGatewaySender
 from fsoi.stats import lib_obimpact as loi
 from fsoi.stats import lib_utils as lutils
+from fsoi.plots.summary_plot import MatplotlibSummaryPlot
 
 
 # List to hold errors and warnings encountered during processing
@@ -329,22 +330,22 @@ def create_plots(request, center, objects):
     df, df_std = loi.tavg(concatenated, 'PLATFORM')
     df = loi.summarymetrics(df)
 
-    # create the cycle identifier
-    cycle_id = ''
-    cycle_ints = []
-    for c in request['cycles']:
-        cycle_id += '%02dZ' % int(c)
-        cycle_ints.append(int(c))
-
     # create the plots
     platform = loi.Platforms(center)
-    for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
+    for metric in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         try:
-            plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center,
-                                          savefigure=True, platform=platform, domain='Global')
-            plot_options['figname'] = '%s/plots/summary/%s/%s_%s_%s' % \
-                                      (request['root_dir'], center, center, qty, cycle_id)
-            loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
+            plot_options = {
+                'metric': metric,
+                'cycles': request['cycles'],
+                'center': center,
+                'save_figure': True,
+                'platform': platform,
+                'domain': 'Global'
+            }
+            plot = MatplotlibSummaryPlot(options=plot_options)
+            plot.set_data(df, df_std)
+            plot.set_output_file('/tmp/plots')  # TODO: Fix this hard coding <----
+            plot.create_plot()
         except Exception as e:
             print(e)
 
