@@ -13,3 +13,4 @@ egg:
 
 clean:
 	cd ../python; rm -Rf dist build fsoi.egg-info
+	cd ../python; rm -f src/fsoi/resources

@@ -2,7 +2,7 @@ requests:
   batch:
     focus:
     - start_date: '20190501'
-      end_date: '20190516'
+      end_date: '20190511'
       cycles:
         - '0'
         - '18'
