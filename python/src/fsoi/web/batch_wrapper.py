@@ -275,9 +275,10 @@ def download_s3_objects(request):
             except Exception as e:
                 tokens = key.split('.')
                 center = tokens[1]
+                norm = tokens[2]
                 date = tokens[3][0:8]
                 cycle = tokens[3][8:]
-                s3msgs.append('Missing data: %s %s %sZ' % (center, date, cycle))
+                s3msgs.append('Missing data: %s %s %s %sZ' % (center, date, norm, cycle))
                 obj.append(False)
                 print(e)
 

@@ -61,7 +61,6 @@ def sort_centers(DF):
         if platform_count[key] > 1:
             pref.append(key)
 
-# CHECK TO SEE IF 2019-05-11 00Z GMAO is fixed: Only contains WINDSAT or WindSat
     df = []
     for i in range(len(DF)):
         # create a list of platforms to exclude

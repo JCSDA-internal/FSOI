@@ -1,11 +1,10 @@
 requests:
   batch:
     focus:
-    - start_date: '20190501'
+    - start_date: '20190510'
       end_date: '20190511'
       cycles:
         - '0'
-        - '18'
       interval: 24
       centers:
         - GMAO

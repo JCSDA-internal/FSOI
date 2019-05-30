@@ -324,7 +324,7 @@ def main():
 
     # prepare the working directory
     # prepare the processing parameters
-    date = args.adate
+    date = args.date
     work_dir = '/tmp/work/nrl/%s' % date
     os.makedirs(work_dir, exist_ok=True)
     os.chdir(work_dir)
@@ -338,9 +338,9 @@ def main():
     else:
         log.info('Uploading files to S3:')
         for file in output_files:
-            s3url = 's3://fsoi/intercomp/hdf5/%s' % file.split('/')[-1]
+            s3url = 's3://fsoi/intercomp/hdf5/NRL/%s' % file.split('/')[-1]
             print('%s -> %s' % (file, s3url))
-            uploaded = upload_to_s3(file, 's3://fsoi/intercomp/hdf5/%s' % file.split('/')[-1])
+            uploaded = upload_to_s3(file, s3url)
             if not uploaded:
                 print('Failed to upload %s to %s' % (file, s3url))
 
