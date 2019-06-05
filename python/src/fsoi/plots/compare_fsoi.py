@@ -124,6 +124,7 @@ def compare_fsoi_main():
             for single_platform in tmp.index:
                 index.append((single_platform.upper()))
             tmp.index = pd.CategoricalIndex(data=index, name='PLATFORM')
+            filter_platforms_from_data(tmp, platform)
             tmpdf.append(tmp)
 
         df = pd.concat(tmpdf, axis=1, sort=True)

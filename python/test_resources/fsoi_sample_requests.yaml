@@ -1,6 +1,17 @@
 requests:
   batch:
     focus:
+    - start_date: '20190501'
+      end_date: '20190531'
+      cycles:
+        - '00'
+      interval: 24
+      centers:
+        - GMAO
+        - NRL
+      norm: both
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,IASI
+    pass:
     - start_date: '20190520'
       end_date: '20190522'
       cycles:
@@ -11,7 +22,6 @@ requests:
         - NRL
       norm: both
       platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft
-    pass:
     - start_date: '20190510'
       end_date: '20190531'
       cycles:
