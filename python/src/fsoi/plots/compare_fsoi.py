@@ -9,6 +9,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
+from fsoi.web.batch_wrapper import filter_platforms_from_data
 
 
 def load_centers(rootdir, centers, norm, cycle):
@@ -86,8 +87,7 @@ def compare_fsoi_main():
     parser = ArgumentParser(description='Create and Plot Comparison Observation Impact Statistics',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--rootdir', help='root path to directory', type=str, required=True)
-    parser.add_argument('--platform', help='platforms to plot', type=str, default='full',
-                        choices=['full', 'conv', 'rad'], required=False)
+    parser.add_argument('--platform', help='platforms to plot', type=str, default='full', required=False)
     parser.add_argument('--cycle', help='cycle to process', nargs='+', type=int,
                         choices=[0, 6, 12, 18], required=True)
     parser.add_argument('--norm', help='metric norm', type=str, choices=['dry', 'moist', 'both'],
@@ -115,7 +115,7 @@ def compare_fsoi_main():
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         plotOpt = loi.getPlotOpt(qty, savefigure=savefig, center=None, cycle=cycle)
         plotOpt['figname'] = '%s/plots/compare/%s/%s_%s' % \
-                             (rootdir, platform, plotOpt.get('figname'), cyclestr)
+                             (rootdir, 'full', plotOpt.get('figname'), cyclestr)
         tmpdf = []
         for c, center in enumerate(centers):
             tmp = DF[c][qty]
@@ -129,6 +129,8 @@ def compare_fsoi_main():
         df = pd.concat(tmpdf, axis=1, sort=True)
         platforms.reverse()
         df = df.reindex(platforms)
+        filter_platforms_from_data(df, platform)
+
         loi.comparesummaryplot(df, palette, qty=qty, plotOpt=plotOpt)
 
     if savefig:

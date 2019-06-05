@@ -331,7 +331,12 @@ def create_plots(request, center, objects):
     df = loi.summarymetrics(df)
 
     # filter out the platforms that were not in the request
-    filter_platforms_from_data(df, request)
+    filter_platforms_from_data(df, request['platforms'])
+
+    # do not continue if all platforms have been removed
+    if len(df) == 0:
+        warns.append('Conventional data plots are temporarily unavailable for %s' % center)
+        return
 
     # create the cycle identifier
     cycle_id = ''
@@ -341,7 +346,7 @@ def create_plots(request, center, objects):
         cycle_ints.append(int(c))
 
     # create the plots
-    platform = loi.Platforms(center)
+    platform = loi.Platforms('OnePlatform')
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         try:
             plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center,
@@ -353,16 +358,16 @@ def create_plots(request, center, objects):
             print(e)
 
 
-def filter_platforms_from_data(df, request):
+def filter_platforms_from_data(df, platforms):
     """
     Filter out platforms that were not requested by the user
     :param df: The summary metrics data frame
-    :param request: The user request, includes request['platforms']
+    :param request: {str} A comma-separated list of platforms that should be included
     :return: None - 'df' object is modified
     """
     # create a list of all upper case platform present in the request
     included_platforms = []
-    for platform in request['platforms'].split(','):
+    for platform in platforms.split(','):
         included_platforms.append(platform.upper())
 
     # create a list of all platforms present in the data frame, but not the request
@@ -403,6 +408,10 @@ def process_fsoi_compare(request):
             '--cycle'
         ]
         sys.argv += request['cycles']
+        sys.argv += [
+            '--platform',
+            request['platforms']
+        ]
 
         print('running compare_fsoi_main: %s' % ' '.join(sys.argv))
         compare_fsoi_main()
@@ -559,7 +568,12 @@ def cache_summary_plots_in_s3(hash_value, request):
                 key_list.append(key)
 
     if not key_list:
-        errors.append('Failed to generate plots')
+        # TODO: Remove this once we have conventional platforms available for GMAO, the following
+        #  line should be removed.  This is a hack so that we do not error out when all conventional
+        #  platforms may have been removed, but there may be valuable plots generated from other
+        #  parameters in the request.
+        if 'Conventional data plots are temporarily unavailable for GMAO' not in warns:
+            errors.append('Failed to generate plots')
 
     return key_list
 
