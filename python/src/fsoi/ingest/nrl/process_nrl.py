@@ -295,7 +295,7 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
         lutils.writeHDF('%s/accumbulk.%s' % (output_path, output_file), 'df', df)
         output_files.append('%s/accumbulk.%s' % (output_path, output_file))
 
-        platforms = loi.Platforms('GMAO')
+        platforms = loi.Platforms('OnePlatform')
         df = loi.groupBulkStats(df, platforms)
         lutils.writeHDF('%s/groupbulk.%s' % (output_path, output_file), 'df', df)
         output_files.append('%s/groupbulk.%s' % (output_path, output_file))
@@ -318,26 +318,31 @@ def main():
     # setup the argument parser
     parser = ArgumentParser(description='Process NRL file',
                             formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--input', help='Raw NRL file', type=str, required=True)
-    parser.add_argument('-o', '--output', help='Processed NRL HDF file', type=str, required=True)
-    parser.add_argument('-a', '--adate', help='analysis date to process', metavar='YYYYMMDDHH',
+    parser.add_argument('-d', '--date', help='analysis date to process', metavar='YYYYMMDDHH',
                         required=True)
     args = parser.parse_args()
 
-    # extract command line parameters
-    input_file = args.input
-    output_file = args.output.split('/')[-1]
-    output_path = '/'.join(args.output.split('/')[0:-1])
-    date = args.adate
+    # prepare the working directory
+    # prepare the processing parameters
+    date = args.date
+    work_dir = '/tmp/work/nrl/%s' % date
+    os.makedirs(work_dir, exist_ok=True)
+    os.chdir(work_dir)
+    input_file = download_from_s3('s3://fsoi-navy-ingest/obimpact_gemops_%s.bz2' % date)
+    output_file = 'NRL.dry.%s.h5' % date
 
     # process the data
-    output_files = process_nrl(input_file, output_path, output_file, date)
+    output_files = process_nrl(input_file, work_dir, output_file, date)
     if not output_files:
         log.error('Error processing file: %s' % input_file)
     else:
-        log.info('Output files:')
+        log.info('Uploading files to S3:')
         for file in output_files:
-            log.info(file)
+            s3url = 's3://fsoi/intercomp/hdf5/NRL/%s' % file.split('/')[-1]
+            print('%s -> %s' % (file, s3url))
+            uploaded = upload_to_s3(file, s3url)
+            if not uploaded:
+                print('Failed to upload %s to %s' % (file, s3url))
 
 
 def prepare_workspace():

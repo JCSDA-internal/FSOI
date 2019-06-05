@@ -290,7 +290,7 @@ def process_gmao(norm, date):
     if not upload_to_s3(of, s3_template % of.split('/')[-1]):
         log.error('Failed to upload file to S3: %s' % of)
 
-    platforms = loi.Platforms('GMAO')
+    platforms = loi.Platforms('OnePlatform')
     df = loi.groupBulkStats(df, platforms)
     of = '%s/groupbulk.%s' % (work_dir, out_file)
     out_file_list.append(of)
