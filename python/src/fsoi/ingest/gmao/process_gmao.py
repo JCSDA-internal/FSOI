@@ -26,6 +26,7 @@ class ODS:
         try:
             self.filename = filename
             self.file_ = Dataset(filename, 'r')
+            self.file_.set_auto_mask(False)
             self.qcexcl = None
             self.xvec = []
             self.kx = []
@@ -225,11 +226,6 @@ def process_gmao(norm, date):
         # TODO: Request that NASA adds the platform name as a global attribute in the NetCDF file
         #       rather than trying to parse the platform name from the file name.
         platform = file.split('/')[-1].split('.')[3].split('imp3_%s_' % file_norm)[-1].upper()
-
-        # Skip the CONV platform for now
-        # TODO: Fix the bug with processing data from the CONV platform
-        if platform == 'CONV':
-            continue
 
         # read the data from the file
         ods = ODS(file)
