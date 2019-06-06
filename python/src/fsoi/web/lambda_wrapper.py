@@ -96,47 +96,6 @@ def process_here(validated_request, hash_value, client_url, ref_id):
     handler(validated_request)
 
 
-def submit_request_to_batch(request, hash_value, client_url, ref_id):
-    """
-    Submit a new request to run in AWS batch
-    :param request: All of the request parameters
-    :param hash_value: A hash of the request
-    :param client_url: A URL to contact the client
-    :param ref_id: A text marker in the CloudWatch Logs, user can include as ref for debugging
-    :return: None
-    """
-    # get a batch client
-    batch = boto3.client('batch')
-
-    # attempt to submit the batch job
-    # TODO: jobQueue and jobDefinition should be environment variables
-    res = batch.submit_job(
-        jobName=hash_value,
-        jobQueue='fsoi_queue',
-        jobDefinition='fsoi_job:11',
-        parameters={'request': json.dumps(request)}
-    )
-    submitted = res['ResponseMetadata']['HTTPStatusCode'] == 200
-
-    # if submitted successfully, add the request to the DB and send status to client
-    if submitted:
-        job = {
-            'req_hash': hash_value,
-            'status_id': 'PENDING',
-            'message': 'Pending',
-            'progress': '0',
-            'connections': [client_url],
-            'req_obj': json.dumps(request)
-        }
-        RequestDao.add_request(job)
-        ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
-
-    # otherwise, notify the client of an error
-    else:
-        error_message = 'Error processing request. %s' % ref_id
-        ApiGatewaySender.send_message_to_ws_client(client_url, error_message)
-
-
 def send_status_to_client(job, client_url):
     """
     Send the current status of the job to a client
