@@ -12,7 +12,7 @@ from fsoi.web.serverless_tools import hash_request, get_reference_id, create_res
     create_error_response_body, RequestDao, ApiGatewaySender
 from fsoi.stats import lib_obimpact as loi
 from fsoi.stats import lib_utils as lutils
-
+from fsoi import log
 
 # List to hold errors and warnings encountered during processing
 errors = []
@@ -315,7 +315,7 @@ def create_plots(request, center, objects):
     # read all of the files
     ddf = {}
     for (i, file) in enumerate(files):
-        ddf[i] = lutils.readHDF(file, 'df')
+        ddf[i] = aggregate_by_platform(lutils.readHDF(file, 'df'))
 
     # concatenate the group bulk data and save to a pickle
     concatenated = pd.concat(ddf, axis=0)
@@ -346,16 +346,73 @@ def create_plots(request, center, objects):
         cycle_ints.append(int(c))
 
     # create the plots
-    platform = loi.Platforms('OnePlatform')
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         try:
             plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center,
-                                          savefigure=True, platform=platform, domain='Global')
+                                          savefigure=True, platform=loi.Platforms('OnePlatform'), domain='Global')
             plot_options['figname'] = '%s/plots/summary/%s/%s_%s_%s' % \
                                       (request['root_dir'], center, center, qty, cycle_id)
             loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
         except Exception as e:
-            print(e)
+            log.error('Failed to generate plots for %s' % qty, e)
+
+
+def aggregate_by_platform(df):
+    """
+    Aggregate all of the data by platform using the unified platform list (e.g. [MODIS_Wind and
+    AMV-MODIS] go under a single index called MODIS Wind).
+    :param df: The original data frame, which will be deleted upon successful completion
+    :return: {pandas.DataFrame} A new data frame with data aggregated by unified platform list
+    """
+    # turn the unified platform list inside-out for quick look up
+    map = {}
+    unified_platforms = loi.Platforms('OnePlatform')
+    for common_platform in unified_platforms:
+        for specific_platform in unified_platforms[common_platform]:
+            map[specific_platform] = common_platform
+        map[common_platform] = common_platform
+
+    # iterate through the rows of the data frame and make a new data array
+    columns = ['TotImp', 'ObCnt', 'ObCntBen', 'ObCntNeu']
+    common_row_map = {}
+    for index, row in df.iterrows():
+        # get the date/time and specific platform from the index
+        dt, specific_platform = index
+
+        # get the common platform name for this row
+        common_platform = map[specific_platform]
+
+        # create the common index
+        common_index = (dt, common_platform)
+
+        # get (or create a new) data row for the common platform name
+        if common_index not in common_row_map:
+            common_row_map[common_index] = [dt, common_platform] + [0] * len(columns)
+        common_row = common_row_map[common_index]
+
+        # sum the values from the row with the new common row
+        for i in range(len(row)):
+            common_row[i+2] += row[i]
+
+    # put the new values into a new values array
+    common_values = []
+    for common_index in common_row_map:
+        common_values.append(common_row_map[common_index][2:])
+
+    # create the new index for the common data frame
+    common_platform_list = []
+    for common_index in common_row_map:
+        common_platform_list.append(common_index[1])
+    levels = [[list(common_row_map)[0][0]], common_platform_list]
+    codes = [[0] * len(common_platform_list), list(range(len(common_platform_list)))]
+    new_index = pd.MultiIndex(levels=levels, codes=codes, names=['DATETIME', 'PLATFORM'])
+    common_df = pd.DataFrame(
+        common_values,
+        index=new_index,
+        columns=columns
+    )
+
+    return common_df
 
 
 def filter_platforms_from_data(df, platforms):
@@ -416,8 +473,8 @@ def process_fsoi_compare(request):
         print('running compare_fsoi_main: %s' % ' '.join(sys.argv))
         compare_fsoi_main()
     except Exception as e:
+        log.error('Failed to create comparison plots', e)
         warns.append('Error creating FSOI comparison plots')
-        print(e)
 
 
 def dates_in_range(start_date, end_date):
