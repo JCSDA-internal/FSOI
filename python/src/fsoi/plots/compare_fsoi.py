@@ -46,10 +46,12 @@ def sort_centers(DF):
     :return:
     """
     # count the number of centers that use each platform
+    map = {}
     platform_count = {}
     for i in range(len(DF)):
         platforms_in_center = DF[i].index.get_level_values('PLATFORM').unique()
         for platform in list(platforms_in_center):
+            map[platform.upper()] = platform
             platform = platform.upper()
             if platform in platform_count:
                 platform_count[platform] += 1
@@ -76,6 +78,10 @@ def sort_centers(DF):
         # add the data frame to the list of data frames
         df.append(DF[i])
 
+    case_sensitive_pref = []
+    for p in pref:
+        case_sensitive_pref.append(map[p])
+
     return df, pref
 
 
@@ -100,7 +106,7 @@ def compare_fsoi_main():
     args = parser.parse_args()
 
     rootdir = args.rootdir
-    platform = args.platform
+    platform_list_csv = args.platform
     cycle = sorted(list(set(args.cycle)))
     norm = args.norm
     savefig = args.savefigure
@@ -124,13 +130,14 @@ def compare_fsoi_main():
             for single_platform in tmp.index:
                 index.append((single_platform.upper()))
             tmp.index = pd.CategoricalIndex(data=index, name='PLATFORM')
-            filter_platforms_from_data(tmp, platform)
+            filter_platforms_from_data(tmp, platform_list_csv)
+            tmp = tmp.reindex(platforms)
             tmpdf.append(tmp)
 
         df = pd.concat(tmpdf, axis=1, sort=True)
         platforms.reverse()
         df = df.reindex(platforms)
-        filter_platforms_from_data(df, platform)
+        filter_platforms_from_data(df, platform_list_csv)
 
         loi.comparesummaryplot(df, palette, qty=qty, plotOpt=plotOpt)
 
