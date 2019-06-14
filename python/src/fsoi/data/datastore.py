@@ -90,7 +90,6 @@ class DataStoreOperation(Thread):
         'save_from_ftp'
     ]
 
-
     def __init__(self, datastore, operation, parameters):
         """
         Create a DataStoreOperation object
@@ -158,7 +157,7 @@ class ThreadedDataStore(DataStore):
     def __init__(self, backing_datastore, thread_pool_size):
         """
         Initialize the thread pool
-        :param backing_datastore: {DataStore} The actual data store object that will be doing the work
+        :param backing_datastore: {DataStore} Data store object that will be doing the actual work
         :param thread_pool_size: {int} The number of threads to run
         """
         self.operations = []

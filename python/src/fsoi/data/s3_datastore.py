@@ -4,7 +4,7 @@ This class will be used to interface with an S3 data store.
 
 import os
 import boto3
-import botocore
+import botocore.exceptions
 import urllib3
 import certifi
 import tempfile
@@ -306,10 +306,11 @@ class S3DataStore(DataStore):
             return False
 
         except botocore.exceptions.ClientError as ce:
+            log.error('Failed to check if data exist', ce)
             return False
 
         except Exception as e:
-            log.error('Failed to check if target exists')
+            log.error('Failed to check if target exists', e)
             return False
 
     def delete(self, target):
@@ -339,11 +340,12 @@ class S3DataStore(DataStore):
 
             # check the response (successful response indicates target exists)
             response_code = response['ResponseMetadata']['HTTPStatusCode']
-            if response_code >= 200 and response_code < 300:
+            if 200 <= response_code < 300:
                 return True
 
             # delete request failed
             return False
+
         except Exception as e:
-            log.error('Failed to delete target: s3://%s/%s' % self.__to_bucket_and_key(target))
+            log.error('Failed to delete target: s3://%s/%s' % self.__to_bucket_and_key(target), e)
             return False

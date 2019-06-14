@@ -6,13 +6,14 @@ H5 files from S3 and create plots using existing functions.
 import sys
 import os
 import json
-import boto3
 import pandas as pd
 from fsoi.web.serverless_tools import hash_request, get_reference_id, create_response_body, \
     create_error_response_body, RequestDao, ApiGatewaySender
 from fsoi.stats import lib_obimpact as loi
 from fsoi.stats import lib_utils as lutils
 from fsoi import log
+from fsoi.data.datastore import ThreadedDataStore
+from fsoi.data.s3_datastore import S3DataStore
 
 # List to hold errors and warnings encountered during processing
 errors = []
@@ -34,7 +35,7 @@ def handler(request):
 
         # send the response to all listeners
         print(json.dumps(response))
-        message_all_clients(hash_value, response)
+        message_all_clients(hash_value, response, sync=True)
     except Exception as e:
         print(e)
         ref_id = get_reference_id(request)
@@ -132,13 +133,14 @@ def process_request(validated_request):
     return create_error_response_body(hash_value, errors, warns)
 
 
-def update_all_clients(req_hash, status_id, message, progress):
+def update_all_clients(req_hash, status_id, message, progress, sync=False):
     """
     Update the DB and send a message to all clients with a new status update
     :param req_hash: The request hash
     :param status_id: [PENDING|RUNNING|SUCCESS|FAIL]
     :param message: Free-form text to be displayed to user
     :param progress: Integer value 0-100; representing percent complete
+    :param sync: {bool} Set to True to send messages synchronously, sent asynchronously be default
     :return: None
     """
     # update the DB
@@ -155,13 +157,16 @@ def update_all_clients(req_hash, status_id, message, progress):
     message_all_clients(req_hash, latest)
 
 
-def message_all_clients(req_hash, message):
+def message_all_clients(req_hash, message, sync=False):
     """
     Send a message to all clients listening to the request
     :param req_hash: The request hash
     :param message: The message
-    :return: Number of clients notified
+    :return: Number of clients we attempted to notify
     """
+    from concurrent.futures import ThreadPoolExecutor
+
+    # get the latest request from the database
     req = RequestDao.get_request(req_hash)
 
     # make sure the message is a string and not a dictionary
@@ -171,11 +176,19 @@ def message_all_clients(req_hash, message):
     # count the number of clients that were sent messages
     sent = 0
 
-    # send all of the clients a message
+    # send all of the clients a message asynchronously
+    futures = []
+    thread_pool = ThreadPoolExecutor(max_workers=20)
     if 'connections' in req:
         for url in req['connections']:
-            if ApiGatewaySender.send_message_to_ws_client(url, message):
-                sent += 1
+            future = thread_pool.submit(ApiGatewaySender.send_message_to_ws_client, url, message)
+            futures.append(future)
+            sent += 1
+
+    # if the caller wants to wait for messages to be sent, then wait for the threads to finish
+    if sync:
+        for future in futures:
+            future.result()
 
     # return the number of messages sent
     return sent
@@ -234,66 +247,65 @@ def download_s3_objects(request):
                     to be downloaded.  The sub lists contain [s3_key, center, norm, date, cycle,
                     downloaded_boolean, local_file]
     """
-    try:
-        bucket = os.environ['DATA_BUCKET']
-        prefix = os.environ['OBJECT_PREFIX']
-        data_dir = request['root_dir'] + '/data'
+    bucket = os.environ['DATA_BUCKET']
+    prefix = os.environ['OBJECT_PREFIX']
+    data_dir = request['root_dir'] + '/data'
 
-        s3 = boto3.client('s3')
+    # get a list of required objects
+    objs = get_s3_object_urls(request)
 
-        objs = get_s3_object_urls(request)
-        s3msgs = []
-        all_data_missing = True
-        for obj in objs:
-            key = obj[0]
+    # create the S3 data store
+    datastore = ThreadedDataStore(S3DataStore(), 20)
 
-            # create the local file name
-            local_dir = data_dir+'/'+key[:key.rfind('/')]+'/'
-            local_file = key[key.rfind('/')+1:]
+    # download all the objects using multi-threaded class
+    for obj in objs:
+        # create the source
+        key = obj[0]
+        source = {'bucket': bucket, 'prefix': prefix, 'name': key}
 
-            # create the local directory if needed
-            if not os.path.exists(local_dir):
-                os.makedirs(local_dir)
+        # create the local file name
+        local_dir = data_dir+'/'+key[:key.rfind('/')]+'/'
+        local_file = key[key.rfind('/')+1:]
 
-            # check to see if we already have the file
-            if os.path.exists(local_dir + local_file):
-                obj.append(True)
-                obj.append('%s/%s' % (local_dir, local_file))
-                continue
+        # start the download
+        datastore.load_to_local_file(source, local_dir + local_file)
 
-            # download the file from S3
-            try:
-                print('Downloading S3 object: s3://%s/%s/%s' % (bucket, prefix, key))
-                s3.download_file(Bucket=bucket, Key=prefix+'/'+key, Filename=local_dir+local_file)
-                if not os.path.exists(local_dir + local_file):
-                    print('Could not download S3 object: s3://%s/%s/%s' % (bucket, prefix, key))
-                    obj.append(False)
-                else:
-                    all_data_missing = False
-                    obj.append(True)
-                    obj.append('%s/%s' % (local_dir, local_file))
-            except Exception as e:
-                tokens = key.split('.')
-                center = tokens[1]
-                norm = tokens[2]
-                date = tokens[3][0:8]
-                cycle = tokens[3][8:]
-                s3msgs.append('Missing data: %s %s %s %sZ' % (center, date, norm, cycle))
-                obj.append(False)
-                print(e)
+    # wait for downloads to finish
+    datastore.join()
 
-        # put the S3 download messages either into errors or warns
-        for msg in s3msgs:
-            if all_data_missing:
-                errors.append(msg)
-            else:
-                warns.append(msg)
+    # check that files were downloaded and prepare a response message
+    s3msgs = []
+    all_data_missing = True
+    for obj in objs:
+        key = obj[0]
 
-        return objs
-    except Exception as e:
-        errors.append('Error downloading data object from S3')
-        print(e)
-        return objs
+        # create the local file name
+        local_dir = data_dir + '/' + key[:key.rfind('/')] + '/'
+        local_file = key[key.rfind('/')+1:]
+
+        # check that the file was downloaded
+        if not os.path.exists(local_dir + local_file):
+            log.warn('Could not download S3 object: s3://%s/%s/%s' % (bucket, prefix, key))
+            obj.append(False)
+            tokens = key.split('.')
+            center = tokens[1]
+            norm = tokens[2]
+            date = tokens[3][0:8]
+            cycle = tokens[3][8:]
+            s3msgs.append('Missing data: %s %s %s %sZ' % (center, date, norm, cycle))
+        else:
+            all_data_missing = False
+            obj.append(True)
+            obj.append('%s%s' % (local_dir, local_file))
+
+    # put the S3 download messages either into errors or warns
+    for msg in s3msgs:
+        if all_data_missing:
+            errors.append(msg)
+        else:
+            warns.append(msg)
+
+    return objs
 
 
 def create_plots(request, center, objects):
@@ -560,8 +572,8 @@ def cache_compare_plots_in_s3(hash_value, request):
         img_dir + '/FracBenObs___CYCLE__.png'
     ]
 
-    # create the s3 client
-    s3 = boto3.client('s3')
+    # create the S3 data store
+    datastore = ThreadedDataStore(S3DataStore(), 20)
 
     # create the cycle identifier
     cycle = ''
@@ -576,8 +588,11 @@ def cache_compare_plots_in_s3(hash_value, request):
         if os.path.exists(filename):
             print('Uploading %s to S3...' % filename)
             key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
-            s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
+            datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
             key_list.append(key)
+
+    # wait for the uploads to finish
+    datastore.join()
 
     return key_list
 
@@ -604,8 +619,8 @@ def cache_summary_plots_in_s3(hash_value, request):
         img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__.png'
     ]
 
-    # create the s3 client
-    s3 = boto3.client('s3')
+    # create the S3 data store
+    datastore = ThreadedDataStore(S3DataStore(), 20)
 
     # create the cycle identifier
     cycle = ''
@@ -621,9 +636,10 @@ def cache_summary_plots_in_s3(hash_value, request):
             if os.path.exists(filename):
                 print('Uploading %s to S3...' % filename)
                 key = hash_value + '/' + filename[filename.rfind('/') + 1:]
-                s3.upload_file(Filename=filename, Bucket=bucket, Key=key)
+                datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
                 key_list.append(key)
 
+    # an empty list of S3 keys indicates that no plots were uploaded or generated
     if not key_list:
         # TODO: Remove this once we have conventional platforms available for GMAO, the following
         #  line should be removed.  This is a hack so that we do not error out when all conventional
@@ -631,6 +647,9 @@ def cache_summary_plots_in_s3(hash_value, request):
         #  parameters in the request.
         if 'Conventional data plots are temporarily unavailable for GMAO' not in warns:
             errors.append('Failed to generate plots')
+
+    # wait for the uploads to finish
+    datastore.join()
 
     return key_list
 
