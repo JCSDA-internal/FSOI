@@ -365,12 +365,12 @@ def aggregate_by_platform(df):
     :return: {pandas.DataFrame} A new data frame with data aggregated by unified platform list
     """
     # turn the unified platform list inside-out for quick look up
-    map = {}
+    platform_to_aggregate_map = {}
     unified_platforms = loi.Platforms('OnePlatform')
     for common_platform in unified_platforms:
         for specific_platform in unified_platforms[common_platform]:
-            map[specific_platform] = common_platform
-        map[common_platform] = common_platform
+            platform_to_aggregate_map[specific_platform] = common_platform
+        platform_to_aggregate_map[common_platform] = common_platform
 
     # iterate through the rows of the data frame and make a new data array
     columns = ['TotImp', 'ObCnt', 'ObCntBen', 'ObCntNeu']
@@ -380,7 +380,7 @@ def aggregate_by_platform(df):
         dt, specific_platform = index
 
         # get the common platform name for this row
-        common_platform = map[specific_platform]
+        common_platform = platform_to_aggregate_map[specific_platform]
 
         # create the common index
         common_index = (dt, common_platform)
@@ -395,14 +395,10 @@ def aggregate_by_platform(df):
             common_row[i+2] += row[i]
 
     # put the new values into a new values array
-    common_values = []
-    for common_index in common_row_map:
-        common_values.append(common_row_map[common_index][2:])
+    common_values = [common_row_map[common_index][2:] for common_index in common_row_map]
 
     # create the new index for the common data frame
-    common_platform_list = []
-    for common_index in common_row_map:
-        common_platform_list.append(common_index[1])
+    common_platform_list = [common_index[1] for common_index in common_row_map]
     levels = [[list(common_row_map)[0][0]], common_platform_list]
     codes = [[0] * len(common_platform_list), list(range(len(common_platform_list)))]
     new_index = pd.MultiIndex(levels=levels, codes=codes, names=['DATETIME', 'PLATFORM'])
