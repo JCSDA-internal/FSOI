@@ -46,12 +46,10 @@ def sort_centers(DF):
     :return:
     """
     # count the number of centers that use each platform
-    map = {}
     platform_count = {}
     for i in range(len(DF)):
         platforms_in_center = DF[i].index.get_level_values('PLATFORM').unique()
         for platform in list(platforms_in_center):
-            map[platform.upper()] = platform
             platform = platform.upper()
             if platform in platform_count:
                 platform_count[platform] += 1
@@ -77,10 +75,6 @@ def sort_centers(DF):
 
         # add the data frame to the list of data frames
         df.append(DF[i])
-
-    case_sensitive_pref = []
-    for p in pref:
-        case_sensitive_pref.append(map[p])
 
     return df, pref
 
