@@ -9,6 +9,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
+from fsoi import log
 
 
 def summary_fsoi_main():
@@ -97,7 +98,7 @@ def summary_fsoi_main():
             rootdir, center, plotOpt.get('figname'), cyclestr)
             loi.summaryplot(df, qty=qty, plotOpt=plotOpt, std=df_std)
         except Exception as e:
-            print(e)
+            log.error('Failed to create summary plot for %s' % qty, e)
 
     if savefig:
         plt.close('all')

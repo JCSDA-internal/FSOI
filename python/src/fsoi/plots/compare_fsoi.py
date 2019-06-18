@@ -100,7 +100,7 @@ def compare_fsoi_main():
     args = parser.parse_args()
 
     rootdir = args.rootdir
-    platform = args.platform
+    platform_list_csv = args.platform
     cycle = sorted(list(set(args.cycle)))
     norm = args.norm
     savefig = args.savefigure
@@ -124,13 +124,14 @@ def compare_fsoi_main():
             for single_platform in tmp.index:
                 index.append((single_platform.upper()))
             tmp.index = pd.CategoricalIndex(data=index, name='PLATFORM')
-            filter_platforms_from_data(tmp, platform)
+            filter_platforms_from_data(tmp, platform_list_csv)
+            tmp = tmp.reindex(platforms)
             tmpdf.append(tmp)
 
         df = pd.concat(tmpdf, axis=1, sort=True)
         platforms.reverse()
         df = df.reindex(platforms)
-        filter_platforms_from_data(df, platform)
+        filter_platforms_from_data(df, platform_list_csv)
 
         loi.comparesummaryplot(df, palette, qty=qty, plotOpt=plotOpt)
 

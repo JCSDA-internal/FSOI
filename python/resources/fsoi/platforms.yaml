@@ -587,6 +587,7 @@ OnePlatform:
   AMSR:
     - AMSRE_GCOM-W1
     - AMSR2_GCOM-W1
+    - AMSR2
   AMSUA:
     - AMSUA_N15
     - AMSUA_NOAA15
@@ -603,11 +604,15 @@ OnePlatform:
   ASCAT Wind:
     - ASCAT_Wind
     - SCATWIND
+    - SCAT_Wind
   ATMS:
     - ATMS_NPP
+    - ATMS_N20
   AVHRR Wind:
     - AVHRR_Wind
     - AMV-AVHRR
+    - AVHRR_METOP-A
+    - AVHRR_N18
   Aircraft:
     - AIREP
     - AMDAR
@@ -615,6 +620,7 @@ OnePlatform:
     - MIL_ACARS
     - Aircraft
     - AIRCRAFT
+    - ASDAR
   Aus Syn:
     - UW_wiIR
   Buoy:
@@ -625,8 +631,11 @@ OnePlatform:
   CrIS:
     - CRIS_NPP
     - CrIS_NPP
+    - CRIS-FSR_N20
   Dropsonde:
     - Dropsonde
+  GAVHR:
+    - GAVHR
   GOES:
     - SNDRD1_G13
     - SNDRD2_G13
@@ -649,6 +658,11 @@ OnePlatform:
     - Geo_Wind
   Ground GPS:
     - GroundGPS
+  GMI:
+    - GMI_GPM
+    - GMI
+  GNSSDELAY:
+    - GNSSDELAY
   HIRS:
     - HIRS4_N18
     - HIRS4_NOAA18
@@ -661,6 +675,7 @@ OnePlatform:
     - HIRS_Metop-A
     - HIRS_METOP-B
     - HIRS_Metop-B
+    - HIRS_METOP-A
   IASI:
     - IASI_METOP-A
     - IASI_Metop-A
@@ -698,6 +713,7 @@ OnePlatform:
   Ozone:
     - Ozone
     - OMI_AURA
+    - OMPS
   PIBAL:
     - PIBAL
     - PILOT
@@ -714,6 +730,12 @@ OnePlatform:
   Radiosonde:
     - Radiosonde
     - RADIOSONDE
+  SAPHIR:
+    - SAPHIR
+  SBUV2:
+    - SBUV2
+  SSMI Wind:
+    - SSMI_Wind
   SSMIS:
     - SSMIS_F17
     - SSMIS_F18
@@ -734,6 +756,7 @@ OnePlatform:
   Synthetic:
     - TCBogus
     - TYBogus
+    - TYBOGUS
   TMI Rain Rate:
     - PCP_TMI_TRMM
     - TMI_TRMM
@@ -746,3 +769,7 @@ OnePlatform:
     - UNKNOWN
   WindSat:
     - WINDSAT
+  wndmi:
+    - wndmi
+  NewUnknown:
+    - ASK_FOR_PLATFORM_NAME

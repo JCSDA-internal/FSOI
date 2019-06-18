@@ -115,9 +115,11 @@ kx:
   244: AVHRR_Wind
   245: Geo_Wind
   246: Geo_Wind
+  247: ASK_FOR_PLATFORM_NAME
   250: Geo_Wind
   252: Geo_Wind
   253: Geo_Wind
+  254: ASK_FOR_PLATFORM_NAME
   257: MODIS_Wind
   258: MODIS_Wind
   259: MODIS_Wind
