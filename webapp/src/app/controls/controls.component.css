@@ -99,3 +99,10 @@
   position : relative;
   top      : 6px;
 }
+
+.help-text
+{
+  color: #FF5722;
+  font-size: 0.9em;
+  font-style: italic;
+}

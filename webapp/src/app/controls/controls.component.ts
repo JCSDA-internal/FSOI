@@ -27,6 +27,9 @@ export class ControlsComponent implements OnInit
   /* a default end date */
   endDate = new Date(2015, 1, 21); /* 2015-FEB-21 */
 
+  /* variable to store the date help HTML */
+  dateHelp = 'assets/date_help.html';
+
   /* cycle options */
   c00z = false;
   c06z = false;
@@ -34,291 +37,13 @@ export class ControlsComponent implements OnInit
   c18z = true;
 
   /* norm options */
-  private norm = {
-    'options': [
-      {'name': 'dry', 'selected': true},
-      {'name': 'moist', 'selected': false},
-      {'name': 'both', 'selected': false}
-    ]
-  };
+  private norm = {};
 
   /* center options */
-  private centers = {
-    'options': [
-      {'name': 'EMC', 'selected': true},
-      {'name': 'GMAO', 'selected': true},
-      {'name': 'NRL', 'selected': true},
-      {'name': 'JMA_adj', 'selected': false},
-      {'name': 'JMA_ens', 'selected': false},
-      {'name': 'MET', 'selected': false},
-      {'name': 'MeteoFr', 'selected': false}
-    ]
-  };
+  private centers = {};
 
   /* platform options */
-  private platforms = {
-    'options': [
-      {'name': 'Radiosonde', 'selected': true},
-      {'name': 'Dropsonde', 'selected': true},
-      {'name': 'Ship', 'selected': true},
-      {'name': 'Buoy', 'selected': true},
-      {'name': 'Land Surface', 'selected': true},
-      {'name': 'Aircraft', 'selected': true},
-      {'name': 'PIBAL', 'selected': true},
-      {'name': 'GPSRO', 'selected': true},
-      {'name': 'Profiler Wind', 'selected': true},
-      {'name': 'NEXRAD Wind', 'selected': true},
-      {'name': 'Geo Wind', 'selected': true},
-      {'name': 'MODIS Wind', 'selected': true},
-      {'name': 'AVHRR Wind', 'selected': true},
-      {'name': 'ASCAT Wind', 'selected': true},
-      {'name': 'RAPIDSCAT Wind', 'selected': true},
-      {'name': 'Ozone', 'selected': true},
-      {'name': 'TMI Rain Rate', 'selected': true},
-      {'name': 'Synthetic', 'selected': true},
-      {'name': 'AIRS', 'selected': true},
-      {'name': 'AMSUA', 'selected': true},
-      {'name': 'MHS', 'selected': true},
-      {'name': 'ATMS', 'selected': true},
-      {'name': 'CrIS', 'selected': true},
-      {'name': 'HIRS', 'selected': true},
-      {'name': 'IASI', 'selected': true},
-      {'name': 'Seviri', 'selected': true},
-      {'name': 'GOES', 'selected': true},
-      {'name': 'SSMIS', 'selected': true},
-      {'name': 'UNKNOWN', 'selected': true}
-    ],
-    'EMC': [
-      {'name': 'Radiosonde', 'selected': true},
-      {'name': 'Dropsonde', 'selected': true},
-      {'name': 'Ship', 'selected': true},
-      {'name': 'Buoy', 'selected': true},
-      {'name': 'Land Surface', 'selected': true},
-      {'name': 'Aircraft', 'selected': true},
-      {'name': 'PIBAL', 'selected': true},
-      {'name': 'GPSRO', 'selected': true},
-      {'name': 'Profiler Wind', 'selected': true},
-      {'name': 'NEXRAD Wind', 'selected': true},
-      {'name': 'Geo Wind', 'selected': true},
-      {'name': 'MODIS Wind', 'selected': true},
-      {'name': 'AVHRR Wind', 'selected': true},
-      {'name': 'ASCAT Wind', 'selected': true},
-      {'name': 'RAPIDSCAT Wind', 'selected': true},
-      {'name': 'Ozone', 'selected': true},
-      {'name': 'TMI Rain Rate', 'selected': true},
-      {'name': 'Synthetic', 'selected': true},
-      {'name': 'AIRS', 'selected': true},
-      {'name': 'AMSUA', 'selected': true},
-      {'name': 'MHS', 'selected': true},
-      {'name': 'ATMS', 'selected': true},
-      {'name': 'CrIS', 'selected': true},
-      {'name': 'HIRS', 'selected': true},
-      {'name': 'IASI', 'selected': true},
-      {'name': 'Seviri', 'selected': true},
-      {'name': 'GOES', 'selected': true},
-      {'name': 'SSMIS', 'selected': true},
-      {'name': 'UNKNOWN', 'selected': true}
-    ],
-    'GMAO': [
-      {'name': 'Radiosonde', 'selected': false},
-      {'name': 'Dropsonde', 'selected': false},
-      {'name': 'Ship', 'selected': false},
-      {'name': 'Buoy', 'selected': false},
-      {'name': 'Land Surface', 'selected': false},
-      {'name': 'Aircraft', 'selected': false},
-      {'name': 'PIBAL', 'selected': false},
-      {'name': 'GPSRO', 'selected': false},
-      {'name': 'Profiler Wind', 'selected': false},
-      {'name': 'NEXRAD Wind', 'selected': false},
-      {'name': 'Geo Wind', 'selected': false},
-      {'name': 'MODIS Wind', 'selected': false},
-      {'name': 'AVHRR Wind', 'selected': false},
-      {'name': 'ASCAT Wind', 'selected': false},
-      {'name': 'RAPIDSCAT Wind', 'selected': false},
-      {'name': 'Ozone', 'selected': false},
-      {'name': 'TMI Rain Rate', 'selected': false},
-      {'name': 'Synthetic', 'selected': false},
-      {'name': 'AIRS', 'selected': false},
-      {'name': 'AMSUA', 'selected': false},
-      {'name': 'MHS', 'selected': false},
-      {'name': 'ATMS', 'selected': false},
-      {'name': 'CrIS', 'selected': false},
-      {'name': 'HIRS', 'selected': false},
-      {'name': 'IASI', 'selected': false},
-      {'name': 'Seviri', 'selected': false},
-      {'name': 'GOES', 'selected': false},
-      {'name': 'SSMIS', 'selected': false}
-    ],
-    'NRL': [
-      {'name': 'Radiosonde', 'selected': false},
-      {'name': 'Dropsonde', 'selected': false},
-      {'name': 'Ship', 'selected': false},
-      {'name': 'Buoy', 'selected': false},
-      {'name': 'Land Surface', 'selected': false},
-      {'name': 'Aircraft', 'selected': false},
-      {'name': 'PIBAL', 'selected': false},
-      {'name': 'GPSRO', 'selected': false},
-      {'name': 'Profiler Wind', 'selected': false},
-      {'name': 'NEXRAD Wind', 'selected': false},
-      {'name': 'Geo Wind', 'selected': false},
-      {'name': 'MODIS Wind', 'selected': false},
-      {'name': 'AVHRR Wind', 'selected': false},
-      {'name': 'ASCAT Wind', 'selected': false},
-      {'name': 'RAPIDSCAT Wind', 'selected': false},
-      {'name': 'Ozone', 'selected': false},
-      {'name': 'TMI Rain Rate', 'selected': false},
-      {'name': 'Synthetic', 'selected': false},
-      {'name': 'AIRS', 'selected': false},
-      {'name': 'AMSUA', 'selected': false},
-      {'name': 'MHS', 'selected': false},
-      {'name': 'ATMS', 'selected': false},
-      {'name': 'CrIS', 'selected': false},
-      {'name': 'HIRS', 'selected': false},
-      {'name': 'IASI', 'selected': false},
-      {'name': 'Seviri', 'selected': false},
-      {'name': 'GOES', 'selected': false},
-      {'name': 'SSMIS', 'selected': false},
-      {'name': 'LEO-GEO', 'selected': false},
-      {'name': 'WindSat', 'selected': false},
-      {'name': 'R/S AMV', 'selected': false},
-      {'name': 'Aus Syn', 'selected': false},
-      {'name': 'UAS', 'selected': false},
-      {'name': 'TPW', 'selected': false},
-      {'name': 'PRH', 'selected': false}
-    ],
-    'JMA_adj': [
-      {'name': 'Radiosonde', 'selected': false},
-      {'name': 'Dropsonde', 'selected': false},
-      {'name': 'Ship', 'selected': false},
-      {'name': 'Buoy', 'selected': false},
-      {'name': 'Land Surface', 'selected': false},
-      {'name': 'Aircraft', 'selected': false},
-      {'name': 'PIBAL', 'selected': false},
-      {'name': 'GPSRO', 'selected': false},
-      {'name': 'Profiler Wind', 'selected': false},
-      {'name': 'NEXRAD Wind', 'selected': false},
-      {'name': 'Geo Wind', 'selected': false},
-      {'name': 'MODIS Wind', 'selected': false},
-      {'name': 'AVHRR Wind', 'selected': false},
-      {'name': 'ASCAT Wind', 'selected': false},
-      {'name': 'RAPIDSCAT Wind', 'selected': false},
-      {'name': 'Ozone', 'selected': false},
-      {'name': 'TMI Rain Rate', 'selected': false},
-      {'name': 'Synthetic', 'selected': false},
-      {'name': 'AIRS', 'selected': false},
-      {'name': 'AMSUA', 'selected': false},
-      {'name': 'MHS', 'selected': false},
-      {'name': 'ATMS', 'selected': false},
-      {'name': 'CrIS', 'selected': false},
-      {'name': 'HIRS', 'selected': false},
-      {'name': 'IASI', 'selected': false},
-      {'name': 'Seviri', 'selected': false},
-      {'name': 'GOES', 'selected': false},
-      {'name': 'SSMIS', 'selected': false},
-      {'name': 'LEO-GEO', 'selected': false},
-      {'name': 'MTSAT', 'selected': false},
-      {'name': 'MVIRI', 'selected': false},
-      {'name': 'AMSR', 'selected': false}
-    ],
-    'JMA_ens': [
-      {'name': 'Radiosonde', 'selected': false},
-      {'name': 'Dropsonde', 'selected': false},
-      {'name': 'Ship', 'selected': false},
-      {'name': 'Buoy', 'selected': false},
-      {'name': 'Land Surface', 'selected': false},
-      {'name': 'Aircraft', 'selected': false},
-      {'name': 'PIBAL', 'selected': false},
-      {'name': 'GPSRO', 'selected': false},
-      {'name': 'Profiler Wind', 'selected': false},
-      {'name': 'NEXRAD Wind', 'selected': false},
-      {'name': 'Geo Wind', 'selected': false},
-      {'name': 'MODIS Wind', 'selected': false},
-      {'name': 'AVHRR Wind', 'selected': false},
-      {'name': 'ASCAT Wind', 'selected': false},
-      {'name': 'RAPIDSCAT Wind', 'selected': false},
-      {'name': 'Ozone', 'selected': false},
-      {'name': 'TMI Rain Rate', 'selected': false},
-      {'name': 'Synthetic', 'selected': false},
-      {'name': 'AIRS', 'selected': false},
-      {'name': 'AMSUA', 'selected': false},
-      {'name': 'MHS', 'selected': false},
-      {'name': 'ATMS', 'selected': false},
-      {'name': 'CrIS', 'selected': false},
-      {'name': 'HIRS', 'selected': false},
-      {'name': 'IASI', 'selected': false},
-      {'name': 'Seviri', 'selected': false},
-      {'name': 'GOES', 'selected': false},
-      {'name': 'SSMIS', 'selected': false},
-      {'name': 'LEO-GEO', 'selected': false},
-      {'name': 'MTSAT', 'selected': false},
-      {'name': 'MVIRI', 'selected': false},
-      {'name': 'AMSR', 'selected': false}
-    ],
-    'MET': [
-      {'name': 'Radiosonde', 'selected': false},
-      {'name': 'Dropsonde', 'selected': false},
-      {'name': 'Ship', 'selected': false},
-      {'name': 'Buoy', 'selected': false},
-      {'name': 'Land Surface', 'selected': false},
-      {'name': 'Aircraft', 'selected': false},
-      {'name': 'PIBAL', 'selected': false},
-      {'name': 'GPSRO', 'selected': false},
-      {'name': 'Profiler Wind', 'selected': false},
-      {'name': 'NEXRAD Wind', 'selected': false},
-      {'name': 'Geo Wind', 'selected': false},
-      {'name': 'MODIS Wind', 'selected': false},
-      {'name': 'AVHRR Wind', 'selected': false},
-      {'name': 'ASCAT Wind', 'selected': false},
-      {'name': 'RAPIDSCAT Wind', 'selected': false},
-      {'name': 'Ozone', 'selected': false},
-      {'name': 'TMI Rain Rate', 'selected': false},
-      {'name': 'Synthetic', 'selected': false},
-      {'name': 'AIRS', 'selected': false},
-      {'name': 'AMSUA', 'selected': false},
-      {'name': 'MHS', 'selected': false},
-      {'name': 'ATMS', 'selected': false},
-      {'name': 'CrIS', 'selected': false},
-      {'name': 'HIRS', 'selected': false},
-      {'name': 'IASI', 'selected': false},
-      {'name': 'Seviri', 'selected': false},
-      {'name': 'GOES', 'selected': false},
-      {'name': 'SSMIS', 'selected': false},
-      {'name': 'LEO-GEO', 'selected': false},
-      {'name': 'MTSAT', 'selected': false},
-      {'name': 'MVIRI', 'selected': false},
-      {'name': 'Ground GPS', 'selected': false}
-    ],
-    'MeteoFr': [
-      {'name': 'Radiosonde', 'selected': false},
-      {'name': 'Dropsonde', 'selected': false},
-      {'name': 'Ship', 'selected': false},
-      {'name': 'Buoy', 'selected': false},
-      {'name': 'Land Surface', 'selected': false},
-      {'name': 'Aircraft', 'selected': false},
-      {'name': 'PIBAL', 'selected': false},
-      {'name': 'GPSRO', 'selected': false},
-      {'name': 'Profiler Wind', 'selected': false},
-      {'name': 'GOES Wind', 'selected': false},
-      {'name': 'GMS Wind', 'selected': false},
-      {'name': 'Misc SatWind', 'selected': false},
-      {'name': 'METEOSAT Wind', 'selected': false},
-      {'name': 'MODIS Wind', 'selected': false},
-      {'name': 'AVHRR Wind', 'selected': false},
-      {'name': 'ASCAT Wind', 'selected': false},
-      {'name': 'Synthetic', 'selected': false},
-      {'name': 'AIRS', 'selected': false},
-      {'name': 'AMSUA', 'selected': false},
-      {'name': 'MHS', 'selected': false},
-      {'name': 'ATMS', 'selected': false},
-      {'name': 'CrIS', 'selected': false},
-      {'name': 'HIRS', 'selected': false},
-      {'name': 'IASI', 'selected': false},
-      {'name': 'GOES', 'selected': false},
-      {'name': 'Seviri', 'selected': false},
-      {'name': 'SSMIS', 'selected': false},
-      {'name': 'Ground GPS', 'selected': false}
-    ]
-  };
+  private platforms = {};
 
   /* default summaries */
   normSummary = '(0) No selections made';
@@ -369,9 +94,53 @@ export class ControlsComponent implements OnInit
    */
   ngOnInit()
   {
+    this.loadOptions();
+    this.loadDateHelp();
+    this.route.queryParams.subscribe(this.queryParamsChanged.bind(this));
+  }
+
+
+  /**
+   * Make an HTTP GET request to the assets/options.json file
+   */
+  loadOptions(): void
+  {
+    this.http.get('assets/options.json').subscribe(this.optionsLoaded.bind(this));
+  }
+
+
+  /**
+   * We have received data from the options.json file, update the member variables in this class
+   *
+   * @param data Contains the options data
+   */
+  optionsLoaded(data): void
+  {
+    this.centers = data.centers;
+    this.platforms = data.platforms;
+    this.norm = data.norm;
     this.updateSummaries();
     this.validateRequest();
-    this.route.queryParams.subscribe(this.queryParamsChanged.bind(this));
+  }
+
+
+  /**
+   * Load date help
+   */
+  loadDateHelp(): void
+  {
+    this.http.get('assets/date_help.html', {'responseType': 'text'}).subscribe(this.dateHelpLoaded.bind(this));
+  }
+
+
+  /**
+   * Put the date help into the right variable to be displayed
+   *
+   * @param data The HTML containing help on dates
+   */
+  dateHelpLoaded(data): void
+  {
+    this.dateHelp = data;
   }
 
 
@@ -485,16 +254,6 @@ export class ControlsComponent implements OnInit
         break;
       case 'platform':
         data = this.platforms;
-        let center = 'EMC';
-        for (let i = 0; i < this.centers.options.length; i++)
-        {
-          if (this.centers.options[i].selected === true)
-          {
-            center = this.centers.options[i].name;
-            break;
-          }
-        }
-        this.platforms['options'] = this.platforms[center];
         break;
     }
 
@@ -862,6 +621,17 @@ export class ControlsComponent implements OnInit
   }
 
 
+  /**
+   * Show help selecting dates
+   */
+  showDateHelp(): void
+  {
+    this.dialog.open(MessageComponent, {
+      width: '850px',
+      height: '425px',
+      data: {'title': 'Date Selection Help', 'message': this.dateHelp, 'showCopyButton': false}
+    });
+  }
   /**
    * Call setTimeout since it is not available to angular
    */

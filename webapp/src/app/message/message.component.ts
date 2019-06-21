@@ -14,6 +14,9 @@ export class MessageComponent implements OnInit
   /* message text */
   message = '';
 
+  /* show copy button flag */
+  showCopyButton = true;
+
 
   /**
    * Constructor
@@ -25,6 +28,10 @@ export class MessageComponent implements OnInit
   {
     this.title = data['title'];
     this.message = data['message'];
+    if (data['showCopyButton'] !== undefined)
+    {
+      this.showCopyButton = Boolean(data['showCopyButton']);
+    }
   }
 
 

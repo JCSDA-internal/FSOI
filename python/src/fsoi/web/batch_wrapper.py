@@ -335,7 +335,7 @@ def create_plots(request, center, objects):
 
     # do not continue if all platforms have been removed
     if len(df) == 0:
-        warns.append('Conventional data plots are temporarily unavailable for %s' % center)
+        warns.append('Selected platforms are unavailable for %s' % center)
         return
 
     # create the cycle identifier
