@@ -5,6 +5,7 @@ These are generic data store classes and methods
 import time
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import wait
 from fsoi import log
 
 
@@ -75,7 +76,7 @@ class DataStore:
         raise NotImplementedError('delete not implemented')
 
 
-class DataStoreOperation(Thread):
+class DataStoreOperation:
     """
     This class will perform a data store operation on a separate thread
     """
@@ -126,7 +127,7 @@ class DataStoreOperation(Thread):
         self.started = True
 
         # get the function
-        function = self.datastore.__getattribute__(self.operation)
+        function = getattr(self.datastore, self.operation)
 
         # execute the function
         try:
@@ -163,21 +164,15 @@ class ThreadedDataStore(DataStore):
         self.operations = []
         self.datastore = backing_datastore
         self.thread_pool = ThreadPoolExecutor(max_workers=thread_pool_size)
+        self.futures = []
 
     def join(self):
         """
         Wait for all operations to finish
         :return: None
         """
-        running = True
-        while running:
-            running = False
-            for operation in self.operations:
-                if not operation.finished:
-                    running = True
-
-            if running:
-                time.sleep(0.1)
+        wait(self.futures)
+        self.futures.clear()
 
     def save_from_http(self, url, target):
         """
@@ -188,7 +183,7 @@ class ThreadedDataStore(DataStore):
         """
         operation = DataStoreOperation(self.datastore, 'save_from_http', [url, target])
         self.operations.append(operation)
-        self.thread_pool.submit(operation.run)
+        self.futures.append(self.thread_pool.submit(operation.run))
 
     def save_from_ftp(self, url, target):
         """
@@ -199,7 +194,7 @@ class ThreadedDataStore(DataStore):
         """
         operation = DataStoreOperation(self.datastore, 'save_from_ftp', [url, target])
         self.operations.append(operation)
-        self.thread_pool.submit(operation.run)
+        self.futures.append(self.thread_pool.submit(operation.run))
 
     def save_from_local_file(self, local_file, target):
         """
@@ -210,7 +205,7 @@ class ThreadedDataStore(DataStore):
         """
         operation = DataStoreOperation(self.datastore, 'save_from_local_file', [local_file, target])
         self.operations.append(operation)
-        self.thread_pool.submit(operation.run)
+        self.futures.append(self.thread_pool.submit(operation.run))
 
     def load_to_local_file(self, source, local_file):
         """
@@ -222,7 +217,7 @@ class ThreadedDataStore(DataStore):
         """
         operation = DataStoreOperation(self.datastore, 'load_to_local_file', [source, local_file])
         self.operations.append(operation)
-        self.thread_pool.submit(operation.run)
+        self.futures.append(self.thread_pool.submit(operation.run))
 
     def list_data_store(self, filters):
         """
@@ -232,7 +227,7 @@ class ThreadedDataStore(DataStore):
         """
         operation = DataStoreOperation(self.datastore, 'list_data_store', [filters])
         self.operations.append(operation)
-        self.thread_pool.submit(operation.run)
+        self.futures.append(self.thread_pool.submit(operation.run))
 
     def data_exist(self, target):
         """
@@ -242,7 +237,7 @@ class ThreadedDataStore(DataStore):
         """
         operation = DataStoreOperation(self.datastore, 'data_exist', [target])
         self.operations.append(operation)
-        self.thread_pool.submit(operation.run)
+        self.futures.append(self.thread_pool.submit(operation.run))
 
     def delete(self, target):
         """
@@ -252,4 +247,4 @@ class ThreadedDataStore(DataStore):
         """
         operation = DataStoreOperation(self.datastore, 'delete', [target])
         self.operations.append(operation)
-        self.thread_pool.submit(operation.run)
+        self.futures.append(self.thread_pool.submit(operation.run))

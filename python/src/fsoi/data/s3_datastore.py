@@ -265,14 +265,7 @@ class S3DataStore(DataStore):
 
             # create a list of S3 keys
             contents = response['Contents']
-            sources = []
-            for item in contents:
-                sources.append({
-                    'bucket': bucket,
-                    'key': item['Key']
-                })
-
-            return sources
+            return [{'bucket': bucket, 'key': item['Key']} for item in contents]
 
         except Exception as e:
             log.error('Failed to list data store', e)
@@ -299,11 +292,7 @@ class S3DataStore(DataStore):
             response = s3_client.head_object(Bucket=bucket, Key=key)
 
             # check the response (successful response indicates target exists)
-            if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                return True
-
-            # target does not exist
-            return False
+            return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
         except botocore.exceptions.ClientError as ce:
             log.error('Failed to check if data exist', ce)

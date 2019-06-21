@@ -19,9 +19,8 @@ def test_datastore_operation():
     """
     list_filter = {'bucket': 'jcsda-scratch', 'prefix': ''}
     operation = DataStoreOperation(S3DataStore(), 'list_data_store', [list_filter])
-    operation.start()
+    operation.run()
     assert operation.started
-    operation.join()
     assert operation.finished
     assert operation.success
     assert isinstance(operation.response, list)
