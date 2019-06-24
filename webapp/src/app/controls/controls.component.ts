@@ -27,6 +27,9 @@ export class ControlsComponent implements OnInit
   /* a default end date */
   endDate = new Date(2015, 1, 21); /* 2015-FEB-21 */
 
+  /* variable to store the date help HTML */
+  dateHelp = 'assets/date_help.html';
+
   /* cycle options */
   c00z = false;
   c06z = false;
@@ -92,6 +95,7 @@ export class ControlsComponent implements OnInit
   ngOnInit()
   {
     this.loadOptions();
+    this.loadDateHelp();
     this.route.queryParams.subscribe(this.queryParamsChanged.bind(this));
   }
 
@@ -108,15 +112,35 @@ export class ControlsComponent implements OnInit
   /**
    * We have received data from the options.json file, update the member variables in this class
    *
-   * @param event Contains the options data
+   * @param data Contains the options data
    */
-  optionsLoaded(event): void
+  optionsLoaded(data): void
   {
-    this.centers = event.centers;
-    this.platforms = event.platforms;
-    this.norm = event.norm;
+    this.centers = data.centers;
+    this.platforms = data.platforms;
+    this.norm = data.norm;
     this.updateSummaries();
     this.validateRequest();
+  }
+
+
+  /**
+   * Load date help
+   */
+  loadDateHelp(): void
+  {
+    this.http.get('assets/date_help.html', {'responseType': 'text'}).subscribe(this.dateHelpLoaded.bind(this));
+  }
+
+
+  /**
+   * Put the date help into the right variable to be displayed
+   *
+   * @param data The HTML containing help on dates
+   */
+  dateHelpLoaded(data): void
+  {
+    this.dateHelp = data;
   }
 
 
@@ -597,6 +621,17 @@ export class ControlsComponent implements OnInit
   }
 
 
+  /**
+   * Show help selecting dates
+   */
+  showDateHelp(): void
+  {
+    this.dialog.open(MessageComponent, {
+      width: '850px',
+      height: '425px',
+      data: {'title': 'Date Selection Help', 'message': this.dateHelp, 'showCopyButton': false}
+    });
+  }
   /**
    * Call setTimeout since it is not available to angular
    */
