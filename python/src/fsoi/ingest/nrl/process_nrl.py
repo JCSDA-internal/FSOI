@@ -11,12 +11,13 @@ from fortranformat import FortranRecordReader
 from fsoi import log
 
 
-def _parse_line(line, kt, kx, fortran_format):
+def _parse_line(line, kt, kx, fortran_format, uknownplats):
     """
     :param line:
     :param kt:
     :param kx:
     :param fortran_format: The fortran format of the line parameter
+    :param uknownplats: List saving unknown platform IDs
     :return:
     """
     # pylint wrongly believes that the FortranRecordReader constructor is not callable
@@ -43,7 +44,7 @@ def _parse_line(line, kt, kx, fortran_format):
     if _skip_ob(instyp, impact):
         return None
 
-    platform, channel = _get_platform_channel(instyp, schar, kx)
+    platform, channel = _get_platform_channel(instyp, schar, kx, uknownplats)
 
     dataout = {
         'platform': platform,
@@ -84,19 +85,26 @@ def _skip_ob(instyp, impact):
     return False
 
 
-def _get_platform_channel(instyp, schar, kx):
+def _get_platform_channel(instyp, schar, kx, ukwnplats):
     """
 
     :param instyp:
     :param schar:
     :param kx:
+    :param uknownplats: List saving unknown platform IDs
     :return:
     """
     channel = -999
+    platform = 'unknown'
 
     schar = schar.upper()
 
-    platform = kx[instyp]
+    try:
+        platform = kx[instyp]
+    except KeyError as e:
+        if int(e.args[0]) not in ukwnplats:
+            ukwnplats.append(int(e.args[0]))
+        return platform, channel
 
     if instyp in [10]:
         if 'BUOY' in schar:
@@ -222,6 +230,12 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
     :param date: {str} Date and time string in the format YYYYMMDDHH
     :return: {list} A list of output files, or None
     """
+
+    sns = boto3.client("sns")
+
+    #list saving unknown platforms IDs
+    uknownplats = []
+
     parsed_date = datetime.strptime(date, '%Y%m%d%H')
 
     # open the raw data file
@@ -249,6 +263,7 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
     line_number = 75
     n_obs = 0
     bufr = []
+
     for line in lines:
 
         line_number += 1
@@ -257,7 +272,7 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
         if isinstance(line, bytes):
             line = line.decode()
 
-        data = _parse_line(line, kt, kx, fortran_format)
+        data = _parse_line(line, kt, kx, fortran_format, uknownplats)
 
         if data is None:
             continue
@@ -304,6 +319,13 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
         return None
 
     log.debug('Total obs = %d' % n_obs)
+
+    if ukwnplats:
+        sns.publish(
+            TopicArn='arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms',
+            Subject='Unknown Platform attribute NRL file',
+            Message='Unknown platform attribute encountered while processing files from NRL. Unknown platform ID(s): ' + ', '.join(str(e) for e in ukwnplats) + ', file timestamp : ' + date
+        )
     return output_files
 
 
@@ -312,6 +334,7 @@ def main():
     Parse command line parameters and run the process_nrl function
     :return: None
     """
+
     from argparse import ArgumentParser
     from argparse import ArgumentDefaultsHelpFormatter
 
