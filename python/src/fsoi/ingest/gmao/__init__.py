@@ -21,7 +21,7 @@ def download_and_process_gmao():
     :return: None
     """
     # read default parameter values from GMAO config file
-    config = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/ingest/gmao/gmao_ingest.yaml'))
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/gmao/gmao_ingest.yaml'))
     lag = config['lag_in_days']
     https_host = config['https_host']
     remote_path = config['remote_path']

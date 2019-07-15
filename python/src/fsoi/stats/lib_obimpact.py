@@ -300,7 +300,7 @@ def Platforms(center):
     :param center: {str} Name of the center
     :return: {dict} A dictionary of platforms for the given center
     """
-    platforms = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/platforms.yaml'))
+    platforms = yaml.full_load(pkgutil.get_data('fsoi', 'platforms.yaml'))
     if center not in platforms:
         log.warn('Unknown center requested: %s' % center)
         return None

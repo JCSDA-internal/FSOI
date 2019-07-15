@@ -240,7 +240,7 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
     fh.close()
 
     # load constant values from a resources file
-    config = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/ingest/nrl/nrl_ingest.yaml'))
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/nrl/nrl_ingest.yaml'))
     fortran_format = config['fortran_format_string']
     kt = config['kt']
     kx = config['kx']

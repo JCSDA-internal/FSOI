@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import numpy as np
+# pylint: disable=E0401
 from emc import emc
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi

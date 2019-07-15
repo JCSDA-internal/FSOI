@@ -195,7 +195,7 @@ class S3DataStore(DataStore):
             return self.data_exist(target)
 
         except Exception as e:
-            log.error('Failed to save data from local file', e)
+            log.error('Failed to save data from local file')
             return False
 
     def load_to_local_file(self, source, local_file):
@@ -228,7 +228,7 @@ class S3DataStore(DataStore):
             return os.path.exists(local_file)
 
         except Exception as e:
-            log.error('Failed to download data to local file', e)
+            log.error('Failed to download data to local file')
 
     def list_data_store(self, filters):
         """
@@ -268,7 +268,7 @@ class S3DataStore(DataStore):
             return [{'bucket': bucket, 'key': item['Key']} for item in contents]
 
         except Exception as e:
-            log.error('Failed to list data store', e)
+            log.error('Failed to list data store')
             return None
 
     def data_exist(self, target):
@@ -295,11 +295,11 @@ class S3DataStore(DataStore):
             return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
         except botocore.exceptions.ClientError as ce:
-            log.error('Failed to check if data exist', ce)
+            log.error('Failed to check if data exist')
             return False
 
         except Exception as e:
-            log.error('Failed to check if target exists', e)
+            log.error('Failed to check if target exists')
             return False
 
     def delete(self, target):
