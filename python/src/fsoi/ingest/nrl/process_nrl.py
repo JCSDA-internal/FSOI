@@ -85,7 +85,7 @@ def _skip_ob(instyp, impact):
     return False
 
 
-def _get_platform_channel(instyp, schar, kx, ukwnplats):
+def _get_platform_channel(instyp, schar, kx, uknownplats):
     """
 
     :param instyp:
@@ -102,8 +102,8 @@ def _get_platform_channel(instyp, schar, kx, ukwnplats):
     try:
         platform = kx[instyp]
     except KeyError as e:
-        if int(e.args[0]) not in ukwnplats:
-            ukwnplats.append(int(e.args[0]))
+        if int(e.args[0]) not in uknownplats:
+            uknownplats.append(int(e.args[0]))
         return platform, channel
 
     if instyp in [10]:
@@ -254,7 +254,7 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
     fh.close()
 
     # load constant values from a resources file
-    config = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/ingest/nrl/nrl_ingest.yaml'))
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/nrl/nrl_ingest.yaml'))
     fortran_format = config['fortran_format_string']
     kt = config['kt']
     kx = config['kx']
@@ -320,11 +320,11 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
 
     log.debug('Total obs = %d' % n_obs)
 
-    if ukwnplats:
+    if uknownplats:
         sns.publish(
-            TopicArn='arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms',
+            TopicArn=config['arnUnknownPlatformsTopic'],
             Subject='Unknown Platform attribute NRL file',
-            Message='Unknown platform attribute encountered while processing files from NRL. Unknown platform ID(s): ' + ', '.join(str(e) for e in ukwnplats) + ', file timestamp : ' + date
+            Message='Unknown platform attribute encountered while processing files from NRL. Unknown platform ID(s): ' + ', '.join(str(e) for e in uknownplats) + ', file timestamp : ' + date
         )
     return output_files
 
@@ -344,10 +344,11 @@ def main():
     parser.add_argument('-d', '--date', help='analysis date to process', metavar='YYYYMMDDHH',
                         required=True)
     args = parser.parse_args()
-
+    
     # prepare the working directory
     # prepare the processing parameters
     date = args.date
+
     work_dir = '/tmp/work/nrl/%s' % date
     os.makedirs(work_dir, exist_ok=True)
     os.chdir(work_dir)

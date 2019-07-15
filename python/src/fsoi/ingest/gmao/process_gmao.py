@@ -202,7 +202,7 @@ def process_gmao(norm, date):
     :return: {list} List of local files
     """
     config = yaml.full_load(pkgutil.get_data(
-        'fsoi', 'resources/fsoi/ingest/gmao/gmao_ingest.yaml'))
+        'fsoi', 'ingest/gmao/gmao_ingest.yaml'))
     kx = config['kx']
     kt = config['kt']
     file_norm = config['norm'][norm]
@@ -275,7 +275,7 @@ def process_gmao(norm, date):
     # send email if unknown platforms ID are encountered while processing GMAO files
     if ukwnplats :
         sns.publish(
-            TopicArn='arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms',
+            TopicArn=config['arnUnknownPlatformsTopic'],
             Subject='Unknown Platform attribute GMAO file',
             Message='Unknown platform attribute encountered while processing files from GMAO. Unknown platform ID(s): ' + ', '.join(str(e) for e in ukwnplats) + ', file timestamp : ' + date
         )

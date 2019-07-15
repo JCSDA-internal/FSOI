@@ -8,6 +8,8 @@ processed_data_bucket: fsoi
 processed_data_prefix: intercomp/hdf5/NRL
 fortran_format_string: i7,f9.3,1x,f8.2,1x,f8.2,1x,f8.2,f9.3,1x,f9.2,1x,f9.2,1x,f9.2,1x,f11.5,1x,i2,1x,i3,4x,i2,4x,i1,3x,i5,2x,a16,a12,4x,i1,2x,i1,3x,i1,1x,e13.6,1x,e13.6,1x,e13.6,1x,e13.6
 platform_information_url: https://www.nrlmry.navy.mil/obsens/navgem/obsens_main_od.html
+arnUnknownPlatformsTopic: arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms
+
 kx:
   1: Land_Surface
   10:
@@ -63,9 +65,9 @@ kx:
   91: GAVHR
   93: UW_wiIR
   101:
-  - Radiosonde
-  - PIBAL
-  - Dropsonde
+   - Radiosonde
+   - PIBAL
+   - Dropsonde
   121: MIL_ACARS
   125: SSMI_PRH
   126: WINDSAT_PRH
