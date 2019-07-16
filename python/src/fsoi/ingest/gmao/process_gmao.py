@@ -201,7 +201,7 @@ def process_gmao(norm, date):
     :param date: {str} Date string in the format YYYYMMDDHH
     :return: {list} List of local files
     """
-    config = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/ingest/gmao/gmao_ingest.yaml'))
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/gmao/gmao_ingest.yaml'))
     kx = config['kx']
     kt = config['kt']
     file_norm = config['norm'][norm]

@@ -5,6 +5,7 @@ Process JMA data
 import os
 from datetime import datetime
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+# pylint: disable=E0401
 from jma import jma
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi

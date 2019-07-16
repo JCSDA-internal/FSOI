@@ -100,7 +100,7 @@ def main():
     :return: None
     """
     # load default values from the resource file
-    config = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/ingest/nrl/nrl_ingest.yaml'))
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/nrl/nrl_ingest.yaml'))
     bucket = config['raw_data_bucket']
     ftp_host = config['ftp_host']
     lag_in_days = config['lag_in_days']

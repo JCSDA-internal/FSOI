@@ -188,7 +188,7 @@ def main():
     from argparse import ArgumentDefaultsHelpFormatter as HelpFormatter
 
     # get the default values from the config file
-    config = yaml.full_load(pkgutil.get_data('fsoi', 'resources/fsoi/ingest/gmao/gmao_ingest.yaml'))
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/gmao/gmao_ingest.yaml'))
     https_host = config['https_host']
     remote_path = config['remote_path']
     bucket = config['raw_data_bucket']
