@@ -481,7 +481,7 @@ def process_fsoi_compare(request):
         print('running compare_fsoi_main: %s' % ' '.join(sys.argv))
         compare_fsoi_main()
     except Exception as e:
-        log.error('Failed to create comparison plots', e)
+        log.error('Failed to create comparison plots')
         warns.append('Error creating FSOI comparison plots')
 
 

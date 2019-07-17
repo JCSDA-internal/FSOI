@@ -13,7 +13,7 @@ setup(
             'fsoi.ingest.met', 'fsoi.ingest.meteofr', 'fsoi.ingest.nrl', 'fsoi.plots', 'fsoi.stats',
             'fsoi.web'],
   requires=['pyyaml', 'boto3', 'botocore', 'certifi', 'matplotlib', 'numpy', 'pandas', 'requests',
-            'urllib3', 'pyyaml', 'fortranformat', 'netCDF4'],
+            'urllib3', 'tables', 'fortranformat', 'netCDF4'],
   package_dir={'fsoi': 'src/fsoi'},
   package_data={
     'fsoi': [
