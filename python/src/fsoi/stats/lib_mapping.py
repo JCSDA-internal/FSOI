@@ -1,7 +1,7 @@
 """
 lib_mapping.py contains mapping related functions:
 """
-
+# pylint: disable=E0611,E0401
 from mpl_toolkits.basemap import Basemap as _Basemap
 
 
