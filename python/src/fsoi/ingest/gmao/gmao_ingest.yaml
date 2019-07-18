@@ -4,6 +4,7 @@ lag_in_days: 3
 https_host: portal.nccs.nasa.gov
 remote_path: /datashare/gmao_ops/pub/fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d
 raw_data_bucket: fsoi-gmao-ingest
+arnUnknownPlatformsTopic: arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms
 norm:
   dry: txe
   moist: twe
@@ -115,11 +116,11 @@ kx:
   244: AVHRR_Wind
   245: Geo_Wind
   246: Geo_Wind
-  247: ASK_FOR_PLATFORM_NAME
+  ##247: ASK_FOR_PLATFORM_NAME
   250: Geo_Wind
   252: Geo_Wind
   253: Geo_Wind
-  254: ASK_FOR_PLATFORM_NAME
+  ##254: ASK_FOR_PLATFORM_NAME
   257: MODIS_Wind
   258: MODIS_Wind
   259: MODIS_Wind

@@ -209,11 +209,15 @@ def process_gmao(norm, date):
     dt = datetime.strptime(date, '%Y%m%d%H')
 
     work_dir = prepare_workspace()
-    s3_prefix = 's3://%s/Y%s/M%s/D%s/H%s/' % (input_bucket, date[0:4], date[4:6], date[6:8], date[8:10])
+    s3_prefix = 's3://%s/Y%s/M%s/D%s/H%s/' % (
+        input_bucket, date[0:4], date[4:6], date[6:8], date[8:10])
     file_list = download_from_s3(s3_prefix, work_dir)
 
     n_obs = 0
     bufr = []
+    # create list of unknown platforms
+    ukwnplats = []
+
     for file in file_list:
 
         # skip if the norm is not in the file name
@@ -225,7 +229,8 @@ def process_gmao(norm, date):
 
         # TODO: Request that NASA adds the platform name as a global attribute in the NetCDF file
         #       rather than trying to parse the platform name from the file name.
-        platform = file.split('/')[-1].split('.')[3].split('imp3_%s_' % file_norm)[-1].upper()
+        platform = file.split(
+            '/')[-1].split('.')[3].split('imp3_%s_' % file_norm)[-1].upper()
 
         # read the data from the file
         ods = ODS(file)
@@ -236,10 +241,21 @@ def process_gmao(norm, date):
         n_obs += ods.n_obs
         log.debug('platform = %s, nobs = %d' % (platform, ods.n_obs))
 
+        # create client boto3 for unknown platform error raising
+        sns = boto3.client("sns")
+
         # iterate over each observation
         for o in range(ods.n_obs):
-            plat = kx[ods.kx[o]] if platform in ['CONV'] else platform
+
+            try:
+                plat = kx[ods.kx[o]] if platform in ['CONV'] else platform
+            except KeyError as e:
+                platid = int(e.args[0])
+                if platid not in ukwnplats:
+                    ukwnplats.append(platid)
+
             obtype = kt[ods.kt[o]][0]
+
             channel = -999 if platform in ['CONV'] else np.int(ods.lev[o])
             lon = ods.lon[o] if ods.lon[o] >= 0.0 else ods.lon[o] + 360.0
             lat = ods.lat[o]
@@ -252,7 +268,16 @@ def process_gmao(norm, date):
             imp = ods.xvec[o]
             omf = ods.omf[o]
             oberr = -999.  # GMAO does not provide obs error in the impact ODS files
-            bufr.append([plat, obtype, channel, lon, lat, lev, imp, omf, oberr])
+            bufr.append([plat, obtype, channel, lon,
+                         lat, lev, imp, omf, oberr])
+
+    # send email if unknown platforms ID are encountered while processing GMAO files
+    if ukwnplats :
+        sns.publish(
+            TopicArn=config['arnUnknownPlatformsTopic'],
+            Subject='Unknown Platform attribute GMAO file',
+            Message='Unknown platform attribute encountered while processing files from GMAO. Unknown platform ID(s): ' + ', '.join(str(e) for e in ukwnplats) + ', file timestamp : ' + date
+        )
 
     log.debug('Total obs used in %s = %d' % (date, n_obs))
 
@@ -302,7 +327,8 @@ def main():
 
     :return:
     """
-    parser = ArgumentParser(description='Process GMAO data', formatter_class=FormatHelper)
+    parser = ArgumentParser(
+        description='Process GMAO data', formatter_class=FormatHelper)
     parser.add_argument('-d', '--date', help='analysis date to process', metavar='YYYYMMDDHH',
                         required=True)
     parser.add_argument('-n', '--norm', help='norm to process', type=str, default='moist',
