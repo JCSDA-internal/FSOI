@@ -9,6 +9,7 @@ import fsoi.stats.lib_obimpact as loi
 from datetime import datetime
 from fortranformat import FortranRecordReader
 from fsoi import log
+import pandas as pd
 
 
 def _parse_line(line, kt, kx, fortran_format):
@@ -25,18 +26,27 @@ def _parse_line(line, kt, kx, fortran_format):
     datain = line_reader.read(line)
 
     ob = datain[1]
-    omf = datain[4]
+    omf = datain[4]                                     #XIV
     oberr = datain[5]
     lat = datain[7]
     lon = datain[8]
     lev = datain[9]
     obtyp = datain[10]
     instyp = datain[11]
-    irflag = datain[13]
+    ichk = datain[13]                                 #ICHK
     schar = str(datain[15]) + '  ' + str(datain[16])
-    num_reject = datain[19]
+    rej = datain[19]                             #REJ
     resid = datain[22]
     sens = datain[23]
+
+    # Additional data for plot_gps_impact.py
+    c_pf = datain[15]
+    t_bk = datain[3]
+    idt = datain[14]
+    c_db = datain[16]
+    bk = datain[2]
+
+
 
     impact = omf * sens
 
@@ -56,7 +66,15 @@ def _parse_line(line, kt, kx, fortran_format):
         'omf': omf,
         'ob': ob,
         'oberr': oberr,
-        'oma': resid
+        'oma': resid,
+        'c_pf': c_pf,
+        't_bk': t_bk,
+        'idt': idt,
+        'c_db': c_db,
+        'bk': bk,
+        'ichk': ichk,
+        'rej': rej,
+        'sens': sens
     }
 
     return dataout
@@ -249,7 +267,11 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
     line_number = 75
     n_obs = 0
     bufr = []
-    for line in lines:
+    bufr2 = []
+
+    linetemp = lines[0:5000]
+
+    for line in linetemp:
 
         line_number += 1
 
@@ -271,17 +293,36 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
         lat = data['lat']
         lev = data['lev']
         imp = data['impact']
-        omf = data['omf']
+        omf = data['omf']           #XIV
         oberr = data['oberr']
 
-        line = [plat, obtype, channel, lon, lat, lev, imp, omf, oberr]
+        # Additional data for plot_gps_impact.py
+        c_pf = data['c_pf']
+        t_bk = data['t_bk']
+        idt = data['idt']
+        c_db = data['c_db']
+        bk = data['bk']
+        ichk = data['ichk']
+        rej = data['rej']
+        sens = data['sens']
 
+
+        line = [plat, obtype, channel, lon, lat, lev, imp, omf, oberr, c_pf, t_bk, idt, c_db, bk, ichk, rej, sens]
+        columns = ['PLATFORM', 'OBTYPE', 'CHANNEL', 'LONGITUDE', 'LATITUDE', 'PRESSURE', 'IMPACT',
+                   'OMF', 'OBERR', 'C_PF', 'T_BK', 'IDT', 'C_DB', 'BK', 'ICHK', 'REJ', 'SENS']
         bufr.append(line)
 
     # write a file if bufr is not empty
     output_files = []
+
+    log.debug('Total obs = %d' % n_obs)
     if bufr:
         out = '%s/%s' % (output_path, output_file)
+
+        df = pd.DataFrame.from_records(bufr, columns=columns)
+        df.to_hdf('%s/raw.%s' % (output_path, output_file), key='s', mode='w')
+        output_files.append('%s/raw.%s' % (output_path, output_file))
+
         df = loi.list_to_dataframe(parsed_date, bufr)
         if os.path.isfile(out): os.remove(out)
         lutils.writeHDF(out, 'df', df, complevel=1, complib='zlib', fletcher32=True)
@@ -302,15 +343,14 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
 
     else:
         return None
-
-    log.debug('Total obs = %d' % n_obs)
     return output_files
 
 
-def main():
+def main(date):
     """
     Parse command line parameters and run the process_nrl function
     :return: None
+    """
     """
     from argparse import ArgumentParser
     from argparse import ArgumentDefaultsHelpFormatter
@@ -325,7 +365,11 @@ def main():
     # prepare the working directory
     # prepare the processing parameters
     date = args.date
-    work_dir = '/tmp/work/nrl/%s' % date
+    """
+    # CHANGED FOR NEW PLOTS TESTS PURPOSES
+    # work_dir = '/tmp/work/nrl/%s' % date
+    work_dir = '/tmp/pycharm/test/fsoi/work/NRL/%s' % date
+    #####################################
     os.makedirs(work_dir, exist_ok=True)
     os.chdir(work_dir)
     input_file = download_from_s3('s3://fsoi-navy-ingest/obimpact_gemops_%s.bz2' % date)

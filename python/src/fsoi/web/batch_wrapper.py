@@ -95,6 +95,7 @@ def process_request(validated_request):
         if not errors:
             update_all_clients(hash_value, 'RUNNING', 'Creating plots for %s' % center, progress)
             create_plots(validated_request, center, objects)
+            print('enfin')
             progress += progress_step
         if not errors:
             update_all_clients(hash_value, 'RUNNING', 'Storing plots for %s' % center, progress)
@@ -114,7 +115,7 @@ def process_request(validated_request):
         progress += 1
 
     # clean up the working directory
-    clean_up(validated_request)
+    # clean_up(validated_request)
 
     # restore the request to its original value
     validated_request['centers'] = centers
@@ -311,6 +312,7 @@ def download_s3_objects(request):
 def create_plots(request, center, objects):
     """
     Run the fsoi_summary.py script on the bulk statistics
+    Plot plot_gps_impact.py
     :param request: {dict} A validated and sanitized request object
     :param center: {str} Name of the center for which plots should be created
     :param objects: {list} A list of lists, where each item in the main list is an object that was expected
@@ -318,6 +320,10 @@ def create_plots(request, center, objects):
                     downloaded_boolean, local_file]  (as returned from @download_s3_objects)
     :return: None
     """
+
+    from fsoi.plots.plot_gps_impact import main as plot_gps_impact_main
+    from fsoi.plots.innovar_gps_io import main as innovar_gps_main
+
     # create a list of downloaded files for this center
     files = []
     for obj in objects:
@@ -357,7 +363,7 @@ def create_plots(request, center, objects):
         cycle_id += '%02dZ' % int(c)
         cycle_ints.append(int(c))
 
-    # create the plots
+    # create the plots fsoi_summary
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         try:
             plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center,
@@ -367,6 +373,32 @@ def create_plots(request, center, objects):
             loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
         except Exception as e:
             log.error('Failed to generate plots for %s' % qty, e)
+
+    # create the plots gps_impact
+    if center == 'NRL':
+
+
+        cdtg = request['start_date'] + '00'
+
+        filepath = os.path.abspath('%s/work/%s/%s/raw.NRL.dry.%s.h5' % (request['root_dir'], center, cdtg, cdtg))
+        output_dir = os.path.abspath('%s/work/%s/%s' % (request['root_dir'], center, cdtg))
+
+        # output_file = 'C:\\tmp\\work\\nrl\\2019030900\\g2019030900\\global_gps_stats_2019030900.h5'
+        output_file = os.path.abspath('%s/work/%s/%s/g%s/global_gps_stats_%s.h5' % (
+            request['root_dir'], center, cdtg, cdtg, cdtg))
+
+        # image_dir = 'C:\\tmp\\plots\\gps_impact\\2019030900'
+        image_dir = os.path.abspath('%s/plots/gps_impact/%s'% (request['root_dir'], cdtg))
+
+        image_dir = {'gps': os.path.join(image_dir, 'gps'),
+                     'obsens': os.path.join(image_dir, 'obsens')}
+        ndays = 30
+
+        exp_name = '%s_gps_impact_%s' % (center, cycle_id)
+
+        innovar_gps_main(filepath, cdtg, ndays, output_dir)
+        plot_gps_impact_main(output_file, cdtg, ndays, image_dir, exp_name)
+
 
 
 def aggregate_by_platform(df):

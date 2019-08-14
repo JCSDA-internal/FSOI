@@ -367,7 +367,7 @@ def list_to_dataframe(adate, data):
     :return:
     """
     columns = ['PLATFORM', 'OBTYPE', 'CHANNEL', 'LONGITUDE', 'LATITUDE', 'PRESSURE', 'IMPACT',
-               'OMF', 'OBERR']
+               'OMF', 'OBERR', 'C_PF', 'T_BK', 'IDT', 'C_DB', 'BK', 'ICHK', 'REJ', 'SENS']
     index_cols = columns[0:3]
 
     # read data into a DataFrame object
@@ -754,6 +754,62 @@ def summaryplot(df, qty='TotImp', plotOpt={}, std=None):
             df.sort_values(by=qty, ascending=plotOpt['sortAscending'], inplace=True,
                            na_position='first')
 
+    ###############################################################
+    # BOKEH TRYOUTS
+    ###############################################################
+
+    from bokeh.io import output_file, show
+    from bokeh.models import ColumnDataSource
+    from bokeh.palettes import GnBu3, OrRd3
+    from bokeh.plotting import figure
+
+    output_file("bar_stacked_split.html")
+
+    source = ColumnDataSource(df)
+    data = source.data
+
+    platforms = data['PLATFORM'].tolist()
+    gmao = data['GMAO'].tolist()
+
+    print("DATA = ")
+    print(data)
+    print('PLATFORM = ')
+    print(platforms)
+    print('GMAO = ')
+    print(gmao)
+
+    fruits = platforms
+    plats = ["2015", "2016", "2017"]
+
+    exports = {'fruits': fruits,
+               '2015': gmao,
+               '2016': gmao,
+               '2017': gmao}
+
+    source2 = {
+        'PLATFORM': platforms,
+        'GMAO': gmao
+    }
+
+    TOOLTIPS = [
+        ("index", "$index")
+    ]
+
+    p = figure(y_range=fruits, plot_height=350, title=plotOpt['title'], tooltips=TOOLTIPS)
+
+    p.hbar_stack(plats, y='fruits', height=0.9, color=GnBu3, source=ColumnDataSource(exports),
+                 legend=["%s exports" % x for x in plats])
+
+    p.y_range.range_padding = 0.1
+    p.ygrid.grid_line_color = None
+    p.legend.location = "top_left"
+    p.axis.minor_tick_line_color = None
+    p.outline_line_color = None
+
+    show(p)
+
+    ###############################################################
+
     fig = _plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, facecolor='w')
 
@@ -886,6 +942,7 @@ def comparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
     :param plotOpt:
     :return:
     """
+
     alpha = plotOpt['alpha']
     barcolors = reversed(palette)
 
@@ -918,6 +975,7 @@ def comparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
     ax.grid(False)
 
     _plt.tight_layout()
+
 
     if plotOpt['savefigure']:
         _lutils.savefigure(fname=plotOpt['figname'])
