@@ -59,13 +59,14 @@ Resources:
                   - s3:GetObjectVersion
                   - s3:GetBucketAcl
                   - s3:GetBucketLocation
+                  - s3:ListBucket
         - PolicyName: AllowPullDockerContainer
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Resource:
-                  - arn:aws:ecr:us-east-1:469205354006:repository/fsoi-batch
+                  - '*'
                 Action:
                   - ecr:GetAuthorizationToken
 
