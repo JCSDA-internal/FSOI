@@ -9,6 +9,7 @@ Resources:
     Properties:
       RoleName: fsoi-codebuild-role
       Description: Provide permissions required to build and test from codebuild
+      MaxSessionDuration: 7200  # 2 hours
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -23,7 +24,28 @@ Resources:
         - arn:aws:iam::469205354006:policy/AllowWriteToFsoiImageCacheBucket
         - arn:aws:iam::469205354006:policy/ReadWriteFsoiRequestsTable
         - arn:aws:iam::469205354006:policy/SendApiClientsFsoiMessages
-      MaxSessionDuration: 7200  # 2 hours
+      Policies:
+        - PolicyName: AllowCloudWatchLogs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Resource:
+                  - arn:aws:logs:us-east-1:469205354006:log-group:/aws/codebuild/FSOI
+                  - arn:aws:logs:us-east-1:469205354006:log-group:/aws/codebuild/FSOI:*
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+              - Effect: Allow
+                Resource:
+                  - arn:aws:s3:::codepipeline-us-east-1-*
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketAcl
+                  - s3:GetBucketLocation
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
