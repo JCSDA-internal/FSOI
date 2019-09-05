@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+  install:
+    command:
+      - echo install stage
+      - pip3 install coverage
+      - pip3 install pytest
+      - pip3 install pylint
+  pre_build: 
+    commands:
+      - echo pre_build stage
+
+  build: 
+    commands:
+      - echo build_stage
+      - bash build/check_python.sh
+      - bash build/test_python.sh
+  post_build:
+    commands:
+      - echo post_build stage
+
