@@ -1,0 +1,60 @@
+---
+Description: JCSDA - FSOI - CodeBuild
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+
+  ServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: fsoi-codebuild-role
+      Description: Provide permissions required to build and test from codebuild
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::469205354006:policy/AllowReadAccessToFsoiBucket
+        - arn:aws:iam::469205354006:policy/AllowWriteToFsoiImageCacheBucket
+        - arn:aws:iam::469205354006:policy/ReadWriteFsoiRequestsTable
+        - arn:aws:iam::469205354006:policy/SendApiClientsFsoiMessages
+      MaxSessionDuration: 7200  # 2 hours
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    DependsOn: ServiceRole
+    Properties:
+      Name: FSOI
+      Description: Automated build and test for JCSDA/FSOI repository
+      BadgeEnabled: true
+      Tags:
+        - Key: budget1
+          Value: codebuild
+        - Key: budget2
+          Value: fsoi
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: false
+        Type: LINUX_CONTAINER
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      QueuedTimeoutInMinutes: 360  # 6 hours
+      ServiceRole: !Ref ServiceRole
+      Source:
+        BuildSpec: buildspec.yml
+        Type: GITHUB
+        Location: https://github.com/JCSDA/FSOI
+        ReportBuildStatus: true
+      TimeoutInMinutes: 120  # 2 hours
+      Triggers:
+        Webhook: true
