@@ -49,7 +49,8 @@ Resources:
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
-    DependsOn: ServiceRole
+    DependsOn:
+      - ServiceRole
     Properties:
       Name: FSOI
       Description: Automated build and test for JCSDA/FSOI repository
@@ -63,7 +64,7 @@ Resources:
         Type: NO_ARTIFACTS
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch
+        Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch:latest
         ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: false
         Type: LINUX_CONTAINER
