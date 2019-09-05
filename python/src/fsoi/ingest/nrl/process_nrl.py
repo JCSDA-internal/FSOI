@@ -355,6 +355,9 @@ def main():
     input_file = download_from_s3('s3://fsoi-navy-ingest/obimpact_gemops_%s.bz2' % date)
     output_file = 'NRL.dry.%s.h5' % date
 
+    # read configuration file
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/nrl/nrl_ingest.yaml'))
+
     # process the data
     output_files = process_nrl(input_file, work_dir, output_file, date)
     if not output_files:
@@ -362,7 +365,7 @@ def main():
     else:
         log.info('Uploading files to S3:')
         for file in output_files:
-            s3url = 's3://fsoi/intercomp/hdf5/NRL/%s' % file.split('/')[-1]
+            s3url = 's3://%s/%s/%s' % (config['processed_data_bucket'], config['processed_data_prefix'], file.split('/')[-1])
             print('%s -> %s' % (file, s3url))
             uploaded = upload_to_s3(file, s3url)
             if not uploaded:

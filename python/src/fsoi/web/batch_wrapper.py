@@ -392,7 +392,11 @@ def aggregate_by_platform(df):
         dt, specific_platform = index
 
         # get the common platform name for this row
-        common_platform = platform_to_aggregate_map[specific_platform]
+        if specific_platform in platform_to_aggregate_map:
+            common_platform = platform_to_aggregate_map[specific_platform]
+        else:
+            common_platform = 'Unknown'
+            log.warn('Unknown platform: %s' % specific_platform)
 
         # create the common index
         common_index = (dt, common_platform)

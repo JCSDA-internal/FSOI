@@ -1,6 +1,8 @@
 # This file contains constant values used to download and process NRL data
 ---
 lag_in_days: 3
+processed_data_bucket: fsoi-test
+processed_data_prefix: intercomp/hdf5/GMAO
 https_host: portal.nccs.nasa.gov
 remote_path: /datashare/gmao_ops/pub/fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d
 raw_data_bucket: fsoi-gmao-ingest
@@ -129,6 +131,7 @@ kx:
   285: RAPIDSCAT_Wind
   290: ASCAT_Wind
   299: Drifting_Buoy
+  ##304: ASK_FOR_PLATFORM_NAME
   722: GPSRO
   740: GPSRO
   741: GPSRO

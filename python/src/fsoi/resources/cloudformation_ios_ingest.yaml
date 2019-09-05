@@ -328,13 +328,11 @@ Resources:
         Vcpus: 2
         Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch
 
-  #
-  # SNS SETUP
-  #
-  SNSfsoiUnknownPlatformsTopic:
+  # Setup a topic to alert unknown platforms in the input data files
+  FsoiUnknownPlatformsTopic:
     Type: AWS::SNS::Topic
     Properties:
       Subscription:
-        - Endpoint: "hahnd@ucar.edu"
-          Protocol: "EMAIL-JSON"
-      TopicName: "fsoiUnknownPlatforms"
+        - Endpoint: hahnd@ucar.edu
+          Protocol: email
+      TopicName: fsoiUnknownPlatforms
