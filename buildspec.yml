@@ -7,6 +7,8 @@ phases:
       - pip3 install coverage
       - pip3 install pytest
       - pip3 install pylint
+      - which pylint
+      - ls -l $(which pylint)
 
   pre_build: 
     commands:
