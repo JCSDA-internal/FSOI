@@ -19,6 +19,7 @@ setup(
     'fsoi': [
       'ingest/nrl/*.yaml',
       'ingest/gmao/*.yaml',
+      'data/*.yaml',
       '*.yaml'
     ]
   },

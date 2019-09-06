@@ -1,6 +1,7 @@
 import os
 import tempfile
 from fsoi.data.s3_datastore import S3DataStore
+from fsoi.data.s3_datastore import FsoiS3DataStore
 from fsoi.data.datastore import DataStoreOperation
 
 
@@ -25,6 +26,24 @@ def test_datastore_operation():
     assert operation.success
     assert isinstance(operation.response, list)
     assert len(operation.response) > 0
+
+
+def test_fsoi_s3_datastore():
+    """
+    Test the FsoiS3DataStore class
+    :return: None
+    """
+    # test case with incompatible options, should return None
+    d = FsoiS3DataStore.create_descriptor(center='GMAO', norm='moist', date='20150101', hour='12', datetime='201501012')
+    assert d is None
+
+    # test a valid use case
+    d = FsoiS3DataStore.create_descriptor(center='GMAO', norm='moist', date='20150101', hour='12')
+    assert d is not None
+    assert FsoiS3DataStore._validate_descriptor(d)
+    bucket, key = FsoiS3DataStore._to_bucket_and_key(d)
+    assert bucket == 'fsoi-test'
+    assert key == 'intercomp/hdf5/GMAO/GMAO.moist.2015010112.h5'
 
 
 def run_datastore_operations(ds):

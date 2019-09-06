@@ -7,7 +7,7 @@ __copyright__ = 'Copyright 2016, NOAA / NCEP / EMC'
 __license__ = 'GPL'
 __status__ = 'Prototype'
 __version__ = '0.1'
-__all__ = ['ingest', 'plots', 'stats', 'web', 'log']
+__all__ = ['ingest', 'plots', 'stats', 'web', 'log', 'data']
 
 from logging import Logger
 from logging import DEBUG, INFO, WARN, ERROR, CRITICAL
