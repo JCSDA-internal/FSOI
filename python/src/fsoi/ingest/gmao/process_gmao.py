@@ -110,13 +110,12 @@ def prepare_workspace():
     :return: {str} Full path to the workspace, or None if could not create
     """
     try:
-        work_dir = '/tmp/work'
-        if os.path.exists(work_dir):
-            shutil.rmtree(work_dir)
-        os.makedirs(work_dir)
+        import tempfile
+        work_dir = tempfile.mkdtemp()
+        log.debug('work_dir: %s' % work_dir)
         return work_dir
     except Exception as e:
-        log.error('Failed to create workspace: /tmp/work')
+        log.error('Failed to create workspace')
         log.error(e)
         return None
 
