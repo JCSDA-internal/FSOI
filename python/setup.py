@@ -17,9 +17,9 @@ setup(
   package_dir={'fsoi': 'src/fsoi'},
   package_data={
     'fsoi': [
-      'resources/fsoi/ingest/nrl/*.yaml',
-      'resources/fsoi/ingest/gmao/*.yaml',
-      'resources/fsoi/*.yaml'
+      'ingest/nrl/*.yaml',
+      'ingest/gmao/*.yaml',
+      '*.yaml'
     ]
   },
   include_package_data=True,
