@@ -7,6 +7,7 @@ import sys
 import os
 import json
 import pandas as pd
+import boto3
 from fsoi.web.serverless_tools import hash_request, get_reference_id, create_response_body, \
     create_error_response_body, RequestDao, ApiGatewaySender
 from fsoi.stats import lib_obimpact as loi
@@ -285,7 +286,7 @@ def download_s3_objects(request):
 
         # check that the file was downloaded
         if not os.path.exists(local_dir + local_file):
-            log.warn('Could not download S3 object: s3://%s/%s/%s' % (bucket, prefix, key))
+            log.warning('Could not download S3 object: s3://%s/%s/%s' % (bucket, prefix, key))
             obj.append(False)
             tokens = key.split('.')
             center = tokens[1]
@@ -327,7 +328,16 @@ def create_plots(request, center, objects):
     # read all of the files
     ddf = {}
     for (i, file) in enumerate(files):
-        ddf[i] = aggregate_by_platform(lutils.readHDF(file, 'df'))
+        try:
+            ddf[i] = aggregate_by_platform(lutils.readHDF(file, 'df'))
+        except Exception as e:
+            log.error('Failed to aggregate by platform: %s' % file)
+            sns = boto3.client('sns')
+            sns.publish(
+                TopicArn='arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms',
+                Subject='Invalid FSOI data encountered',
+                Message='Invalid FSOI data encountered: %s' % file
+            )
 
     # concatenate the group bulk data and save to a pickle
     concatenated = pd.concat(ddf, axis=0)

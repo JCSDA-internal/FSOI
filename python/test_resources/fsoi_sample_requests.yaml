@@ -1,6 +1,30 @@
 requests:
   batch:
     focus:
+    pass:
+    - start_date: '20141201'
+      end_date: '20141201'
+      centers:
+        - MET
+      cycles:
+        - '00'
+      interval: 24
+      norm: dry
+      platforms: AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,Buoy,CrIS,Dropsonde,GAVHR,GOES,GPSRO,Geo
+        Wind,Ground GPS,GMI,GNSSDELAY,HIRS,IASI,LEO-GEO,Land Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD
+        Wind,Ozone,PIBAL,PRH,Profiler Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SSMI
+        Wind,SSMIS,Seviri,Ship,Synthetic,TMI Rain Rate,TPW,UAS,UNKNOWN,WindSat,wndmi,NewUnknown
+    - start_date: '20150103'
+      end_date: '20150113'
+      cycles:
+        - '12'
+      interval: 24
+      centers:
+        - GMAO
+      norm: moist
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+                    Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+                    Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
     - start_date: '20150220'
       end_date: '20150221'
       cycles:
@@ -14,7 +38,6 @@ requests:
       platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
                     Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
                     Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
-    pass:
     - start_date: '20190602'
       end_date: '20190603'
       cycles:
