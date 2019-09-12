@@ -71,6 +71,31 @@ class S3DataStore(DataStore):
             S3DataStore.s3_client = boto3.client('s3')
         return S3DataStore.s3_client
 
+    @staticmethod
+    def get_suggested_file_name(descriptor):
+        """
+        Get a suggested file name from the descriptor
+        :param descriptor: {dict} A valid data descriptor
+        :return: {str} A suggested file name
+        """
+        # return everything after the last slash character in the S3 key
+        bucket, key = S3DataStore._to_bucket_and_key(descriptor)
+        return key[key.rfind('/') + 1:]
+
+    @staticmethod
+    def descriptor_to_string(descriptor):
+        """
+        Get a human-readable string of the descriptor for logging and error message purposes
+        :param descriptor: {dict} The data descriptor
+        :return: {str} human-readable string
+        """
+        type = descriptor['type']
+        center = descriptor['center']
+        norm = descriptor['norm']
+        date = descriptor['date'] if 'date' in descriptor else descriptor['datetime'][0:8]
+        hour = descriptor['hour'] if 'hour' in descriptor else descriptor['datetime'][8:10]
+        return 'type=%s, center=%s, norm=%s, date=%s, hour=%s' % (type, center, norm, date, hour)
+
     def save_from_http(self, url, target):
         """
         Save data from the URL to the data store
@@ -213,6 +238,10 @@ class S3DataStore(DataStore):
             if not self._validate_descriptor(source):
                 return False
 
+            # verify that the data exist
+            if not self.data_exist(source):
+                return False
+
             # get the bucket and key from the descriptor
             bucket, key = self._to_bucket_and_key(source)
 
@@ -230,7 +259,7 @@ class S3DataStore(DataStore):
             return os.path.exists(local_file)
 
         except Exception as e:
-            log.error('Failed to download data to local file')
+            log.error('Failed to download data to local file', e)
 
     def list_data_store(self, filters):
         """
@@ -291,13 +320,16 @@ class S3DataStore(DataStore):
             s3_client = self.__get_s3_client()
 
             # check if the target exists in the S3 bucket
-            response = s3_client.head_object(Bucket=bucket, Key=key)
+            try:
+                response = s3_client.head_object(Bucket=bucket, Key=key)
+            except botocore.exceptions.ClientError:
+                return False
 
             # check the response (successful response indicates target exists)
             return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
         except botocore.exceptions.ClientError as ce:
-            log.error('Failed to check if data exist')
+            log.error('Failed to check if data exist', ce)
             return False
 
         except Exception as e:
@@ -392,9 +424,14 @@ class FsoiS3DataStore(S3DataStore):
 
         bucket = config['bucket']
 
+        # construct the type of file: None, groupbulk, bulk, or accumbulk
+        data_type = descriptor['type'] + ('.' if descriptor['type'] is not '' else '')
+
+        # create the key based on 'date' and 'hour' in the descriptor
         if 'date' in descriptor and 'hour' in descriptor:
             key = config['key'] % (
                 descriptor['center'],
+                data_type,
                 descriptor['center'],
                 descriptor['norm'],
                 descriptor['date'],
@@ -402,11 +439,13 @@ class FsoiS3DataStore(S3DataStore):
             )
             return bucket, key
 
+        # create the key based on 'datetime' in the descriptor
         if 'datetime' in descriptor:
             date = descriptor['datetime'][:8]
             hour = descriptor['datetime'][8:10]
             key = config['key'] % (
                 descriptor['center'],
+                data_type,
                 descriptor['center'],
                 descriptor['norm'],
                 date,
@@ -417,7 +456,7 @@ class FsoiS3DataStore(S3DataStore):
         return None
 
     @staticmethod
-    def create_descriptor(center=None, norm=None, date=None, hour=None, datetime=None):
+    def create_descriptor(center=None, norm=None, date=None, hour=None, datetime=None, type=None):
         """
         Convenience method to create a descriptor
         :param center: {str} The center name (NRL, GMAO, MET, MeteoFr, EMC, JMA_adj, or JMA_ens)
@@ -425,6 +464,7 @@ class FsoiS3DataStore(S3DataStore):
         :param date: {str} Date string YYYYMMDD (not compatible with datetime parameter)
         :param hour: {str} Hour string (00, 06, 12, or 18) (not compatible with datetime parameter)
         :param datetime: {str} Date/Time String YYYYMMDDHH (not compatible with date or hour parameters)
+        :param type: {str} The statistics type: None, groupbulk, accumbulk, or bulk
         :return: Descriptor with given parameters
         """
         # check that options are compatible
@@ -440,7 +480,31 @@ class FsoiS3DataStore(S3DataStore):
             descriptor['datetime'] = datetime
             return descriptor
 
+        # set the type value
+        descriptor['type'] = type if type is not None else ''
+
         # add date and hour if they were specified
         descriptor['date'] = date
         descriptor['hour'] = hour
         return descriptor
+
+    @staticmethod
+    def descriptor_to_string(descriptor):
+        """
+        Get a human-readable string of the descriptor for logging and error message purposes
+        :param descriptor: {dict} The data descriptor
+        :return: {str} human-readable string
+        """
+        bucket, key = S3DataStore._to_bucket_and_key(descriptor)
+        return 'bucket=%s, key=%s' % (bucket, key)
+
+    @staticmethod
+    def get_suggested_file_name(descriptor):
+        """
+        Get a suggested file name from the descriptor
+        :param descriptor: {dict} A valid data descriptor
+        :return: {str} A suggested file name
+        """
+        # return everything after the last slash character in the S3 key
+        bucket, key = FsoiS3DataStore._to_bucket_and_key(descriptor)
+        return key[key.rfind('/') + 1:]
