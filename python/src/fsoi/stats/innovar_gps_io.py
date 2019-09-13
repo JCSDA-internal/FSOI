@@ -417,7 +417,6 @@ def time_window(ndays, dtg):
     dtg_indx.reverse()
     mon_indx.reverse()
 
-    print("j'arrie a la fun de cette fonction")
     return dtg_indx, mon_indx
 
 
