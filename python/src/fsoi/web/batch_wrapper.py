@@ -344,7 +344,9 @@ def create_plots(request, center, objects):
             }
             plot = MatplotlibSummaryPlot(options=plot_options)
             plot.set_data(df, df_std)
-            plot.set_output_file('/tmp/plots')  # TODO: Fix this hard coding <----
+            plot.set_output_file('/tmp/plots/%s_%s.png')  # TODO: Fix this hard coding <----
+            if not os.path.exists('/tmp/plots'):
+                os.mkdir('/tmp/plots')
             plot.create_plot()
         except Exception as e:
             print(e)

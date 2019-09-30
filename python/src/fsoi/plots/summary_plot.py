@@ -213,29 +213,33 @@ class MatplotlibSummaryPlot(SummaryPlot):
             log.error('Error saving summary plot with matplotlib: %s' % file_name)
         return saved
 
-    def __save_figure(self, mpl_pyplot, file_name):
+    def __save_figure(self, mpl_pyplot, file_name, formats=['png']):
         """
         Save the plot to a file
         :param mpl_pyplot:
         :param file_name:
         :return:
         """
-        dpi = self.options['dpi']
-        orientation = self.options['orientation']
-        if 'png' in format:
-            mpl_pyplot.savefig('%s.png' % file_name,
-                               format='png', dpi=1 * dpi,
-                               orientation=orientation)
-        if 'eps' in format:
-            mpl_pyplot.savefig('%s.eps' % file_name,
-                               format='eps', dpi=2 * dpi,
-                               orientation=orientation)
-        if 'pdf' in format:
-            mpl_pyplot.savefig('%s.pdf' % file_name,
-                               format='pdf', dpi=2 * dpi,
-                               orientation=orientation)
+        try:
+            dpi = self.options['dpi']
+            orientation = self.options['orientation']
+            if 'png' in formats:
+                mpl_pyplot.savefig('%s.png' % file_name,
+                                   format='png', dpi=1 * dpi,
+                                   orientation=orientation)
+            if 'eps' in formats:
+                mpl_pyplot.savefig('%s.eps' % file_name,
+                                   format='eps', dpi=2 * dpi,
+                                   orientation=orientation)
+            if 'pdf' in formats:
+                mpl_pyplot.savefig('%s.pdf' % file_name,
+                                   format='pdf', dpi=2 * dpi,
+                                   orientation=orientation)
+        except Exception as e:
+            log.error('Failed to save plot to file: %s' % file_name, e)
+            return False
 
-        return
+        return True
 
     def __apply_options(self):
         """

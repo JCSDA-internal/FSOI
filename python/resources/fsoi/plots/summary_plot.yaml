@@ -39,15 +39,15 @@ metric_defaults:
   TotImp:
     name: Total Impact
     units: (J/kg)
-    sort_acsending: false
+    sort_ascending: false
   ObCnt:
     name: Observation Count
     units: per Analysis
-    sort_acsending: true
+    sort_ascending: true
   ImpPerOb:
     name: Impact per Observation
     units: (J/kg)
-    sort_acsending: false
+    sort_ascending: false
   FracBenObs:
     name: Fraction of Beneficial Observations
     units: (%)
