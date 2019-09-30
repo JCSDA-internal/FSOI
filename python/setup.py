@@ -9,7 +9,7 @@ setup(
   author_email='rahul.mahajan@noaa.gov',
   maintainer='David Hahn',
   maintainer_email='hahnd@ucar.edu',
-  packages=['fsoi', 'fsoi.ingest', 'fsoi.ingest.emc', 'fsoi.ingest.gmao', 'fsoi.ingest.jma',
+  packages=['fsoi', 'fsoi.data', 'fsoi.ingest', 'fsoi.ingest.emc', 'fsoi.ingest.gmao', 'fsoi.ingest.jma',
             'fsoi.ingest.met', 'fsoi.ingest.meteofr', 'fsoi.ingest.nrl', 'fsoi.plots', 'fsoi.stats',
             'fsoi.web'],
   requires=['pyyaml', 'boto3', 'botocore', 'certifi', 'matplotlib', 'numpy', 'pandas', 'requests',
@@ -19,6 +19,7 @@ setup(
     'fsoi': [
       'ingest/nrl/*.yaml',
       'ingest/gmao/*.yaml',
+      'ingest/met/*.yaml',
       'data/*.yaml',
       '*.yaml'
     ]
@@ -34,6 +35,8 @@ setup(
       'download_gmao=fsoi.ingest.gmao.download_gmao:main',
       'process_gmao=fsoi.ingest.gmao.process_gmao:main',
       'ingest_gmao=fsoi.ingest.gmao.__init__:download_and_process_gmao',
+
+      'process_met=fsoi.ingest.met.process_met:main',
 
       'process_stats=fsoi.stats.process_stats:main',
       'batch_wrapper=fsoi.web.batch_wrapper:main'

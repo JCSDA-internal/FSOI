@@ -475,17 +475,17 @@ class FsoiS3DataStore(S3DataStore):
         # create the descriptor with common attributes
         descriptor = {'center': center, 'norm': norm}
 
-        # add datetime if it was specified
         if datetime is not None:
+            # add datetime if it was specified
             descriptor['datetime'] = datetime
-            return descriptor
+        else:
+            # add date and hour if they were specified
+            descriptor['date'] = date
+            descriptor['hour'] = hour
 
         # set the type value
         descriptor['type'] = type if type is not None else ''
 
-        # add date and hour if they were specified
-        descriptor['date'] = date
-        descriptor['hour'] = hour
         return descriptor
 
     @staticmethod

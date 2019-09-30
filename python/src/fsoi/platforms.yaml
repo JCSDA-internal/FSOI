@@ -772,4 +772,15 @@ OnePlatform:
   wndmi:
     - wndmi
   NewUnknown:
-    - ASK_FOR_PLATFORM_NAME
+    - BOGUS
+    - F17_SSMIS
+    - FY-3B-MWHS-1
+    - FY-3C-MWHS-2
+    - GCOMW1_AMSR-2
+    - GPM1_GMI
+    - Himawari_CSR
+    - KUSCAT
+    - NOAA20_NPP
+    - SEVIRI_CSR
+    - TC_Press
+    - VIIRS_Wind
