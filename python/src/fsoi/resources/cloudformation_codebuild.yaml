@@ -69,7 +69,7 @@ Resources:
                   - '*'
                 Action:
                   - ecr:GetAuthorizationToken
-        - PolicyName: AllowDynamoItemUpdate
+        - PolicyName: AllowDynamoAccess
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -79,6 +79,7 @@ Resources:
                 Action:
                   - dynamodb:UpdateItem
                   - dynamodb:PutItem
+                  - dynamodb:GetItem
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
