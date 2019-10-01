@@ -15,5 +15,4 @@ phases:
   post_build:
     commands:
       - echo post_build stage
-
       - bash <(curl -s https://codecov.io/bash) -t 597948f4-60e9-4791-abb5-ec207f5ab60a -f python/test/.coverage

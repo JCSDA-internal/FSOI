@@ -46,13 +46,15 @@ Resources:
                   - s3:GetObjectVersion
                   - s3:GetBucketAcl
                   - s3:GetBucketLocation
-        - PolicyName: AllowReadWriteToS3JcsdaScratch
+        - PolicyName: AllowS3ReadWriteAccess
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Resource:
                   - arn:aws:s3:::jcsda-scratch
+                  - arn:aws:s3:::fsoi-test
+                  - arn:aws:s3:::fsoi-image-cache
                 Action:
                   - s3:PutObject
                   - s3:GetObject
@@ -69,6 +71,22 @@ Resources:
                   - '*'
                 Action:
                   - ecr:GetAuthorizationToken
+        - PolicyName: AllowS3ReadAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Resource:
+                  - arn:aws:s3:::fsoi-gmao-ingest
+                  - arn:aws:s3:::fsoi-nany-ingest
+                  - arn:aws:s3:::fsoi
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketAcl
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
         - PolicyName: AllowDynamoAccess
           PolicyDocument:
             Version: '2012-10-17'
