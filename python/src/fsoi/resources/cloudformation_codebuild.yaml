@@ -98,6 +98,15 @@ Resources:
                   - dynamodb:UpdateItem
                   - dynamodb:PutItem
                   - dynamodb:GetItem
+        - PolicyName: AllowSnsPublish
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Resource:
+                  - arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms
+                Action:
+                  sns:Publish
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
