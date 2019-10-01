@@ -69,6 +69,16 @@ Resources:
                   - '*'
                 Action:
                   - ecr:GetAuthorizationToken
+        - PolicyName: AllowDynamoItemUpdate
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Resource:
+                  - arn:aws:dynamodb:us-east-1:469205354006:table/ios_requests
+                Action:
+                  - dynamodb:UpdateItem
+                  - dynamodb:PutItem
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
