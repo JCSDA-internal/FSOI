@@ -17,4 +17,5 @@ phases:
       - echo post_build stage
       - curl -s https://codecov.io/bash > codecov_temp.sh
       - chmod +x codecov_temp.sh
-      - ./codecov_temp.sh -t 597948f4-60e9-4791-abb5-ec207f5ab60a -f python/test/.coverage
+      - ls -l $CODEBUILD_SRC_DIR
+      - ./codecov_temp.sh -t 597948f4-60e9-4791-abb5-ec207f5ab60a -f python/test/.coverage -R $CODEBUILD_SRC_DIR
