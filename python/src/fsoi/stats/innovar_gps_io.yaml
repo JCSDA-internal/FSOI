@@ -1,0 +1,104 @@
+gps_type:
+  AOPOD:
+    display_name:
+      - KOMPSAT5
+    sat:
+      - KOMPSAT5
+    sat_id:
+      - 825
+  CNOFS:
+    display_name:
+      - CORISS
+    sat:
+      - CORISS
+    sat_id:
+      - 786
+  COSMIC:
+    display_name:
+      - FM1
+      - FM2
+      - FM3
+      - FM4
+      - FM5
+      - FM6
+    sat:
+      - FM1
+      - FM2
+      - FM3
+      - FM4
+      - FM5
+      - FM6
+    sat_id:
+      - 740
+      - 741
+      - 742
+      - 743
+      - 744
+      - 745
+  GOLPE:
+    display_name:
+      - SAC-C
+    sat:
+      - SAC-C
+    sat_id:
+      - 820
+  GRACE:
+    display_name:
+      - GRACE-A
+      - GRACE-B
+    sat:
+      - GRACE-A
+      - GRACE-B
+    sat_id:
+      - 722
+      - 723
+  GRAS:
+    display_name:
+      - MTA
+      - MTB
+      - MTC
+    sat:
+      - MTA
+      - MTB
+      - MTC
+    sat_id:
+      - 4
+      - 3
+      - 5
+  ROSA:
+    display_name:
+      - MT
+      - SAC-D
+      - O2
+    sat:
+      - MT
+      - SAC-D
+      - O2
+    sat_id:
+      - 440
+      - 821
+      - 421
+  SPIRE:
+    display_name:
+      - SPIRE
+    sat:
+      - SPIRE
+    sat_id:
+      - 269
+  TRSX:
+    display_name:
+      - TerraSAR-X
+      - TanDEM-X
+    sat:
+      - TerraSAR-X
+      - TanDEM-X
+    sat_id:
+      - 42
+      - 43
+gps_categories:
+  GPS:
+    categories:
+      - All Satellite
+      - GPS
+    subcategory: GPS
+    summ_obs_label: GPS

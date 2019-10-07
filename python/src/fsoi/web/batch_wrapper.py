@@ -95,7 +95,6 @@ def process_request(validated_request):
         if not errors:
             update_all_clients(hash_value, 'RUNNING', 'Creating plots for %s' % center, progress)
             create_plots(validated_request, center, objects)
-            print('enfin')
             progress += progress_step
         if not errors:
             update_all_clients(hash_value, 'RUNNING', 'Storing plots for %s' % center, progress)
@@ -376,7 +375,6 @@ def create_plots(request, center, objects):
 
     # create the plots gps_impact
     if center == 'NRL':
-
 
         cdtg = request['start_date'] + '00'
 

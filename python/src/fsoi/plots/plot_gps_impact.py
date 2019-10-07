@@ -73,12 +73,12 @@ color_keys = list(colors.keys())
 REAL_SIZE = innovar_gps_io.REAL_SIZE
 REAL_TYPE = innovar_gps_io.REAL_TYPE
 MISSING = innovar_gps_io.MISSING
-ly = innovar_gps_io.ly
-lx = innovar_gps_io.lx
-known_gps = innovar_gps_io.known_gps
-known_gps_id = innovar_gps_io.known_gps_id
-known_gps_name = innovar_gps_io.known_gps_name
-gps_types = innovar_gps_io.gps_types
+ly = innovar_gps_io.LY
+lx = innovar_gps_io.LX
+known_gps = innovar_gps_io.KNOWN_GPS
+known_gps_id = innovar_gps_io.KNOWN_GPS_ID
+known_gps_name = innovar_gps_io.KNOWN_GPS_NAME
+gps_types = innovar_gps_io.NUMBER_OF_GPS_TYPES
 
 #############################################################################
 def main(filepath, cdtg, ndays, image_dir, exp_name):

@@ -70,7 +70,7 @@ def handle_request(event, context):
 
 def process_here(validated_request, hash_value, client_url, ref_id):
     """
-    Process there request "here" (presumably in AWS Lambda)
+    Process the request "here" (presumably in AWS Lambda)
     :param validated_request: All of the request parameters
     :param hash_value: A hash of the request
     :param client_url: A URL to contact the client

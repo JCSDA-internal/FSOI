@@ -20,10 +20,7 @@ def test_pass_requests():
     from fsoi.web.batch_wrapper import handler
     from fsoi.web.serverless_tools import hash_request, RequestDao
 
-    #data = yaml.full_load(open('../test_ressources/fsoi_sample_requests.yaml'))
-
-    data = yaml.full_load(
-        open('C:\\Users\\simon\\OneDrive\\Documents\\GitHub\\FSOI\\python\\test_resources\\fsoi_sample_requests.yaml'))
+    data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
 
     p = data['requests']['batch']['pass']
 
