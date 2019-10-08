@@ -94,7 +94,7 @@ def compare_fsoi_main():
                         required=True)
     parser.add_argument('--savefigure', help='save figures', action='store_true', required=False)
     parser.add_argument('--centers', help='list of centers', type=str, nargs='+',
-                        choices=['EMC', 'GMAO', 'NRL', 'JMA_adj', 'JMA_ens', 'MET', 'MeteoFr'],
+                        choices=['EMC', 'GMAO', 'NRL', 'JMA_adj', 'JMA_ens', 'MET', 'MeteoFr', 'MERRA2'],
                         required=True)
 
     args = parser.parse_args()
