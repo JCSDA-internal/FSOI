@@ -626,6 +626,7 @@ OnePlatform:
   ATMS:
     - ATMS_NPP
     - ATMS_N20
+    - NOAA20_ATMS
   AVHRR Wind:
     - AVHRR_Wind
     - AMV-AVHRR
@@ -650,6 +651,7 @@ OnePlatform:
     - CRIS_NPP
     - CrIS_NPP
     - CRIS-FSR_N20
+    - NOAA20_CrIS
   Dropsonde:
     - Dropsonde
   FY3_MWHS:
@@ -796,11 +798,14 @@ OnePlatform:
     - UNKNOWN
   VIIRS:
     - VIIRS_Wind
+  BOGUS:
+    - BOGUS
+  TC_Press:
+    - TC_Press
   WindSat:
     - WINDSAT
   wndmi:
     - wndmi
   NewUnknown:
     - BOGUS
-    - NOAA20_NPP
     - TC_Press

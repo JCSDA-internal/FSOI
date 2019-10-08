@@ -140,10 +140,11 @@ platforms:
       - METOP1 (B) IASI
     ATMS_NPP:
       - JPSS0 (NPP) ATMS ATMS
+    NOAA20_ATMS:
+      - NOAA20 ATMS ATMS
     CrIS_NPP:
       - JPSS0 (NPP) CrIS CrIS
-    NOAA20_NPP:
-      - NOAA20 ATMS ATMS
+    NOAA20_CrIS:
       - NOAA20 CrIS CrIS
     SEVIRI_CSR:
       - MSG4 (MET11) SEVIRIClr
