@@ -331,13 +331,13 @@ def create_plots(request, center, objects):
         try:
             ddf[i] = aggregate_by_platform(lutils.readHDF(file, 'df'))
         except Exception as e:
-            log.error('Failed to aggregate by platform: %s' % file)
-            sns = boto3.client('sns')
-            sns.publish(
-                TopicArn='arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms',
-                Subject='Invalid FSOI data encountered',
-                Message='Invalid FSOI data encountered: %s' % file
-            )
+            log.error('Failed to aggregate by platform: %s' % file, e)
+            # sns = boto3.client('sns')
+            # sns.publish(
+            #     TopicArn='arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms',
+            #     Subject='Invalid FSOI data encountered',
+            #     Message='Invalid FSOI data encountered: %s' % file
+            # )
 
     # concatenate the group bulk data and save to a pickle
     concatenated = pd.concat(ddf, axis=0)

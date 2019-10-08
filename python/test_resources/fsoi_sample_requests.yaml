@@ -1,19 +1,19 @@
 requests:
   batch:
     focus:
-    pass:
-    - start_date: '20141201'
-      end_date: '20141201'
+    - start_date: '20150101'
+      end_date: '20150105'
       centers:
-        - MET
+        - MERRA2
       cycles:
         - '00'
       interval: 24
-      norm: dry
+      norm: moist
       platforms: AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,Buoy,CrIS,Dropsonde,GAVHR,GOES,GPSRO,Geo
         Wind,Ground GPS,GMI,GNSSDELAY,HIRS,IASI,LEO-GEO,Land Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD
         Wind,Ozone,PIBAL,PRH,Profiler Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SSMI
         Wind,SSMIS,Seviri,Ship,Synthetic,TMI Rain Rate,TPW,UAS,UNKNOWN,WindSat,wndmi,NewUnknown
+    pass:
     - start_date: '20150103'
       end_date: '20150113'
       cycles:

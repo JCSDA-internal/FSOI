@@ -31,10 +31,10 @@ export class ControlsComponent implements OnInit
   dateHelp = 'assets/date_help.html';
 
   /* cycle options */
-  c00z = false;
+  c00z = true;
   c06z = false;
   c12z = false;
-  c18z = true;
+  c18z = false;
 
   /* norm options */
   private norm = {};

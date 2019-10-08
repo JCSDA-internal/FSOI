@@ -322,6 +322,8 @@ GMAO:
     - TCBogus
   TMI Rain Rate:
     - PCP_TMI_TRMM
+    - PCP_TMI_TRMM_LND
+    - PCP_TMI_TRMM_OCN
 NRL:
   AIRS:
     - AIRS
@@ -759,6 +761,8 @@ OnePlatform:
     - TYBOGUS
   TMI Rain Rate:
     - PCP_TMI_TRMM
+    - PCP_TMI_TRMM_LND
+    - PCP_TMI_TRMM_OCN
     - TMI_TRMM
   TPW:
     - SSMI_TPW

@@ -1,9 +1,9 @@
 {
   "norm": {
     "options": [
-      {"name": "dry", "selected": true},
+      {"name": "dry", "selected": false},
       {"name": "moist", "selected": false},
-      {"name": "both", "selected": false}
+      {"name": "both", "selected": true}
     ]
   },
   "centers": {
@@ -14,7 +14,8 @@
       {"name": "JMA_adj", "selected": true},
       {"name": "JMA_ens", "selected": true},
       {"name": "MET", "selected": true},
-      {"name": "MeteoFr", "selected": true}
+      {"name": "MeteoFr", "selected": true},
+      {"name": "MERRA2", "selected":  false}
     ]
   },
   "platforms": {
