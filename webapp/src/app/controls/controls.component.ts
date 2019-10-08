@@ -22,10 +22,10 @@ export class ControlsComponent implements OnInit
   invalidRequest = true;
 
   /* a default start date */
-  startDate = new Date(2015, 1, 20); /* 2015-FEB-20 */
+  startDate = new Date(2015, 0, 1); /* 2015-JAN-01 */
 
   /* a default end date */
-  endDate = new Date(2015, 1, 21); /* 2015-FEB-21 */
+  endDate = new Date(2015, 0, 31); /* 2015-JAN-31 */
 
   /* variable to store the date help HTML */
   dateHelp = 'assets/date_help.html';
