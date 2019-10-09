@@ -313,7 +313,7 @@ def create_plots(request, center, descriptors):
         try:
             ddf[i] = aggregate_by_platform(lutils.readHDF(file, 'df'))
         except Exception as e:
-            log.error('Failed to aggregate by platform: %s' % file)
+            log.error('Failed to aggregate by platform: %s' % file, e)
             sns = boto3.client('sns')
             sns.publish(
                 TopicArn='arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms',
