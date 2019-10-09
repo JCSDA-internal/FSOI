@@ -42,7 +42,7 @@ def test_fsoi_s3_datastore():
     assert d is not None
     assert FsoiS3DataStore._validate_descriptor(d)
     bucket, key = FsoiS3DataStore._to_bucket_and_key(d)
-    assert bucket == 'fsoi-test'
+    assert bucket in ['fsoi-test', 'fsoi']
     assert key == 'intercomp/hdf5/GMAO/GMAO.moist.2015010112.h5'
 
     # test a valid use case
@@ -50,7 +50,7 @@ def test_fsoi_s3_datastore():
     assert d is not None
     assert FsoiS3DataStore._validate_descriptor(d)
     bucket, key = FsoiS3DataStore._to_bucket_and_key(d)
-    assert bucket == 'fsoi-test'
+    assert bucket in ['fsoi-test', 'fsoi']
     assert key == 'intercomp/hdf5/MET/groupbulk.MET.dry.2014120100.h5'
 
 
