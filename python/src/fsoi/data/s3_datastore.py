@@ -259,7 +259,8 @@ class S3DataStore(DataStore):
             return os.path.exists(local_file)
 
         except Exception as e:
-            log.error('Failed to download data to local file', e)
+            log.error('Failed to download data to local file')
+            print(e)
 
     def list_data_store(self, filters):
         """
@@ -329,7 +330,8 @@ class S3DataStore(DataStore):
             return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
         except botocore.exceptions.ClientError as ce:
-            log.error('Failed to check if data exist', ce)
+            log.error('Failed to check if data exist')
+            print(ce)
             return False
 
         except Exception as e:

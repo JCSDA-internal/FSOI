@@ -219,7 +219,7 @@ def upload_to_s3(file, s3url):
         return False
 
 
-def process_gmao(norm, date, path):
+def process_gmao(norm, date=None, path=None):
     """
     Process the GMAO data from a given day for the specified norm
     :param norm: {str} moist or dry
