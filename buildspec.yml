@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo install stage
+      - pip3 install coverage
+      - pip3 install pytest
+      - pip3 install pylint
+  build: 
+    commands:
+      - echo build_stage
+      - bash build/check_python.sh
+      - bash build/test_python.sh
+  post_build:
+    commands:
+      - echo post_build stage
+      - curl -s https://codecov.io/bash > codecov_temp.sh
+      - chmod +x codecov_temp.sh
+      - ls -l $CODEBUILD_SRC_DIR
+      - cat python/test/.coverage
+      - ls -la python/test/
+      - ./codecov_temp.sh -t 597948f4-60e9-4791-abb5-ec207f5ab60a -f python/test/.coverage -R $CODEBUILD_SRC_DIR
