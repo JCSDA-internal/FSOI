@@ -50,7 +50,7 @@ def download_and_process_gmao():
     date_str = '%04d%02d%02d%02d' % (date.year, date.month, date.day, cycle_hour)
 
     files = download_gmao(lag, https_host, remote_path, bucket, cycle_hour)
-    processed_files = process_gmao(norm, date_str)
+    processed_files = process_gmao(norm, date=date_str)
 
     if files and processed_files:
         log.info('Ingest completed.')

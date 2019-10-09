@@ -2,7 +2,6 @@
 These are generic data store classes and methods
 """
 
-import time
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
@@ -11,7 +10,7 @@ from fsoi import log
 
 class DataStore:
     """
-    Abstract class tat defines the FSOI data store interface.  In general, save_* methods are
+    Abstract class that defines the FSOI data store interface.  In general, save_* methods are
     writing data to a data store, and load_* methods are retrieving data from a data store.
     """
     def save_from_http(self, url, target):

@@ -1,0 +1,182 @@
+# This file contains constant values used to download and process UK Met data
+---
+fortran_format_string: i8,1x,e15.8,1x,e15.8,1x,e16.8,1x,f6.2,1x,f6.2,1x,f10.4,1x,i3,1x,i5,1x,i6,1x,e14.8,1x,f6.2,1x,a35
+arnUnknownPlatformsTopic: arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms
+kt:
+  1:
+  - ps
+  - Surface Pressure
+  - hPa
+  2:
+  - T
+  - Temperature
+  - K
+  3:
+  - rh
+  - Relative Humidity
+  - '%'
+  4:
+  - u
+  - U-wind component
+  - m/s
+  5:
+  - v
+  - V-wind component
+  - m/s
+  10:
+  - Tb
+  - Brightness Temperature
+  - K
+  12:
+  - X
+  - Ground GPS
+  - ''
+  71:
+  - ba
+  - Bending Angle
+  - N
+platforms:
+  observation_types_for_radiance:
+    - 10
+  conventional:
+    Aircraft:
+      - AIRCRAFT
+    AVHRR_Wind:
+      - GOES   3
+      - GOES   4
+      - GOES 206
+      - GOES 207
+      - GOES 209
+      - GOES 223
+      - MSG   3
+      - MSG   4
+    Dropsonde:
+      - DROP
+    GPSRO:
+      - GPSRO
+    GroundGPS:
+      - GROUNDGPS
+    MODIS_Wind:
+      - GOES 783
+      - GOES 784
+    LEO-GEO:
+      - GOES 854
+    VIIRS_Wind:
+      - GOES 224
+    Geo_Wind:
+      - ESA  54
+      - JMA 172
+      - JMA 173
+      - MSG  55
+      - MSG  57
+      - MSG  70
+      - GOES 257
+      - GOES 259
+      - GOES 270
+    ASCAT_Wind:
+      - ASCAT   3
+      - ASCAT   4
+    KUSCAT:
+      - KUSCAT 801
+      - KUSCAT 422
+    WINDSAT:
+      - WINDSAT 283
+    Radiosonde:
+      - TEMP
+      - SONDE
+    Profiler_Wind:
+      - WINPRO
+    PILOT:
+      - PILOT
+    Ship:
+      - SHIP
+    SYNOP:
+      - SYNOP
+    METAR:
+      - METAR
+    Moored_Buoy:
+      - BUOY:
+        - 10210
+        - 10310
+        - 11701
+    Drifting_Buoy:
+      - BUOY:
+        - 10212
+        - 10312
+        - 11702
+    Platform_Buoy:
+      - BUOY:
+        - 10204
+    BOGUS:
+      - BOGUS BOGUS
+    TC_Press:
+      - BOGUS TCBOGUS
+  radiance:
+    AIRS_Aqua:
+      - EOS2 (AQUA) AIRS
+    AMSUA_METOP-A:
+      - METOP2 (A) ATOVS AMSUA
+    AMSUA_METOP-B:
+      - METOP1 (B) ATOVS AMSUA
+    AMSUA_N15:
+      - NOAA15 ATOVS AMSUA
+    AMSUA_N16:
+      - NOAA16 ATOVS AMSUA
+    AMSUA_N18:
+      - NOAA18 ATOVS AMSUA
+    AMSUA_N19:
+      - NOAA19 ATOVS AMSUA
+    HIRS_METOP-A:
+      - METOP2 (A) ATOVS HIRS
+    HIRS_METOP-B:
+      - METOP1 (B) ATOVS HIRS
+    HIRS_N19:
+      - NOAA19 ATOVS HIRS
+    IASI_METOP-A:
+      - METOP2 (A) ATOVS IASI
+      - METOP2 (A) IASI
+    IASI_METOP-B:
+      - METOP1 (B) ATOVS IASI
+      - METOP1 (B) IASI
+    ATMS_NPP:
+      - JPSS0 (NPP) ATMS ATMS
+    ATMS_N20:
+      - NOAA20 ATMS ATMS
+    CrIS_NPP:
+      - JPSS0 (NPP) CrIS CrIS
+    CrIS_N20:
+      - NOAA20 CrIS CrIS
+    SEVIRI_CSR:
+      - MSG4 (MET11) SEVIRIClr
+      - MSG3 (MET10) SEVIRIClr
+      - MSG1 (MET8) SEVIRIClr
+    MTSAT_CSR:
+      - MTSAT2 MTSATCLR MTSATCLR
+    MVIRI_CSR:
+      - METEOSAT7 MVIRICLR MVIRICLR
+    MHS_METOP-A:
+      - METOP2 (A) ATOVS AMSUB
+    MHS_METOP-B:
+      - METOP1 (B) ATOVS AMSUB
+    MHS_N18:
+      - NOAA18 ATOVS AMSUB
+    MHS_N19:
+      - NOAA19 ATOVS AMSUB
+    GOES_CSR:
+      - GOES15 GOESImClr GOES
+      - GOES16 GOESImClr GOES
+    Himawari_CSR:
+      - Himawari8 AHIClr AHI
+    F17_SSMIS:
+      - F17 SSMIS
+    FY-3C_MWHS-2:
+      - FY33 (3C) MWSFY3
+    FY-3B_MWHS-1:
+      - FY32 (3B) MWSFY3B
+    MT_SAPHIR:
+      - IMD1 (MT) SAPHIR
+    GCOMW1_AMSR-2:
+      - GCOMW1 (W1) AMSR
+    GPM1_GMI:
+      - GPM1 GMILOW
+      - GPM1 GMIHIGH

@@ -1,0 +1,4 @@
+fsoi:
+  s3:
+    bucket: fsoi-test
+    key: intercomp/hdf5/%s/%s%s.%s.%s%s.h5  # center, center, norm, date, hour

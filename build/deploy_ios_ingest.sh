@@ -10,7 +10,7 @@
 
 # 2a. Launch the CloudFormation stack (if the stack is NOT already running):
 #   > aws cloudformation create-stack --stack-name IOSingest --template-body \
-#   >     fileb://resources/cloudformation_ios_ingest.yaml
+#   >     fileb://python/src/resources/cloudformation_ios_ingest.yaml
 #   Progress can be monitored on the AWS Console under the CloudFormation service
 
 # 2b. Update the CloudFormation stack (if the stack IS already running):

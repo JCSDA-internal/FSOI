@@ -7,7 +7,7 @@ import os
 os.environ['CACHE_BUCKET'] = 'fsoi-image-cache'
 os.environ['OBJECT_PREFIX'] = 'intercomp/hdf5'
 os.environ['FSOI_ROOT_DIR'] = '/tmp/pycharm/test/fsoi'
-os.environ['DATA_BUCKET'] = 'fsoi'
+os.environ['DATA_BUCKET'] = 'fsoi-test'
 os.environ['REGION'] = 'us-east-1'
 
 

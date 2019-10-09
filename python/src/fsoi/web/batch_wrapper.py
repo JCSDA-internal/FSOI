@@ -14,7 +14,7 @@ from fsoi.stats import lib_obimpact as loi
 from fsoi.stats import lib_utils as lutils
 from fsoi import log
 from fsoi.data.datastore import ThreadedDataStore
-from fsoi.data.s3_datastore import S3DataStore
+from fsoi.data.s3_datastore import S3DataStore, FsoiS3DataStore
 
 # List to hold errors and warnings encountered during processing
 errors = []
@@ -70,17 +70,17 @@ def process_request(validated_request):
 
     # download data from S3
     update_all_clients(hash_value, 'RUNNING', 'Accessing data objects', progress)
-    objects = download_s3_objects(validated_request)
+    descriptors = download_data(validated_request)
     progress += 5
 
     # analyze downloaded data to determine if there were any centers with no
     # data, and remove those centers (if any) from the request and add a warning
     center_counts = {}
-    for object in objects:
-        if object[1] not in center_counts:
-            center_counts[object[1]] = 0
-        if object[5]:
-            center_counts[object[1]] += 1
+    for descriptor in descriptors:
+        if descriptor['center'] not in center_counts:
+            center_counts[descriptor['center']] = 0
+        if descriptor['downloaded']:
+            center_counts[descriptor['center']] += 1
     for center in center_counts:
         if center_counts[center] == 0:
             warns.append('No data available for %s' % center)
@@ -95,7 +95,7 @@ def process_request(validated_request):
             prepare_working_dir(validated_request)
         if not errors:
             update_all_clients(hash_value, 'RUNNING', 'Creating plots for %s' % center, progress)
-            create_plots(validated_request, center, objects)
+            create_plots(validated_request, center, descriptors)
             progress += progress_step
         if not errors:
             update_all_clients(hash_value, 'RUNNING', 'Storing plots for %s' % center, progress)
@@ -155,7 +155,7 @@ def update_all_clients(req_hash, status_id, message, progress, sync=False):
         latest.pop('connections')
 
     # send a status message to all clients
-    message_all_clients(req_hash, latest)
+    message_all_clients(req_hash, latest, sync)
 
 
 def message_all_clients(req_hash, message, sync=False):
@@ -163,6 +163,7 @@ def message_all_clients(req_hash, message, sync=False):
     Send a message to all clients listening to the request
     :param req_hash: The request hash
     :param message: The message
+    :param sync: {bool} Set to True to send messages synchronously, sent asynchronously be default
     :return: Number of clients we attempted to notify
     """
     from concurrent.futures import ThreadPoolExecutor
@@ -240,7 +241,7 @@ def clean_up(request):
             print('%s not found when cleaning up' % root_dir)
 
 
-def download_s3_objects(request):
+def download_data(request):
     """
     Download all required objects from S3
     :param request: {dict} A validated and sanitized request object
@@ -248,28 +249,23 @@ def download_s3_objects(request):
                     to be downloaded.  The sub lists contain [s3_key, center, norm, date, cycle,
                     downloaded_boolean, local_file]
     """
-    bucket = os.environ['DATA_BUCKET']
-    prefix = os.environ['OBJECT_PREFIX']
     data_dir = request['root_dir'] + '/data'
 
     # get a list of required objects
-    objs = get_s3_object_urls(request)
+    descriptors = get_data_descriptors(request)
 
     # create the S3 data store
-    datastore = ThreadedDataStore(S3DataStore(), 20)
+    datastore = ThreadedDataStore(FsoiS3DataStore(), 20)
 
     # download all the objects using multi-threaded class
-    for obj in objs:
-        # create the source
-        key = obj[0]
-        source = {'bucket': bucket, 'prefix': prefix, 'name': key}
-
+    for descriptor in descriptors:
         # create the local file name
-        local_dir = data_dir+'/'+key[:key.rfind('/')]+'/'
-        local_file = key[key.rfind('/')+1:]
+        local_dir = '%s/%s/' % (data_dir, descriptor['center'])
+        local_file = FsoiS3DataStore.get_suggested_file_name(descriptor)
+        descriptor['local_path'] = '%s%s' % (local_dir, local_file)
 
         # start the download
-        datastore.load_to_local_file(source, local_dir + local_file)
+        datastore.load_to_local_file(descriptor, descriptor['local_path'])
 
     # wait for downloads to finish
     datastore.join()
@@ -277,27 +273,15 @@ def download_s3_objects(request):
     # check that files were downloaded and prepare a response message
     s3msgs = []
     all_data_missing = True
-    for obj in objs:
-        key = obj[0]
-
-        # create the local file name
-        local_dir = data_dir + '/' + key[:key.rfind('/')] + '/'
-        local_file = key[key.rfind('/')+1:]
-
+    for descriptor in descriptors:
         # check that the file was downloaded
-        if not os.path.exists(local_dir + local_file):
-            log.warning('Could not download S3 object: s3://%s/%s/%s' % (bucket, prefix, key))
-            obj.append(False)
-            tokens = key.split('.')
-            center = tokens[1]
-            norm = tokens[2]
-            date = tokens[3][0:8]
-            cycle = tokens[3][8:]
-            s3msgs.append('Missing data: %s %s %s %sZ' % (center, date, norm, cycle))
+        if not os.path.exists(descriptor['local_path']):
+            descriptor['downloaded'] = False
+            log.warn('Could not download data: %s' % S3DataStore.descriptor_to_string(descriptor))
+            s3msgs.append('Missing data: %s' % S3DataStore.descriptor_to_string(descriptor))
         else:
             all_data_missing = False
-            obj.append(True)
-            obj.append('%s%s' % (local_dir, local_file))
+            descriptor['downloaded'] = True
 
     # put the S3 download messages either into errors or warns
     for msg in s3msgs:
@@ -306,24 +290,22 @@ def download_s3_objects(request):
         else:
             warns.append(msg)
 
-    return objs
+    return descriptors
 
 
-def create_plots(request, center, objects):
+def create_plots(request, center, descriptors):
     """
     Run the fsoi_summary.py script on the bulk statistics
     :param request: {dict} A validated and sanitized request object
     :param center: {str} Name of the center for which plots should be created
-    :param objects: {list} A list of lists, where each item in the main list is an object that was expected
-                    to be downloaded.  The sub lists contain [s3_key, center, norm, date, cycle,
-                    downloaded_boolean, local_file]  (as returned from @download_s3_objects)
+    :param descriptors: {list} A list of data descriptors used with FsoiS3DataStore
     :return: None
     """
     # create a list of downloaded files for this center
     files = []
-    for obj in objects:
-        if obj[1] == center and obj[5]:
-            files.append(obj[6])
+    for descriptor in descriptors:
+        if descriptor['center'] == center and descriptor['downloaded']:
+            files.append(descriptor['local_path'])
 
     # read all of the files
     ddf = {}
@@ -402,7 +384,11 @@ def aggregate_by_platform(df):
         dt, specific_platform = index
 
         # get the common platform name for this row
-        common_platform = platform_to_aggregate_map[specific_platform]
+        if specific_platform in platform_to_aggregate_map:
+            common_platform = platform_to_aggregate_map[specific_platform]
+        else:
+            common_platform = 'Unknown'
+            log.warn('Unknown platform: %s' % specific_platform)
 
         # create the common index
         common_index = (dt, common_platform)
@@ -524,7 +510,7 @@ def dates_in_range(start_date, end_date):
     return dates
 
 
-def get_s3_object_urls(request):
+def get_data_descriptors(request):
     """
     Get a list of the S3 object URLs required to complete this request
     :param request: {dict} A validated and sanitized request object
@@ -540,20 +526,15 @@ def get_s3_object_urls(request):
     # create a list of norm values
     norms = ['dry', 'moist'] if norms == 'both' else [norms]
 
-    s3_objects = []
+    data_descriptors = []
     for date in dates_in_range(start_date, end_date):
         for center in centers:
             for cycle in cycles:
                 for norm in norms:
-                    s3_objects.append([
-                        '%s/groupbulk.%s.%s.%s%02d.h5' % (center, center, norm, date, int(cycle)),
-                        center,
-                        norm,
-                        date,
-                        cycle]
-                    )
+                    data_descriptor = FsoiS3DataStore.create_descriptor(type='groupbulk', center=center, norm=norm, date=date, hour=('%02d' % int(cycle)))
+                    data_descriptors.append(data_descriptor)
 
-    return s3_objects
+    return data_descriptors
 
 
 def cache_compare_plots_in_s3(hash_value, request):
