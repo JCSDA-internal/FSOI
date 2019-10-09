@@ -1,9 +1,9 @@
 {
   "norm": {
     "options": [
-      {"name": "dry", "selected": true},
+      {"name": "dry", "selected": false},
       {"name": "moist", "selected": false},
-      {"name": "both", "selected": false}
+      {"name": "both", "selected": true}
     ]
   },
   "centers": {
@@ -14,11 +14,13 @@
       {"name": "JMA_adj", "selected": true},
       {"name": "JMA_ens", "selected": true},
       {"name": "MET", "selected": true},
-      {"name": "MeteoFr", "selected": true}
+      {"name": "MeteoFr", "selected": true},
+      {"name": "MERRA2", "selected":  false}
     ]
   },
   "platforms": {
     "options": [
+      {"name": "AHI", "selected": true},
       {"name": "AIRS", "selected": true},
       {"name": "AMSR", "selected": true},
       {"name": "AMSUA", "selected": true},
@@ -27,18 +29,22 @@
       {"name": "AVHRR Wind", "selected": true},
       {"name": "Aircraft", "selected": true},
       {"name": "Aus Syn", "selected": true},
+      {"name": "BOGUS", "selected": true},
       {"name": "Buoy", "selected": true},
       {"name": "CrIS", "selected": true},
       {"name": "Dropsonde", "selected": true},
+      {"name": "FY3_MWHS", "selected": true},
       {"name": "GAVHR", "selected": true},
+      {"name": "GMI", "selected": true},
+      {"name": "GNSSDELAY", "selected": true},
       {"name": "GOES", "selected": true},
+      {"name": "GPM_GMI", "selected": true},
       {"name": "GPSRO", "selected": true},
       {"name": "Geo Wind", "selected": true},
       {"name": "Ground GPS", "selected": true},
-      {"name": "GMI", "selected": true},
-      {"name": "GNSSDELAY", "selected": true},
       {"name": "HIRS", "selected": true},
       {"name": "IASI", "selected": true},
+      {"name": "KUSCAT", "selected": true},
       {"name": "LEO-GEO", "selected": true},
       {"name": "Land Surface", "selected": true},
       {"name": "MHS", "selected": true},
@@ -46,6 +52,7 @@
       {"name": "MTSAT", "selected": true},
       {"name": "MVIRI", "selected": true},
       {"name": "NEXRAD Wind", "selected": true},
+      {"name": "NewUnknown", "selected": true},
       {"name": "Ozone", "selected": true},
       {"name": "PIBAL", "selected": true},
       {"name": "PRH", "selected": true},
@@ -55,18 +62,19 @@
       {"name": "Radiosonde", "selected": true},
       {"name": "SAPHIR", "selected": true},
       {"name": "SBUV2", "selected": true},
+      {"name": "SEVIRI", "selected": true},
       {"name": "SSMI Wind", "selected": true},
       {"name": "SSMIS", "selected": true},
-      {"name": "Seviri", "selected": true},
       {"name": "Ship", "selected": true},
       {"name": "Synthetic", "selected": true},
+      {"name": "TC_Press", "selected": true},
       {"name": "TMI Rain Rate", "selected": true},
       {"name": "TPW", "selected": true},
       {"name": "UAS", "selected": true},
       {"name": "UNKNOWN", "selected": true},
+      {"name": "VIIRS", "selected": true},
       {"name": "WindSat", "selected": true},
-      {"name": "wndmi", "selected": true},
-      {"name": "NewUnknown", "selected": true}
+      {"name": "wndmi", "selected": true}
     ]
   }
 }

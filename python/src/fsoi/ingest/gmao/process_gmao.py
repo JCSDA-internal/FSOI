@@ -110,15 +110,40 @@ def prepare_workspace():
     :return: {str} Full path to the workspace, or None if could not create
     """
     try:
-        work_dir = '/tmp/work'
-        if os.path.exists(work_dir):
-            shutil.rmtree(work_dir)
-        os.makedirs(work_dir)
+        import tempfile
+        work_dir = tempfile.mkdtemp()
+        log.debug('work_dir: %s' % work_dir)
         return work_dir
     except Exception as e:
-        log.error('Failed to create workspace: /tmp/work')
+        log.error('Failed to create workspace')
         log.error(e)
         return None
+
+
+def find_files_in_path(path, date):
+    """
+    Find all of the ods files in a given path
+    :param path: {str} The path to search
+    :param date: {str} Get files for this date (YYYYMMDDHH)
+    :return: {list} A list of local files, or None if there was an error
+    """
+    # make sure the path exists and is a directory
+    if not os.path.exists(path) or not os.path.isdir(path):
+        log.warn('Provided path does not exist or is not a directory: %s' % path)
+        return None
+
+    # append date directories to path
+    path += '/Y%s/M%s/D%s/H%s' % (date[0:4], date[4:6], date[6:8], date[8:10])
+    # list and filter files in directory
+    files = os.listdir(path)
+    filtered_files = []
+    for file in files:
+        tokens = file.split('.')
+        if tokens[-1] != 'ods':
+            continue
+        filtered_files.append('%s/%s' % (path, file))
+
+    return filtered_files
 
 
 def download_from_s3(s3url, local_dir):
@@ -194,11 +219,12 @@ def upload_to_s3(file, s3url):
         return False
 
 
-def process_gmao(norm, date):
+def process_gmao(norm, date=None, path=None):
     """
     Process the GMAO data from a given day for the specified norm
     :param norm: {str} moist or dry
-    :param date: {str} Date string in the format YYYYMMDDHH
+    :param date: {str} Date string in the format YYYYMMDDHH or None (required if path is None)
+    :param path: {str} Full path to search for files to process or None (required if date is None)
     :return: {list} List of local files
     """
     config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/gmao/gmao_ingest.yaml'))
@@ -208,32 +234,40 @@ def process_gmao(norm, date):
     input_bucket = config['raw_data_bucket']
     dt = datetime.strptime(date, '%Y%m%d%H')
 
+    # prepare the workspace
     work_dir = prepare_workspace()
-    s3_prefix = 's3://%s/Y%s/M%s/D%s/H%s/' % (
-        input_bucket, date[0:4], date[4:6], date[6:8], date[8:10])
-    file_list = download_from_s3(s3_prefix, work_dir)
+
+    # get a list of files
+    file_list = []
+
+    if path is not None:
+        file_list = find_files_in_path(path, date)
+    else:
+        s3_prefix = 's3://%s/Y%s/M%s/D%s/H%s/' % (input_bucket, date[0:4], date[4:6], date[6:8], date[8:10])
+        file_list = download_from_s3(s3_prefix, work_dir)
 
     n_obs = 0
     bufr = []
     # create list of unknown platforms
     ukwnplats = []
 
-    for file in file_list:
+    for path in file_list:
 
         # skip if the norm is not in the file name
-        if file_norm not in file.split('/')[-1]:
+        if file_norm not in path.split('/')[-1]:
             continue
 
         # log debug
-        log.debug('processing %s' % file)
+        log.debug('processing %s' % path)
 
         # TODO: Request that NASA adds the platform name as a global attribute in the NetCDF file
         #       rather than trying to parse the platform name from the file name.
-        platform = file.split(
-            '/')[-1].split('.')[3].split('imp3_%s_' % file_norm)[-1].upper()
+        platform = path.split('/')[-1].split('.')[3].split('imp3_%s_' % file_norm)[-1].upper()
+        if path.split('/')[-1].startswith('M2obimp'):
+            platform = path.split('/')[-1].split('.')[1].split('imp3_%s_' % file_norm)[-1].upper()
 
         # read the data from the file
-        ods = ODS(file)
+        ods = ODS(path)
         ods = ods.read(only_good=True, platform=platform)
         ods.close()
 
@@ -288,7 +322,7 @@ def process_gmao(norm, date):
     out_file_list = []
 
     out_file = 'GMAO.%s.%s.h5' % (norm, date)
-    s3_template = 's3://fsoi/intercomp/hdf5/GMAO/%s'
+    s3_template = 's3://' + config['processed_data_bucket'] + '/' + config['processed_data_prefix'] + '/%s'
 
     df = loi.list_to_dataframe(dt, bufr)
     of = '%s/%s' % (work_dir, out_file)
@@ -329,13 +363,12 @@ def main():
     """
     parser = ArgumentParser(
         description='Process GMAO data', formatter_class=FormatHelper)
-    parser.add_argument('-d', '--date', help='analysis date to process', metavar='YYYYMMDDHH',
-                        required=True)
-    parser.add_argument('-n', '--norm', help='norm to process', type=str, default='moist',
-                        choices=['dry', 'moist'], required=False)
+    parser.add_argument('-d', '--date', help='analysis date to process', metavar='YYYYMMDDHH', required=True)
+    parser.add_argument('-p', '--path', help='path to search for files [S3 is used if not specified]', required=False)
+    parser.add_argument('-n', '--norm', help='norm to process', type=str, default='moist', choices=['dry', 'moist'], required=False)
     args = parser.parse_args()
 
-    files = process_gmao(args.norm, args.date)
+    files = process_gmao(args.norm, args.date, args.path)
     log.info('Processed GMAO files:')
     for file in files:
         log.info(file)

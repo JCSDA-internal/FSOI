@@ -8,6 +8,8 @@ import botocore.exceptions
 import urllib3
 import certifi
 import tempfile
+import pkgutil
+import yaml
 from ftplib import FTP
 from fsoi.data.datastore import DataStore
 from fsoi import log
@@ -23,7 +25,7 @@ class S3DataStore(DataStore):
     s3_client = None
 
     @staticmethod
-    def __validate_descriptor(descriptor):
+    def _validate_descriptor(descriptor):
         """
         Validate the descriptor object
         :param descriptor: {dict} Data 'target' or 'source' descriptor
@@ -42,7 +44,7 @@ class S3DataStore(DataStore):
         return False
 
     @staticmethod
-    def __to_bucket_and_key(descriptor):
+    def _to_bucket_and_key(descriptor):
         """
         Get the bucket and key from the data descriptor
         :param descriptor: {dict} A 'target' or 'source' data descriptor
@@ -69,6 +71,31 @@ class S3DataStore(DataStore):
             S3DataStore.s3_client = boto3.client('s3')
         return S3DataStore.s3_client
 
+    @staticmethod
+    def get_suggested_file_name(descriptor):
+        """
+        Get a suggested file name from the descriptor
+        :param descriptor: {dict} A valid data descriptor
+        :return: {str} A suggested file name
+        """
+        # return everything after the last slash character in the S3 key
+        bucket, key = S3DataStore._to_bucket_and_key(descriptor)
+        return key[key.rfind('/') + 1:]
+
+    @staticmethod
+    def descriptor_to_string(descriptor):
+        """
+        Get a human-readable string of the descriptor for logging and error message purposes
+        :param descriptor: {dict} The data descriptor
+        :return: {str} human-readable string
+        """
+        type = descriptor['type']
+        center = descriptor['center']
+        norm = descriptor['norm']
+        date = descriptor['date'] if 'date' in descriptor else descriptor['datetime'][0:8]
+        hour = descriptor['hour'] if 'hour' in descriptor else descriptor['datetime'][8:10]
+        return 'type=%s, center=%s, norm=%s, date=%s, hour=%s' % (type, center, norm, date, hour)
+
     def save_from_http(self, url, target):
         """
         Save data from the URL to the data store
@@ -84,7 +111,7 @@ class S3DataStore(DataStore):
                 return False
 
             # validate the target
-            if not self.__validate_descriptor(target):
+            if not self._validate_descriptor(target):
                 return False
 
             # read the data from the URL
@@ -99,7 +126,7 @@ class S3DataStore(DataStore):
                 return False
 
             # write the data to S3
-            (bucket, key) = self.__to_bucket_and_key(target)
+            (bucket, key) = self._to_bucket_and_key(target)
             s3_client = self.__get_s3_client()
             s3_response = s3_client.put_object(
                 Bucket=bucket,
@@ -136,7 +163,7 @@ class S3DataStore(DataStore):
                 return False
 
             # validate the target
-            if not self.__validate_descriptor(target):
+            if not self._validate_descriptor(target):
                 return False
 
             # parse the URL
@@ -179,11 +206,11 @@ class S3DataStore(DataStore):
         """
         try:
             # validate the target descriptor
-            if not self.__validate_descriptor(target):
+            if not self._validate_descriptor(target):
                 return False
 
             # ensure that the target has bucket and key attributes
-            bucket, key = self.__to_bucket_and_key(target)
+            bucket, key = self._to_bucket_and_key(target)
 
             # get an S3 client
             s3_client = self.__get_s3_client()
@@ -208,11 +235,15 @@ class S3DataStore(DataStore):
         """
         try:
             # validate the source descriptor
-            if not self.__validate_descriptor(source):
+            if not self._validate_descriptor(source):
+                return False
+
+            # verify that the data exist
+            if not self.data_exist(source):
                 return False
 
             # get the bucket and key from the descriptor
-            bucket, key = self.__to_bucket_and_key(source)
+            bucket, key = self._to_bucket_and_key(source)
 
             # ensure that the local directory exists
             local_dir = local_file[:local_file.rfind('/')]
@@ -229,6 +260,7 @@ class S3DataStore(DataStore):
 
         except Exception as e:
             log.error('Failed to download data to local file')
+            print(e)
 
     def list_data_store(self, filters):
         """
@@ -279,23 +311,27 @@ class S3DataStore(DataStore):
         """
         try:
             # validate the target
-            if not self.__validate_descriptor(target):
+            if not self._validate_descriptor(target):
                 return False
 
             # get the bucket and key from the target
-            bucket, key = self.__to_bucket_and_key(target)
+            bucket, key = self._to_bucket_and_key(target)
 
             # get the S3 client
             s3_client = self.__get_s3_client()
 
             # check if the target exists in the S3 bucket
-            response = s3_client.head_object(Bucket=bucket, Key=key)
+            try:
+                response = s3_client.head_object(Bucket=bucket, Key=key)
+            except botocore.exceptions.ClientError:
+                return False
 
             # check the response (successful response indicates target exists)
             return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
         except botocore.exceptions.ClientError as ce:
             log.error('Failed to check if data exist')
+            print(ce)
             return False
 
         except Exception as e:
@@ -310,11 +346,11 @@ class S3DataStore(DataStore):
         """
         try:
             # validate the target
-            if not self.__validate_descriptor(target):
+            if not self._validate_descriptor(target):
                 return False
 
             # get the bucket and key from the target
-            bucket, key = self.__to_bucket_and_key(target)
+            bucket, key = self._to_bucket_and_key(target)
 
             # ensure that the target exists
             if not self.data_exist(target):
@@ -336,5 +372,141 @@ class S3DataStore(DataStore):
             return False
 
         except Exception as e:
-            log.error('Failed to delete target: s3://%s/%s' % self.__to_bucket_and_key(target), e)
+            log.error('Failed to delete target: s3://%s/%s' % self._to_bucket_and_key(target), e)
             return False
+
+
+class FsoiS3DataStore(S3DataStore):
+    """
+    Interface with an S3 data store specifically for FSOI data.  The 'target' and 'source'
+    parameters passed to these methods must be dictionaries that contain either: 1) 'center',
+    'norm', 'date', and 'hour' attributes; or 2) 'center', 'norm', and 'datetime' attributes.
+    """
+    @staticmethod
+    def _validate_descriptor(descriptor):
+        """
+        Validate the descriptor object
+        :param descriptor: {dict} Data 'target' or 'source' descriptor
+        :return: True if valid, otherwise False
+        """
+        # descriptor must be a dictionary
+        if not isinstance(descriptor, dict):
+            log.error('Descriptor type is invalid: %s' % type(descriptor).__name__)
+            return False
+
+        # descriptor must contain center and norm
+        if 'center' not in descriptor or 'norm' not in descriptor:
+            return False
+
+        # validate a descriptor with date and hour
+        if 'date' in descriptor and 'hour' in descriptor:
+            if not descriptor['date'].isnumeric() and len(descriptor['date']) != 8:
+                return False
+            if not descriptor['hour'].isnumeric() and len(descriptor['hour']) != 2:
+                return False
+            return True
+
+        # validate a descriptor with datetime
+        if 'datetime' in descriptor:
+            if not descriptor['datetime'].isnumeric() and len(descriptor['datetime']) != 10:
+                return False
+            return True
+
+        return False
+
+    @staticmethod
+    def _to_bucket_and_key(descriptor):
+        """
+        Get the bucket and key from the data descriptor
+        :param descriptor: {dict} A 'target' or 'source' data descriptor
+        :return: ({str}, {str}) A tuple with bucket and key, or None if descriptor is invalid
+        """
+        full_config = yaml.full_load(pkgutil.get_data('fsoi', 'data/datastore.yaml'))
+        config = full_config['fsoi']['s3']
+
+        bucket = config['bucket']
+
+        # construct the type of file: None, groupbulk, bulk, or accumbulk
+        data_type = descriptor['type'] + ('.' if descriptor['type'] is not '' else '')
+
+        # create the key based on 'date' and 'hour' in the descriptor
+        if 'date' in descriptor and 'hour' in descriptor:
+            key = config['key'] % (
+                descriptor['center'],
+                data_type,
+                descriptor['center'],
+                descriptor['norm'],
+                descriptor['date'],
+                descriptor['hour']
+            )
+            return bucket, key
+
+        # create the key based on 'datetime' in the descriptor
+        if 'datetime' in descriptor:
+            date = descriptor['datetime'][:8]
+            hour = descriptor['datetime'][8:10]
+            key = config['key'] % (
+                descriptor['center'],
+                data_type,
+                descriptor['center'],
+                descriptor['norm'],
+                date,
+                hour
+            )
+            return bucket, key
+
+        return None
+
+    @staticmethod
+    def create_descriptor(center=None, norm=None, date=None, hour=None, datetime=None, type=None):
+        """
+        Convenience method to create a descriptor
+        :param center: {str} The center name (NRL, GMAO, MET, MeteoFr, EMC, JMA_adj, or JMA_ens)
+        :param norm: {str} The norm (dry or moist)
+        :param date: {str} Date string YYYYMMDD (not compatible with datetime parameter)
+        :param hour: {str} Hour string (00, 06, 12, or 18) (not compatible with datetime parameter)
+        :param datetime: {str} Date/Time String YYYYMMDDHH (not compatible with date or hour parameters)
+        :param type: {str} The statistics type: None, groupbulk, accumbulk, or bulk
+        :return: Descriptor with given parameters
+        """
+        # check that options are compatible
+        if datetime is not None and (date is not None or hour is not None):
+            log.error('create_descriptor should be passed either [datetime] or [date AND hour]')
+            return None
+
+        # create the descriptor with common attributes
+        descriptor = {'center': center, 'norm': norm}
+
+        if datetime is not None:
+            # add datetime if it was specified
+            descriptor['datetime'] = datetime
+        else:
+            # add date and hour if they were specified
+            descriptor['date'] = date
+            descriptor['hour'] = hour
+
+        # set the type value
+        descriptor['type'] = type if type is not None else ''
+
+        return descriptor
+
+    @staticmethod
+    def descriptor_to_string(descriptor):
+        """
+        Get a human-readable string of the descriptor for logging and error message purposes
+        :param descriptor: {dict} The data descriptor
+        :return: {str} human-readable string
+        """
+        bucket, key = S3DataStore._to_bucket_and_key(descriptor)
+        return 'bucket=%s, key=%s' % (bucket, key)
+
+    @staticmethod
+    def get_suggested_file_name(descriptor):
+        """
+        Get a suggested file name from the descriptor
+        :param descriptor: {dict} A valid data descriptor
+        :return: {str} A suggested file name
+        """
+        # return everything after the last slash character in the S3 key
+        bucket, key = FsoiS3DataStore._to_bucket_and_key(descriptor)
+        return key[key.rfind('/') + 1:]

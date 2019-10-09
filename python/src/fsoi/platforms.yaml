@@ -322,6 +322,8 @@ GMAO:
     - TCBogus
   TMI Rain Rate:
     - PCP_TMI_TRMM
+    - PCP_TMI_TRMM_LND
+    - PCP_TMI_TRMM_OCN
 NRL:
   AIRS:
     - AIRS
@@ -420,8 +422,12 @@ NRL:
   WindSat:
     - WINDSAT
 MET:
+  AHI:
+    - Himawari_CSR
   AIRS:
     - AIRS_Aqua
+  AMSR:
+    - GCOMW1_AMSR-2
   AMSUA:
     - AMSUA_N15
     - AMSUA_N18
@@ -443,8 +449,13 @@ MET:
     - CrIS_NPP
   Dropsonde:
     - Dropsonde
+  FY3_MWHS:
+    - FY-3B-MWHS-1
+    - FY-3C-MWHS-2
   GOES:
     - GOES_CSR
+  GPM_GMI:
+    - GPM1_GMI
   GPSRO:
     - GPSRO
   Geo Wind:
@@ -457,6 +468,8 @@ MET:
   IASI:
     - IASI_METOP-A
     - IASI_METOP-B
+  KUSCAT:
+    - KUSCAT
   LEO-GEO:
     - LEO-GEO
   Land Surface:
@@ -489,8 +502,10 @@ MET:
   SSMIS:
     - SSMIS_F17
     - SSMIS_F18
-  Seviri:
+    - F17_SSMIS
+  SEVIRI:
     - SEVIRI_MSR
+    - SEVIRI_CSR
   Ship:
     - Ship
     - Moored_Buoy
@@ -498,6 +513,8 @@ MET:
     - TCBogus
   TMI Rain Rate:
     - PCP_TMI_TRMM
+  VIIRS:
+    - VIIRS_Wind
 MeteoFr:
   AIRS:
     - AIRS_AQUA
@@ -579,6 +596,8 @@ MeteoFr:
   Synthetic:
     - TCBogus
 OnePlatform:
+  AHI:
+    - Himawari_CSR
   AIRS:
     - AIRS_Aqua
     - AIRS_AQUA
@@ -588,6 +607,7 @@ OnePlatform:
     - AMSRE_GCOM-W1
     - AMSR2_GCOM-W1
     - AMSR2
+    - GCOMW1_AMSR-2
   AMSUA:
     - AMSUA_N15
     - AMSUA_NOAA15
@@ -607,6 +627,7 @@ OnePlatform:
     - SCAT_Wind
   ATMS:
     - ATMS_NPP
+    - ATMS_N20
     - ATMS_N20
   AVHRR Wind:
     - AVHRR_Wind
@@ -632,8 +653,12 @@ OnePlatform:
     - CRIS_NPP
     - CrIS_NPP
     - CRIS-FSR_N20
+    - CrIS_N20
   Dropsonde:
     - Dropsonde
+  FY3_MWHS:
+    - FY-3B-MWHS-1
+    - FY-3C-MWHS-2
   GAVHR:
     - GAVHR
   GOES:
@@ -663,6 +688,8 @@ OnePlatform:
     - GMI
   GNSSDELAY:
     - GNSSDELAY
+  GPM_GMI:
+    - GPM1_GMI
   HIRS:
     - HIRS4_N18
     - HIRS4_NOAA18
@@ -682,6 +709,8 @@ OnePlatform:
     - IASI_METOP-B
     - IASI_Metop-B
     - IASI616_METOP-A
+  KUSCAT:
+    - KUSCAT
   LEO-GEO:
     - LEO-GEO
     - AMV-LEOGEO
@@ -743,10 +772,12 @@ OnePlatform:
     - SSMIS_DMSP-F16
     - SSMIS_DMSP-F17
     - SSMIS_DMSP-F18
-  Seviri:
+    - F17_SSMIS
+  SEVIRI:
     - SEVIRI_M10
     - SEVIRI
     - SEVIRI_MSR
+    - SEVIRI_CSR
   Ship:
     - Ship
     - SHIP
@@ -759,6 +790,8 @@ OnePlatform:
     - TYBOGUS
   TMI Rain Rate:
     - PCP_TMI_TRMM
+    - PCP_TMI_TRMM_LND
+    - PCP_TMI_TRMM_OCN
     - TMI_TRMM
   TPW:
     - SSMI_TPW
@@ -767,9 +800,16 @@ OnePlatform:
     - UAS
   UNKNOWN:
     - UNKNOWN
+  VIIRS:
+    - VIIRS_Wind
+  BOGUS:
+    - BOGUS
+  TC_Press:
+    - TC_Press
   WindSat:
     - WINDSAT
   wndmi:
     - wndmi
   NewUnknown:
-    - ASK_FOR_PLATFORM_NAME
+    - BOGUS
+    - TC_Press

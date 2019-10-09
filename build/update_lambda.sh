@@ -1,11 +1,11 @@
 #! /bin/sh
 
 zip_file=fsoi-request-handler-deployed-`date +%Y%m%d%H%M%S`.zip
+mkdir -p x
 cd x
 cp -R ../FSOI/python/src/fsoi .
-rm -f ./fsoi/resources
-cp -R ../FSOI/python/resources ./fsoi/
 rm -f ingest_navy.py ingest_gmao.py lambda_wrapper.py
+#pip3 install -t . chardet requests urllib3 certifi idna pandas python-dateutil pytz six pyyaml matplotlib pyparsing cycler kiwisolver mpltools setuptools numexpr mock tables
 ln -s fsoi/ingest/nrl/ingest_navy.py .
 ln -s fsoi/ingest/gmao/ingest_gmao.py .
 ln -s fsoi/web/lambda_wrapper.py .
