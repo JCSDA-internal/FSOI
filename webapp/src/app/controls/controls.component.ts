@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {OptionsComponent} from '../options/options.component';
 import {MatDialog} from '@angular/material';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {DisplayComponent} from '../display/display.component';
 import {AppComponent} from '../app.component';
 import {Router, ActivatedRoute, Params} from '@angular/router';
@@ -63,6 +63,9 @@ export class ControlsComponent implements OnInit
   private websocket: WebSocket;
   private websocketUrl = 'wss://prw9exvaxi.execute-api.us-east-1.amazonaws.com/v2';
 
+  /* these headers can be added to an HTTP request to prevent using cached responses */
+  private noCacheHeaders: HttpHeaders;
+
   /* Track all requests in this session */
   sessionRequests = [];
 
@@ -76,6 +79,11 @@ export class ControlsComponent implements OnInit
    */
   constructor(private dialog: MatDialog, private http: HttpClient, private route: ActivatedRoute)
   {
+    this.noCacheHeaders = new HttpHeaders({
+      'Cache-Control': 'no-cache, no-store, must-revalidate, post-check=0, pre-check=0',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
   }
 
   /**
@@ -105,7 +113,7 @@ export class ControlsComponent implements OnInit
    */
   loadOptions(): void
   {
-    this.http.get('assets/options.json').subscribe(this.optionsLoaded.bind(this));
+    this.http.get('assets/options.json', {headers: this.noCacheHeaders}).subscribe(this.optionsLoaded.bind(this));
   }
 
 
@@ -129,7 +137,7 @@ export class ControlsComponent implements OnInit
    */
   loadDateHelp(): void
   {
-    this.http.get('assets/date_help.html', {'responseType': 'text'}).subscribe(this.dateHelpLoaded.bind(this));
+    this.http.get('assets/date_help.html', {headers: this.noCacheHeaders, responseType: 'text'}).subscribe(this.dateHelpLoaded.bind(this));
   }
 
 
