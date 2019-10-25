@@ -14,5 +14,6 @@ cd ${root_dir}/python/test
 export PYTHONPATH="${root_dir}/python/src:${root_dir}/python/test"
 coverage run $(which py.test) .
 status=$?
-coverage html --include=src/fsoi/\*\*/\*.py
+coverage report
+coverage xml
 exit $status
