@@ -22,7 +22,7 @@ requests:
       interval: 24
       centers:
         - MET
-      norm: dry
+      norm: moist
       platforms: AHI,AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,BOGUS,Buoy,CrIS,Dropsonde,FY3_MWHS,GAVHR,GMI,GNSSDELAY,GOES,GPM_GMI,GPSRO,Geo Wind,Ground GPS,HIRS,IASI,KUSCAT,LEO-GEO,Land Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD Wind,NewUnknown,Ozone,PIBAL,PRH,Profiler Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SEVIRI,SSMI Wind,SSMIS,Ship,Synthetic,TC_Press,TMI Rain Rate,TPW,UAS,UNKNOWN,VIIRS,WindSat,wndmi
     pass:
     - start_date: '20150103'

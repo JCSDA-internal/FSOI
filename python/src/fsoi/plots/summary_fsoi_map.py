@@ -94,7 +94,7 @@ def main():
 
     titlestr = plotOpt['title']
     channelstr = '' if channel is None else ', ch. %d' % channel[0]
-    titlestr = '%s %s%s\n Total Impact (J/g)' % (plotOpt['center_name'], platform, channelstr)
+    titlestr = '%s %s%s\n Mean Total Impact (J/g)' % (plotOpt['center_name'], platform, channelstr)
     plt.title('%s' % (titlestr), fontsize=18)
 
     if savefig:

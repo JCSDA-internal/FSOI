@@ -667,7 +667,7 @@ def getPlotOpt(qty='TotImp', **kwargs):
     plotOpt['center'], qty)
 
     if qty == 'TotImp':
-        plotOpt['name'] = 'Total Impact'
+        plotOpt['name'] = 'Mean Total Impact'
         plotOpt['xlabel'] = '%s (J/kg)' % plotOpt['name']
         plotOpt['sortAscending'] = False
     elif qty == 'ObCnt':
