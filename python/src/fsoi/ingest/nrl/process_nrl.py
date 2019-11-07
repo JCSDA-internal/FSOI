@@ -233,15 +233,15 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
 
     sns = boto3.client("sns")
 
-    #list saving unknown platforms IDs
-    uknownplats = []
+    # list saving unknown platforms IDs
+    unknown_platforms = []
 
     parsed_date = datetime.strptime(date, '%Y%m%d%H')
 
     # open the raw data file
     try:
         fh = bz2.BZ2File(raw_bzip2_file, 'rb')
-    except RuntimeError as e:
+    except RuntimeError:
         log.error('Failed to open file: %s' % raw_bzip2_file)
         return None
 
@@ -272,7 +272,7 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
         if isinstance(line, bytes):
             line = line.decode()
 
-        data = _parse_line(line, kt, kx, fortran_format, uknownplats)
+        data = _parse_line(line, kt, kx, fortran_format, unknown_platforms)
 
         if data is None:
             continue
@@ -298,7 +298,8 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
     if bufr:
         out = '%s/%s' % (output_path, output_file)
         df = loi.list_to_dataframe(parsed_date, bufr)
-        if os.path.isfile(out): os.remove(out)
+        if os.path.isfile(out):
+            os.remove(out)
         lutils.writeHDF(out, 'df', df, complevel=1, complib='zlib', fletcher32=True)
         output_files.append(out)
 
@@ -320,11 +321,12 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
 
     log.debug('Total obs = %d' % n_obs)
 
-    if uknownplats:
+    if unknown_platforms:
         sns.publish(
             TopicArn=config['arnUnknownPlatformsTopic'],
             Subject='Unknown Platform attribute NRL file',
-            Message='Unknown platform attribute encountered while processing files from NRL. Unknown platform ID(s): ' + ', '.join(str(e) for e in uknownplats) + ', file timestamp : ' + date
+            Message='Unknown platform attribute encountered while processing files from NRL. Unknown platform ID(s): ' +
+                    ', '.join(str(e) for e in unknown_platforms) + ', file timestamp : ' + date
         )
     return output_files
 
