@@ -361,8 +361,7 @@ def main():
 
     :return:
     """
-    parser = ArgumentParser(
-        description='Process GMAO data', formatter_class=FormatHelper)
+    parser = ArgumentParser(description='Process GMAO data', formatter_class=FormatHelper)
     parser.add_argument('-d', '--date', help='analysis date to process', metavar='YYYYMMDDHH', required=True)
     parser.add_argument('-p', '--path', help='path to search for files [S3 is used if not specified]', required=False)
     parser.add_argument('-n', '--norm', help='norm to process', type=str, default='moist', choices=['dry', 'moist'], required=False)

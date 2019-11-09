@@ -2,7 +2,7 @@ import boto3
 import datetime as dt
 
 start = dt.datetime(2019, 2, 21, 0, 0, 0)
-end = dt.datetime(2019, 6, 4, 0, 0, 0)
+end = dt.datetime(2019, 11, 8, 0, 0, 0)
 one_day = dt.timedelta(1)
 
 
@@ -44,7 +44,11 @@ def submit_jobs_in_range():
             jobDefinition='ios_ingest_gmao_job:%d' % latest,
             jobQueue='ios_ingest_queue',
             containerOverrides={
-                'command': ['process_gmao', '-d', date_str]
+                'command': ['process_gmao', '-d', date_str, '-n', 'moist']
             }
         )
         date = date + one_day
+
+
+if __name__ == '__main__':
+    submit_jobs_in_range()
