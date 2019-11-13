@@ -18,7 +18,7 @@ aws_lambda:
 	cd artifact_build; find . -type f -name \*.py -exec chmod ugo+rx {} \;
 	cd artifact_build; find . -type f -exec chmod ugo+r {} \;
 	cd artifact_build; find . -type d -exec chmod ugo+rx {} \;
-	cd artifact_build; zip -r ../fsoi_lambda.zip .
+	cd artifact_build; tar -cvzf ../fsoi_lambda.zip .
 
 egg:
 	cd ../python; python3 setup.py build --build-base build bdist_egg --dist-dir dist
