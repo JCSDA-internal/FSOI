@@ -19,6 +19,7 @@ phases:
       - /bin/bash ./codecov_temp.sh -t 597948f4-60e9-4791-abb5-ec207f5ab60a -f python/test/coverage.xml -R $CODEBUILD_SRC_DIR
       - cd $CODEBUILD_SRC_DIR/build
       - make aws_lambda
+      - echo "Deploy AWS Lambda code with 'aws lambda update-function-code --function-name ios_request_handler --s3-bucket fsoi --s3-key CodeBuild/$CODEBUILD_BUILD_ID/fsoi_lambda.zip'"
 
 artifacts:
   files:
