@@ -16,7 +16,12 @@ phases:
     commands:
       - echo post_build stage
       - curl -s https://codecov.io/bash > codecov_temp.sh
-      - chmod +x codecov_temp.sh
-      - ls -l $CODEBUILD_SRC_DIR
-      - ls -la python/test/
-      - ./codecov_temp.sh -t 597948f4-60e9-4791-abb5-ec207f5ab60a -f python/test/coverage.xml -R $CODEBUILD_SRC_DIR
+      - /bin/bash ./codecov_temp.sh -t 597948f4-60e9-4791-abb5-ec207f5ab60a -f python/test/coverage.xml -R $CODEBUILD_SRC_DIR
+      - cd $CODEBUILD_SRC_DIR/build
+      - make aws_lambda
+      - SHORT_CODBUILD_BUILD_ID=$(echo $CODEBUILD_BUILD_ID | cut -c6-)
+      - echo "Deploy to AWS Lambda with the command\n  aws lambda update-function-code --function-name ios_request_handler --s3-bucket fsoi --s3-key CodeBuild/$SHORT_CODEBUILD_BUILD_ID/fsoi_lambda.zip"
+
+artifacts:
+  files:
+    - build/fsoi_lambda.zip
