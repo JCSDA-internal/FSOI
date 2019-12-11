@@ -450,8 +450,8 @@ MET:
   Dropsonde:
     - Dropsonde
   FY3_MWHS:
-    - FY-3B-MWHS-1
-    - FY-3C-MWHS-2
+    - FY-3B_MWHS-1
+    - FY-3C_MWHS-2
   GOES:
     - GOES_CSR
   GPM_GMI:
@@ -657,8 +657,8 @@ OnePlatform:
   Dropsonde:
     - Dropsonde
   FY3_MWHS:
-    - FY-3B-MWHS-1
-    - FY-3C-MWHS-2
+    - FY-3B_MWHS-1
+    - FY-3C_MWHS-2
   GAVHR:
     - GAVHR
   GOES:
@@ -761,6 +761,7 @@ OnePlatform:
     - RADIOSONDE
   SAPHIR:
     - SAPHIR
+    - MT_SAPHIR
   SBUV2:
     - SBUV2
   SSMI Wind:
@@ -776,6 +777,7 @@ OnePlatform:
   SEVIRI:
     - SEVIRI_M10
     - SEVIRI
+    - Seviri
     - SEVIRI_MSR
     - SEVIRI_CSR
   Ship:
@@ -810,6 +812,3 @@ OnePlatform:
     - WINDSAT
   wndmi:
     - wndmi
-  NewUnknown:
-    - BOGUS
-    - TC_Press
