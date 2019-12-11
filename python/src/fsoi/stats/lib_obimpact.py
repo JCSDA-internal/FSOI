@@ -667,7 +667,7 @@ def getPlotOpt(qty='TotImp', **kwargs):
     plotOpt['center'], qty)
 
     if qty == 'TotImp':
-        plotOpt['name'] = 'Total Impact'
+        plotOpt['name'] = 'Mean Total Impact'
         plotOpt['xlabel'] = '%s (J/kg)' % plotOpt['name']
         plotOpt['sortAscending'] = False
     elif qty == 'ObCnt':
@@ -744,15 +744,8 @@ def summaryplot(df, qty='TotImp', plotOpt={}, std=None):
     if plotOpt['finite']:
         df = df[_np.isfinite(df[qty])]
 
-    if plotOpt['platform']:
-        df.sort_index(ascending=False, inplace=True)
-    else:
-        if qty in ['FracBenNeuObs']:
-            df.sort_values(by='FracBenObs', ascending=plotOpt['sortAscending'], inplace=True,
-                           na_position='first')
-        else:
-            df.sort_values(by=qty, ascending=plotOpt['sortAscending'], inplace=True,
-                           na_position='first')
+    sort_by = qty if qty != 'FracBenNeuObs' else 'FracBenObs'
+    df.sort_values(by=sort_by, ascending=plotOpt['sortAscending'], inplace=True, na_position='first')
 
     fig = _plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, facecolor='w')
@@ -886,6 +879,15 @@ def comparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
     :param plotOpt:
     :return:
     """
+    sort_me = df.copy()
+    sort_me.fillna(value=0, inplace=True)
+    sort_me['SUM'] = 0
+    for center in df:
+        sort_me['SUM'] += sort_me[center]
+    sort_me.sort_values(by='SUM', ascending=plotOpt['sortAscending'], inplace=True, na_position='first')
+    sort_me.drop('SUM', 1, inplace=True)
+    df = sort_me
+
     alpha = plotOpt['alpha']
     barcolors = reversed(palette)
 
