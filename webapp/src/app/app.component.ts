@@ -1,4 +1,4 @@
-import {Component, enableProdMode, ViewChild} from '@angular/core';
+import {Component, enableProdMode, OnInit, ViewChild} from '@angular/core';
 import {DisplayComponent} from './display/display.component';
 import {ControlsComponent} from './controls/controls.component';
 
@@ -7,10 +7,10 @@ import {ControlsComponent} from './controls/controls.component';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent
+export class AppComponent implements OnInit
 {
-  @ViewChild(DisplayComponent) display: DisplayComponent;
-  @ViewChild(ControlsComponent) controls: ControlsComponent;
+  @ViewChild(DisplayComponent, {static: false}) display: DisplayComponent;
+  @ViewChild(ControlsComponent, {static: false}) controls: ControlsComponent;
 
   /**
    * The viewMode is bound to a CSS class that determines if the
