@@ -9,7 +9,7 @@ import {MessageComponent} from '../message/message.component';
 })
 export class DisplayComponent implements OnInit
 {
-  @ViewChild('imageContainer') imageContainer;
+  @ViewChild('imageContainer', {static: false}) imageContainer;
 
   /* list of all images */
   allImages = [];
