@@ -9,7 +9,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from matplotlib import pyplot as plt
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
-from fsoi.web.batch_wrapper import filter_platforms_from_data
+from fsoi.web.request_handler import filter_platforms_from_data
 
 
 def load_centers(rootdir, centers, norm, cycle):

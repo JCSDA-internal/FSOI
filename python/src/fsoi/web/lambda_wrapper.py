@@ -8,7 +8,7 @@ import json
 import boto3
 from fsoi.web.serverless_tools import ApiGatewaySender, RequestDao, get_reference_id, hash_request, \
     create_response_body
-from fsoi.web.batch_wrapper import handler
+from fsoi.web.request_handler import handler
 
 
 def handle_request(event, context):

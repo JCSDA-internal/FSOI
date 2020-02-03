@@ -17,7 +17,7 @@ def test_pass_requests():
     """
     import time
     import yaml
-    from fsoi.web.batch_wrapper import handler
+    from fsoi.web.request_handler import handler
     from fsoi.web.serverless_tools import hash_request, RequestDao
 
     data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
@@ -28,7 +28,7 @@ def test_pass_requests():
     for req in p:
         # add the root_dir to the request, this normally happens when 'validate_request'
         # is called in the lambda function.  However, we are skipping the lambda function,
-        # so we must do it here before calling batch_wrapper.main()
+        # so we must do it here before processing the request
         req['root_dir'] = '/tmp/pycharm/test/fsoi'
 
         # add an unused request field to generate a unique hash
@@ -48,7 +48,7 @@ def test_fail_requests():
     """
     import time
     import yaml
-    from fsoi.web.batch_wrapper import handler
+    from fsoi.web.request_handler import handler
     from fsoi.web.serverless_tools import hash_request, RequestDao
 
     data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
@@ -62,7 +62,7 @@ def test_fail_requests():
 
         # add the root_dir to the request, this normally happens when 'validate_request'
         # is called in the lambda function.  However, we are skipping the lambda function,
-        # so we must do it here before calling batch_wrapper.main()
+        # so we must do it here before processing the request
         req['root_dir'] = '/tmp/pycharm/test/fsoi'
 
         # add an unused request field to generate a unique hash
@@ -82,7 +82,7 @@ def test_focus_requests():
     """
     import time
     import yaml
-    from fsoi.web.batch_wrapper import handler
+    from fsoi.web.request_handler import handler
     from fsoi.web.serverless_tools import hash_request, RequestDao
 
     data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
@@ -97,7 +97,7 @@ def test_focus_requests():
         for req in f:
             # add the root_dir to the request, this normally happens when 'validate_request'
             # is called in the lambda function.  However, we are skipping the lambda function,
-            # so we must do it here before calling batch_wrapper.main()
+            # so we must do it here before processing the request
             req['root_dir'] = '/tmp/pycharm/test/fsoi'
 
             # add an unused request field to generate a unique hash

@@ -299,3 +299,105 @@ Resources:
           REGION: us-east-1
           DATA_BUCKET: fsoi
           OBJECT_PREFIX: intercomp/hdf5
+
+  # Static content hosting via CloudFront
+  AppBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: ios.jcsda.org
+      PolicyDocument:
+        Version: 2008-10-17
+        Id: PolicyForCloudFrontPrivateContent
+        Statement:
+          - Sid: Allow CloudFront Origin Access Identity to access bucket content
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join:
+                  - ' '
+                  - - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity
+                    - !Ref CloudFrontOriginAccessIdentity
+            Action: 's3:GetObject'
+            Resource: 'arn:aws:s3:::ios.jcsda.org/*'
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: S3-ios.jcsda.org
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: JCSDA - FSOI
+        Aliases:
+          - ios.jcsda.org
+        DefaultRootObject: index.html
+        Enabled: true
+        IPV6Enabled: true
+        Logging:
+          Bucket: jcsda-scratch.s3.amazonaws.com
+          IncludeCookies: true
+          Prefix: ''
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: false
+          DefaultTTL: 3600
+          ForwardedValues:
+            Cookies:
+              Forward: all
+            QueryString: true
+          TargetOriginId: !Ref CloudFrontOriginAccessIdentity
+          ViewerProtocolPolicy: redirect-to-https
+        Origins:
+          - Id: !Ref CloudFrontOriginAccessIdentity
+            DomainName: ios.jcsda.org.s3.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity:
+                Fn::Join:
+                  - '/'
+                  -
+                    - origin-access-identity
+                    - cloudfront
+                    - !Ref CloudFrontOriginAccessIdentity
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn: !Ref Certificate
+          MinimumProtocolVersion: TLSv1.1_2016
+          SslSupportMethod: sni-only
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  CloudFrontDnsEntry:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - CloudFrontDistribution
+    Properties:
+      Name: ios2.jcsda.org
+      HostedZoneId: Z1F2XBLX8SOJLO
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !GetAtt CloudFrontDistribution.DomainName
+
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: jcsda.org
+      SubjectAlternativeNames:
+        - ios.jcsda.org
+        - ios2.jcsda.org
+        - fsoi.jcsda.org
+        - '*.jcsda.org'
+      ValidationMethod: DNS
