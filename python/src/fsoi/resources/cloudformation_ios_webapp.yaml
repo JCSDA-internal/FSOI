@@ -384,7 +384,7 @@ Resources:
     DependsOn:
       - CloudFrontDistribution
     Properties:
-      Name: ios2.jcsda.org
+      Name: ios.jcsda.org
       HostedZoneId: Z1F2XBLX8SOJLO
       Type: CNAME
       TTL: 300
