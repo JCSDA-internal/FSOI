@@ -12,6 +12,7 @@
   background-size     : 100%;
   background-repeat   : no-repeat;
   background-position : center center;
+  overflow            : hidden;
 }
 
 .display-image-tile img

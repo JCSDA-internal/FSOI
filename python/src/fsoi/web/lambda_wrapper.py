@@ -37,6 +37,11 @@ def handle_request(event, context):
         send_cached_response(request['cache_id'], client_url)
         return
 
+    # if this is a request to return JSON data (bokeh), return the json data
+    if 'json_data' in request:
+        send_json_data_response(request, client_url)
+        return
+
     # validate the request
     validated_request = validate_request(request)
     del request
@@ -122,6 +127,21 @@ def send_cached_response(req_hash, client_url):
     send_response(response, client_url)
 
 
+def send_json_data_response(request, client_url):
+    """
+    Send a JSON data response
+    :param request: The request object
+    :param client_url: The URL to contact the client
+    :return: None
+    """
+    from fsoi.data.s3_datastore import S3DataStore
+    key = request['json_data']['key']
+    data = S3DataStore().load({'bucket': 'fsoi-image-cache', 'key': key})
+    if data:
+        request['data'] = json.loads(data.decode())
+    send_response(json.dumps(request), client_url)
+
+
 def send_response(message, client_url):
     """
     Send a response to the client
@@ -130,6 +150,7 @@ def send_response(message, client_url):
     :return: None
     """
     ApiGatewaySender.send_message_to_ws_client(client_url, message)
+
 
 
 def validate_request(request):

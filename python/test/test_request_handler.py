@@ -104,8 +104,15 @@ def test_focus_requests():
             req['time'] = time.time()
             req_hash = hash_request(req)
 
-            # run the batch process
-            handler(req)
+            if 'cache_id' in req:
+                import json
+                from fsoi.web.lambda_wrapper import get_cached_object_keys, create_response_body
+                key_list = get_cached_object_keys(req_hash)
+                response = create_response_body(key_list, req_hash, [])
+                print(json.dumps(response))
+            else:
+                # run the batch process
+                handler(req)
 
             req_status = RequestDao.get_request(req_hash)
             assert req_status['status_id'] == 'SUCCESS'

@@ -841,6 +841,83 @@ def summaryplot(df, qty='TotImp', plotOpt={}, std=None):
     return fig
 
 
+def bokehsummaryplot(df, qty='TotImp', plot_options={}, std=None):
+    """
+    Create a summary plot with Bokeh libraries
+    :param df:
+    :param qty:
+    :param plot_options:
+    :param std:
+    :return:
+    """
+    from bokeh.plotting import figure, show
+    from bokeh.models import Title, ColorBar, HoverTool, LinearColorMapper, BasicTicker
+    from bokeh.models.sources import ColumnDataSource
+    from bokeh.embed import json_item
+    import bokeh.palettes
+    import pandas
+    import json
+
+    # create the data source
+    if plot_options['finite']:
+        df = df[_np.isfinite(df[qty])]
+    sort_by = qty if qty != 'FracBenNeuObs' else 'FracBenObs'
+    df.sort_values(by=sort_by, ascending=plot_options['sortAscending'], inplace=True, na_position='first')
+    df1 = pandas.DataFrame(index=df.index)
+    df1[qty] = df[qty]
+    df1['PLATFORMS'] = df1.index
+
+    # extract the plot options
+    alpha = plot_options['alpha']
+    logscale = plot_options['logscale']
+    cmax = plot_options['cmax']
+    cmin = plot_options['cmin']
+    color_map = _cm.get_cmap(plot_options['cmap'])
+
+    # create the list of bar colors
+    color_bars = getbarcolors(df[qty], logscale, cmax, cmin, color_map)
+    df1['colors'] = ['#%02x%02x%02x' % (int(c[0] * 255), int(c[1] * 255), int(c[2] * 255)) for c in color_bars]
+
+    # create the figure
+    plot = figure(
+        plot_width=1000,
+        plot_height=800,
+        y_range=list(df1.index.unique()),
+        x_range=(df[qty].min(), df[qty].max())
+    )
+
+    # dummy plot for keeping the color bar on a bar plot
+    # x = _np.array([0, 1, 2, 3, 4, 5, 6])
+    # y = _np.array([1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6])
+    # fig.scatter(x, y, c=y, size=0, color=barcolors)
+
+    # add the bar plot
+    plot.hbar(source=ColumnDataSource(df1), right=qty, y='PLATFORMS', height=0.9, line_color='#000000', fill_color='colors')
+
+    # add the labels
+    plot.xaxis.axis_label = plot_options['xlabel']
+    title_lines = plot_options['title'].split('\n')
+    title_lines.reverse()
+    for line in title_lines:
+        plot.add_layout(Title(text=line, text_font_size='20pt', align='center'), 'above')
+
+    # legend
+    palette_blues = bokeh.palettes.brewer[plot_options['cmap']][256]
+    palette_blues.reverse()
+    color_map = LinearColorMapper(palette=palette_blues, low=cmin, high=cmax)
+    color_bar = ColorBar(color_mapper=color_map, ticker=BasicTicker(), label_standoff=12, border_line_color=None, location=(20, 0))
+    plot.add_layout(color_bar, 'right')
+    hover = plot.select(dict(type=HoverTool))
+    hover.tooltips = [('Value', '$y')]
+
+    # write the json object to a file
+    with open('%s.json' % plot_options['figname'], 'w') as f:
+        f.write(json.dumps(json_item(plot)))
+        f.close()
+
+    return plot
+
+
 def getcomparesummarypalette(
         centers=['GMAO', 'NRL', 'MET', 'MeteoFr', 'JMA_adj', 'JMA_ens', 'EMC']):
     """

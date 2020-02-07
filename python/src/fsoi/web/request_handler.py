@@ -352,10 +352,9 @@ def create_plots(request, center, descriptors):
     # create the plots
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         try:
-            plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center,
-                                          savefigure=True, platform=loi.Platforms('OnePlatform'), domain='Global')
-            plot_options['figname'] = '%s/plots/summary/%s/%s_%s_%s' % \
-                                      (request['root_dir'], center, center, qty, cycle_id)
+            platforms = loi.Platforms('OnePlatform')
+            plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center, savefigure=True, platform=platforms, domain='Global')
+            plot_options['figname'] = '%s/plots/summary/%s/%s_%s_%s' % (request['root_dir'], center, center, qty, cycle_id)
             loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
         except Exception as e:
             log.error('Failed to generate plots for %s' % qty, e)
@@ -423,7 +422,7 @@ def filter_platforms_from_data(df, platforms):
     """
     Filter out platforms that were not requested by the user
     :param df: The summary metrics data frame
-    :param request: {str} A comma-separated list of platforms that should be included
+    :param platforms: {str} A comma-separated list of platforms that should be included
     :return: None - 'df' object is modified
     """
     # create a list of all upper case platform present in the request
@@ -598,12 +597,12 @@ def cache_summary_plots_in_s3(hash_value, request):
 
     # list of files to cache
     files = [
-        img_dir + '/__CENTER__/__CENTER___ImpPerOb___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___FracImp___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___ObCnt___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___TotImp___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___FracNeuObs___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__.png'
+        img_dir + '/__CENTER__/__CENTER___ImpPerOb___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___FracImp___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___ObCnt___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___TotImp___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___FracNeuObs___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__.__EXT__'
     ]
 
     # create the S3 data store
@@ -618,13 +617,14 @@ def cache_summary_plots_in_s3(hash_value, request):
     key_list = []
     for center in request['centers']:
         for file in files:
-            # replace the center in the file name
-            filename = file.replace('__CENTER__', center).replace('__CYCLE__', cycle)
-            if os.path.exists(filename):
-                print('Uploading %s to S3...' % filename)
-                key = hash_value + '/' + filename[filename.rfind('/') + 1:]
-                datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
-                key_list.append(key)
+            for ext in ['png', 'json']:
+                # replace the center, cycle, and extension in the file name
+                filename = file.replace('__CENTER__', center).replace('__CYCLE__', cycle).replace('__EXT__', ext)
+                if os.path.exists(filename):
+                    print('Uploading %s to S3...' % filename)
+                    key = hash_value + '/' + filename[filename.rfind('/') + 1:]
+                    datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
+                    key_list.append(key)
 
     # an empty list of S3 keys indicates that no plots were uploaded or generated
     if not key_list:

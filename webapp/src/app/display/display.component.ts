@@ -1,6 +1,8 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {MatDialog} from '@angular/material';
 import {MessageComponent} from '../message/message.component';
+import {HttpClient} from '@angular/common/http';
+declare var Bokeh: any;
 
 @Component({
   selector: 'app-display',
@@ -9,8 +11,10 @@ import {MessageComponent} from '../message/message.component';
 })
 export class DisplayComponent implements OnInit
 {
-  @ViewChild('imageContainer', {static: false}) imageContainer;
+  public static singleton: DisplayComponent;
 
+
+  @ViewChild('imageContainer', {static: false}) imageContainer;
   /* list of all images */
   allImages = [];
 
@@ -47,8 +51,9 @@ export class DisplayComponent implements OnInit
    *
    * @param dialog dependency injection
    */
-  constructor(private dialog: MatDialog)
+  constructor(private dialog: MatDialog, private http: HttpClient)
   {
+    DisplayComponent.singleton = this;
   }
 
 
@@ -88,6 +93,26 @@ export class DisplayComponent implements OnInit
       if (this.allImages[i].selected)
       {
         this.images[this.images.length] = this.allImages[i];
+      }
+    }
+    this.recomputeGrid();
+  }
+
+
+  /**
+   * Set the bokeh json data for an image
+   * @param key The image key
+   * @param data The Bokeh image data
+   * @return none
+   */
+  setJsonData(key: string, data: any): void
+  {
+    for (const image of this.allImages)
+    {
+      if (image.key === key)
+      {
+        image.data = data;
+        break;
       }
     }
     this.recomputeGrid();
@@ -137,6 +162,17 @@ export class DisplayComponent implements OnInit
         this.tileWidth = aWidth + 'px';
         this.tileHeight = (aWidth / imgRatio) + 'px';
         break;
+      }
+    }
+
+    /* set the json data */
+    console.log('HERE ' + this.images.length);
+    for (const image of this.images)
+    {
+      if (image.data !== undefined)
+      {
+        console.log('Set DIV ID ' + image.center + ',' + image.type);
+        Bokeh.embed.embed_item(image.data, image.center + ',' + image.type);
       }
     }
   }
@@ -218,7 +254,6 @@ export class DisplayComponent implements OnInit
     else
     {
       this.savedStateImages = [];
-      const singleImage = [];
       const centerAndType = event.target.id.split(',');
       for (let i = 0; i < this.allImages.length; i++)
       {
