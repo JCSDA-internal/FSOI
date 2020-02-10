@@ -355,7 +355,8 @@ def create_plots(request, center, descriptors):
             platforms = loi.Platforms('OnePlatform')
             plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center, savefigure=True, platform=platforms, domain='Global')
             plot_options['figname'] = '%s/plots/summary/%s/%s_%s_%s' % (request['root_dir'], center, center, qty, cycle_id)
-            loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
+            # loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
+            loi.bokehsummaryplot(df, qty=qty, plot_options=plot_options, std=df_std)
         except Exception as e:
             log.error('Failed to generate plots for %s' % qty, e)
 

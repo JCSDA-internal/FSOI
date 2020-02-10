@@ -87,7 +87,7 @@ def create_response_body(key_list, hash_value, warns):
             center = tokens[0] + '_' + tokens[1]
             typ = tokens[2]
         url = 'http://%s.s3-website-%s.amazonaws.com/%s' % (bucket, region, key)
-        item = {'center': center, 'type': typ, 'url': url, 'bucket': bucket, 'key': key}
+        item = {'center': center, 'type': typ, 'url': url, 'bucket': bucket, 'key': key.replace('.png', '.json')}
         response['images'].append(item)
 
     # return the response body as a string

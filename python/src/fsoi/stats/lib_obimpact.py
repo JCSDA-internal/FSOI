@@ -854,6 +854,7 @@ def bokehsummaryplot(df, qty='TotImp', plot_options={}, std=None):
     from bokeh.models import Title, ColorBar, HoverTool, LinearColorMapper, BasicTicker
     from bokeh.models.sources import ColumnDataSource
     from bokeh.embed import json_item
+    from bokeh.io import export_png
     import bokeh.palettes
     import pandas
     import json
@@ -880,10 +881,13 @@ def bokehsummaryplot(df, qty='TotImp', plot_options={}, std=None):
 
     # create the figure
     plot = figure(
-        plot_width=1000,
+        id='%s,%s' % (plot_options['center'], qty),
+        plot_width=800,
         plot_height=800,
         y_range=list(df1.index.unique()),
-        x_range=(df[qty].min(), df[qty].max())
+        x_range=(df[qty].min(), df[qty].max()),
+        tools='pan,wheel_zoom,box_zoom,save,reset,help',
+        toolbar_location='right'
     )
 
     # dummy plot for keeping the color bar on a bar plot
@@ -899,7 +903,7 @@ def bokehsummaryplot(df, qty='TotImp', plot_options={}, std=None):
     title_lines = plot_options['title'].split('\n')
     title_lines.reverse()
     for line in title_lines:
-        plot.add_layout(Title(text=line, text_font_size='20pt', align='center'), 'above')
+        plot.add_layout(Title(text=line, text_font_size='1.1em', align='center'), 'above')
 
     # legend
     palette_blues = bokeh.palettes.brewer[plot_options['cmap']][256]
@@ -907,15 +911,16 @@ def bokehsummaryplot(df, qty='TotImp', plot_options={}, std=None):
     color_map = LinearColorMapper(palette=palette_blues, low=cmin, high=cmax)
     color_bar = ColorBar(color_mapper=color_map, ticker=BasicTicker(), label_standoff=12, border_line_color=None, location=(20, 0))
     plot.add_layout(color_bar, 'right')
-    hover = plot.select(dict(type=HoverTool))
-    hover.tooltips = [('Value', '$y')]
+    # hover = plot.select(dict(type=HoverTool))
+    # hover.tooltips = [('Value', '$y')]
 
     # write the json object to a file
     with open('%s.json' % plot_options['figname'], 'w') as f:
         f.write(json.dumps(json_item(plot)))
         f.close()
 
-    return plot
+    # write the png file
+    export_png(plot, '%s.png' % plot_options['figname'])
 
 
 def getcomparesummarypalette(

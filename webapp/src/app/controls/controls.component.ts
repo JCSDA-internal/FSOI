@@ -502,6 +502,8 @@ export class ControlsComponent implements OnInit
   {
     const data = JSON.parse(event.data);
 
+    console.log(data);
+
     /* handle response to a JSON data request */
     if (data.json_data !== undefined)
     {
@@ -540,9 +542,10 @@ export class ControlsComponent implements OnInit
     {
       for (const image of data.images)
       {
-        if (image.url.endsWith('.json'))
+        if (image.key.endsWith('.json'))
         {
-          this.sendMessage({'json_data': {'key': image.key}});
+          const jsonDataRequest = {'json_data': {'key': image.key}};
+          this.sendMessage(jsonDataRequest);
         }
       }
       DisplayComponent.singleton.setImages(data.images);

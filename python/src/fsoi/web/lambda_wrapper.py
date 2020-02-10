@@ -136,10 +136,15 @@ def send_json_data_response(request, client_url):
     """
     from fsoi.data.s3_datastore import S3DataStore
     key = request['json_data']['key']
-    data = S3DataStore().load({'bucket': 'fsoi-image-cache', 'key': key})
-    if data:
-        request['data'] = json.loads(data.decode())
-    send_response(json.dumps(request), client_url)
+    print('Retrieving s3://fsoi-image-cache/%s' % key)
+    try:
+        data = S3DataStore().load({'bucket': 'fsoi-image-cache', 'key': key})
+        if data:
+            request['data'] = json.loads(data.decode())
+        send_response(json.dumps(request), client_url)
+    except Exception as e:
+        print('Failed to load json data: s3://fsoi-image-cache/%s' % key)
+        print(e)
 
 
 def send_response(message, client_url):
@@ -202,5 +207,6 @@ def get_cached_object_keys(hash_value):
     # extract a list of object keys
     keys = []
     for item in objects['Contents']:
-        keys.append(item['Key'])
+        if item['Key'].endswith('.png'):
+            keys.append(item['Key'])
     return keys

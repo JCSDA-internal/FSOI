@@ -45,6 +45,9 @@ export class DisplayComponent implements OnInit
   /* the url to share for this set of images */
   shareUrl = '<No images loaded>';
 
+  /* flag to indicate the interactive plot is being shown */
+  showInteractivePlot = false;
+
 
   /**
    * Default constructor
@@ -131,13 +134,16 @@ export class DisplayComponent implements OnInit
 
     /* count the number of selected images */
     let selectedImages = 0;
-    for (let i = 0; i < this.images.length; i++)
+    for (const image of this.allImages)
     {
-      if (this.images[i].selected)
+      if (image.selected)
       {
         selectedImages++;
       }
     }
+
+    /* set the flag to show a single interactive image */
+    this.showInteractivePlot = (selectedImages === 1);
 
     /* search for optimal number of columns */
     for (let cols = 1; cols <= selectedImages; cols++)
@@ -166,13 +172,11 @@ export class DisplayComponent implements OnInit
     }
 
     /* set the json data */
-    console.log('HERE ' + this.images.length);
     for (const image of this.images)
     {
       if (image.data !== undefined)
       {
-        console.log('Set DIV ID ' + image.center + ',' + image.type);
-        Bokeh.embed.embed_item(image.data, image.center + ',' + image.type);
+        // Bokeh.embed.embed_item(image.data, image.center + ',' + image.type);
       }
     }
   }
@@ -241,6 +245,7 @@ export class DisplayComponent implements OnInit
    */
   toggleSingleImage(event): void
   {
+    alert(event.target.id);
     if (this.images.length === 1)
     {
       for (let i = 0; i < this.allImages.length; i++)
@@ -273,5 +278,30 @@ export class DisplayComponent implements OnInit
     }
 
     this.setImages(this.allImages);
+  }
+
+
+  /**
+   * Show a single, interactive plot
+   * @param event Click event
+   */
+  showSingleInteractivePlot(event): void
+  {
+    const center = event.target.id.split(',')[0];
+    const type = event.target.id.split(',')[1];
+    this.showInteractivePlot = true;
+    this.images = [];
+    for (const image of this.allImages)
+    {
+      image.selected = (image.center === center && image.type === type);
+    }
+    this.recomputeGrid();
+    for (const image of this.allImages)
+    {
+      if (image.selected)
+      {
+        Bokeh.embed.embed_item(image.data, 'interactivePlot');
+      }
+    }
   }
 }
