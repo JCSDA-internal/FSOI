@@ -886,14 +886,9 @@ def bokehsummaryplot(df, qty='TotImp', plot_options={}, std=None):
         plot_height=800,
         y_range=list(df1.index.unique()),
         x_range=(df[qty].min(), df[qty].max()),
-        tools='pan,wheel_zoom,box_zoom,save,reset,help',
-        toolbar_location='right'
+        tools='pan,hover,wheel_zoom,box_zoom,save,reset,help',
+        toolbar_location='right',
     )
-
-    # dummy plot for keeping the color bar on a bar plot
-    # x = _np.array([0, 1, 2, 3, 4, 5, 6])
-    # y = _np.array([1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6])
-    # fig.scatter(x, y, c=y, size=0, color=barcolors)
 
     # add the bar plot
     plot.hbar(source=ColumnDataSource(df1), right=qty, y='PLATFORMS', height=0.9, line_color='#000000', fill_color='colors')

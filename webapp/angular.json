@@ -27,7 +27,11 @@
               "node_modules/bokehjs/build/css/bokeh.css",
               "node_modules/bokehjs/build/css/icons.css"
             ],
-            "scripts": ["node_modules/bokehjs/build/js/bokeh.min.js"]
+            "scripts": [
+              "node_modules/bokehjs/build/js/bokeh.min.js",
+              "node_modules/bokehjs/build/js/bokeh-widgets.min.js",
+              "node_modules/bokehjs/build/js/bokeh-tables.min.js"
+            ]
           },
           "configurations": {
             "production": {
