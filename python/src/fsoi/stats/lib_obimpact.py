@@ -14,6 +14,7 @@ from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 import itertools as _itertools
 import fsoi.stats.lib_utils as _lutils
 from fsoi import log
+import math
 
 
 class FSOI(object):
@@ -863,22 +864,33 @@ def bokehsummaryplot(df, qty='TotImp', plot_options={}, std=None):
     if plot_options['finite']:
         df = df[_np.isfinite(df[qty])]
     sort_by = qty if qty != 'FracBenNeuObs' else 'FracBenObs'
-    df.sort_values(by=sort_by, ascending=plot_options['sortAscending'], inplace=True, na_position='first')
     df1 = pandas.DataFrame(index=df.index)
     df1[qty] = df[qty]
     df1['PLATFORMS'] = df1.index
+    if std is not None and qty in std:
+        df1['std'] = std[qty]
+    df1.sort_values(by=sort_by, ascending=plot_options['sortAscending'], inplace=True, na_position='first')
 
     # extract the plot options
     alpha = plot_options['alpha']
     logscale = plot_options['logscale']
-    cmax = plot_options['cmax']
-    cmin = plot_options['cmin']
+    cmax = df['ObCnt'].max()  # plot_options['cmax']
+    cmin = df['ObCnt'].min()  # plot_options['cmin']
     color_map = _cm.get_cmap(plot_options['cmap'])
 
     # create the list of bar colors
-    color_bars = getbarcolors(df[qty], logscale, cmax, cmin, color_map)
+    df1['ObCnt'] = df['ObCnt']
+    color_bars = getbarcolors(df1['ObCnt'], logscale, cmax, cmin, color_map)
     df1['colors'] = ['#%02x%02x%02x' % (int(c[0] * 255), int(c[1] * 255), int(c[2] * 255)) for c in color_bars]
 
+    # define the tooltips
+    tooltips = [
+        ('Platform', '@PLATFORMS'),
+        ('Value', '@%s' % qty),
+        ('Units', plot_options['xlabel']),
+        ('Obs Count', '@ObCnt'),
+        ('Sigma', '@std')
+    ]
     # create the figure
     plot = figure(
         id='%s,%s' % (plot_options['center'], qty),
@@ -886,19 +898,30 @@ def bokehsummaryplot(df, qty='TotImp', plot_options={}, std=None):
         plot_height=800,
         y_range=list(df1.index.unique()),
         x_range=(df[qty].min(), df[qty].max()),
-        tools='pan,hover,wheel_zoom,box_zoom,save,reset,help',
+        tools='pan,hover,wheel_zoom,xwheel_zoom,box_zoom,save,reset',
         toolbar_location='right',
+        tooltips=tooltips
     )
 
     # add the bar plot
     plot.hbar(source=ColumnDataSource(df1), right=qty, y='PLATFORMS', height=0.9, line_color='#000000', fill_color='colors')
+
+    # maybe add error bars
+    if qty == 'TotImp':
+        xs = []
+        ys = []
+        for i in range(len(df1.index)):
+            if not math.isnan(df1['std'][i]):
+                xs.append([df1[qty][i] - df1['std'][i], df1[qty][i] + df1['std'][i]])
+                ys.append([df1.index[i], df1.index[i]])
+        plot.multi_line(xs=xs, ys=ys, color='#f1631f', line_width=3, line_cap='square')
 
     # add the labels
     plot.xaxis.axis_label = plot_options['xlabel']
     title_lines = plot_options['title'].split('\n')
     title_lines.reverse()
     for line in title_lines:
-        plot.add_layout(Title(text=line, text_font_size='1.1em', align='center'), 'above')
+        plot.add_layout(Title(text=line, text_font_size='1.5em', align='center'), 'above')
 
     # legend
     palette_blues = bokeh.palettes.brewer[plot_options['cmap']][256]
@@ -906,8 +929,6 @@ def bokehsummaryplot(df, qty='TotImp', plot_options={}, std=None):
     color_map = LinearColorMapper(palette=palette_blues, low=cmin, high=cmax)
     color_bar = ColorBar(color_mapper=color_map, ticker=BasicTicker(), label_standoff=12, border_line_color=None, location=(20, 0))
     plot.add_layout(color_bar, 'right')
-    # hover = plot.select(dict(type=HoverTool))
-    # hover.tooltips = [('Value', '$y')]
 
     # write the json object to a file
     with open('%s.json' % plot_options['figname'], 'w') as f:
