@@ -15,6 +15,7 @@ from fsoi.stats import lib_utils as lutils
 from fsoi import log
 from fsoi.data.datastore import ThreadedDataStore
 from fsoi.data.s3_datastore import S3DataStore, FsoiS3DataStore
+from fsoi.plots.summary_fsoi import bokehsummaryplot, matplotlibsummaryplot
 
 # List to hold errors and warnings encountered during processing
 errors = []
@@ -354,9 +355,9 @@ def create_plots(request, center, descriptors):
         try:
             platforms = loi.Platforms('OnePlatform')
             plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center, savefigure=True, platform=platforms, domain='Global')
-            plot_options['figname'] = '%s/plots/summary/%s/%s_%s_%s' % (request['root_dir'], center, center, qty, cycle_id)
-            # loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
-            loi.bokehsummaryplot(df, qty=qty, plot_options=plot_options, std=df_std)
+            plot_options['figure_name'] = '%s/plots/summary/%s/%s_%s_%s' % (request['root_dir'], center, center, qty, cycle_id)
+            # matplotlibsummaryplot(df, qty=qty, plot_options=plot_options, std=df_std)
+            bokehsummaryplot(df, qty=qty, plot_options=plot_options, std=df_std)
         except Exception as e:
             log.error('Failed to generate plots for %s' % qty, e)
 
