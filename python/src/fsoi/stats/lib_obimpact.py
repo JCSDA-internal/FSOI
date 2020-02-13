@@ -968,7 +968,7 @@ def getcomparesummarypalette(
     return palette
 
 
-def comparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
+def matplotlibcomparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
     """
 
     :param df:
@@ -1021,5 +1021,85 @@ def comparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
 
     if plotOpt['savefigure']:
         _lutils.savefigure(fname=plotOpt['figname'])
+
+    return
+
+
+def bokehcomparesummaryplot(df, palette, qty='TotImp', plot_options={}):
+    """
+
+    :param df:
+    :param palette:
+    :param qty:
+    :param plot_options:
+    :return:
+    """
+    from bokeh.plotting import figure, show
+    from bokeh.models import Title, ColorBar, HoverTool, LinearColorMapper, BasicTicker
+    from bokeh.models.sources import ColumnDataSource
+    from bokeh.embed import json_item
+    from bokeh.io import export_png
+    import bokeh.palettes
+    import pandas
+    import json
+
+    sort_me = df.copy()
+    sort_me.fillna(value=0, inplace=True)
+    sort_me['SUM'] = 0
+    centers = []
+    for center in df:
+        sort_me['SUM'] += sort_me[center]
+        centers.append(center)
+    sort_me.sort_values(by='SUM', ascending=plot_options['sortAscending'], inplace=True, na_position='first')
+    x_range = (sort_me['SUM'].min(), sort_me['SUM'].max())
+    sort_me.drop('SUM', 1, inplace=True)
+    sort_me['PLATFORMS'] = sort_me.index
+    df = sort_me
+
+    alpha = plot_options['alpha']
+    barcolors = reversed(palette)
+
+    if palette is not None:
+        barcolors = palette
+
+    # define the tooltips
+    tooltips = [
+        ('Platform', '@PLATFORMS'),
+        ('Center', '$name'),
+        ('Value', '@$name'),
+        ('Units', plot_options['xlabel'])
+        # ('Obs Count', '@ObCnt'),
+        # ('Sigma', '@std')
+    ]
+    # create the figure
+    plot = figure(
+        id='%s,%s' % (plot_options['center'], qty),
+        plot_width=800,
+        plot_height=800,
+        y_range=list(df.index.unique()),
+        x_range=x_range,
+        tools='pan,hover,wheel_zoom,xwheel_zoom,box_zoom,save,reset',
+        toolbar_location='right',
+        tooltips=tooltips
+    )
+
+    # add the bar plot
+    plot.hbar_stack(centers, y='PLATFORMS', height=0.9, source=ColumnDataSource(df), fill_color=palette, legend_label=centers, line_color='#000000')
+    plot.y_range.range_padding = 0.1
+
+    # add the labels
+    plot.xaxis.axis_label = plot_options['xlabel']
+    title_lines = plot_options['title'].split('\n')
+    title_lines.reverse()
+    for line in title_lines:
+        plot.add_layout(Title(text=line, text_font_size='1.5em', align='center'), 'above')
+
+    # write the json object to a file
+    with open('%s.json' % plot_options['figname'], 'w') as f:
+        f.write(json.dumps(json_item(plot)))
+        f.close()
+
+    # write the png file
+    export_png(plot, '%s.png' % plot_options['figname'])
 
     return

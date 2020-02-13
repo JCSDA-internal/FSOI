@@ -113,9 +113,9 @@ def compare_fsoi_main():
     DF, platforms = sort_centers(DF)
 
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
-        plotOpt = loi.getPlotOpt(qty, savefigure=savefig, center=None, cycle=cycle)
-        plotOpt['figname'] = '%s/plots/compare/%s/%s_%s' % \
-                             (rootdir, 'full', plotOpt.get('figname'), cyclestr)
+        plot_options = loi.getPlotOpt(qty, savefigure=savefig, center=None, cycle=cycle)
+        plot_options['figname'] = '%s/plots/compare/%s/%s_%s' % \
+                             (rootdir, 'full', plot_options.get('figname'), cyclestr)
         tmpdf = []
         for c, center in enumerate(centers):
             tmp = DF[c][qty]
@@ -133,7 +133,8 @@ def compare_fsoi_main():
         df = df.reindex(platforms)
         filter_platforms_from_data(df, platform_list_csv)
 
-        loi.comparesummaryplot(df, palette, qty=qty, plotOpt=plotOpt)
+        # loi.matplotlibcomparesummaryplot(df, palette, qty=qty, plotOpt=plot_options)
+        loi.bokehcomparesummaryplot(df, palette, qty=qty, plot_options=plot_options)
 
     if savefig:
         plt.close('all')

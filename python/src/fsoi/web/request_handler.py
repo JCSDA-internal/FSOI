@@ -551,13 +551,14 @@ def cache_compare_plots_in_s3(hash_value, request):
 
     # list of files to cache
     files = [
-        img_dir + '/ImpPerOb___CYCLE__.png',
-        img_dir + '/FracImp___CYCLE__.png',
-        img_dir + '/ObCnt___CYCLE__.png',
-        img_dir + '/TotImp___CYCLE__.png',
-        img_dir + '/FracNeuObs___CYCLE__.png',
-        img_dir + '/FracBenObs___CYCLE__.png'
+        img_dir + '/ImpPerOb___CYCLE__.__EXT__',
+        img_dir + '/FracImp___CYCLE__.__EXT__',
+        img_dir + '/ObCnt___CYCLE__.__EXT__',
+        img_dir + '/TotImp___CYCLE__.__EXT__',
+        img_dir + '/FracNeuObs___CYCLE__.__EXT__',
+        img_dir + '/FracBenObs___CYCLE__.__EXT__'
     ]
+    exts = ['png', 'json']
 
     # create the S3 data store
     datastore = ThreadedDataStore(S3DataStore(), 20)
@@ -570,13 +571,14 @@ def cache_compare_plots_in_s3(hash_value, request):
     # loop through all centers and files
     key_list = []
     for file in files:
-        # replace the center in the file name
-        filename = file.replace('__CYCLE__', cycle)
-        if os.path.exists(filename):
-            print('Uploading %s to S3...' % filename)
-            key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
-            datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
-            key_list.append(key)
+        for ext in exts:
+            # replace the center in the file name
+            filename = file.replace('__CYCLE__', cycle).replace('__EXT__', ext)
+            if os.path.exists(filename):
+                print('Uploading %s to S3...' % filename)
+                key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
+                datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
+                key_list.append(key)
 
     # wait for the uploads to finish
     datastore.join()
