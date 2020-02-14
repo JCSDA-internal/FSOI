@@ -117,7 +117,7 @@ def compare_fsoi_main():
     cycle_str = ''.join('%02dZ' % c for c in cycle)
 
     data_frame_list = load_centers(rootdir, centers, norm, cycle)
-    df, platforms = sort_centers(data_frame_list)
+    full_df, platforms = sort_centers(data_frame_list)
 
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         plot_options = loi.getPlotOpt(qty, savefigure=savefig, center=None, cycle=cycle)
@@ -125,7 +125,7 @@ def compare_fsoi_main():
                                       (rootdir, 'full', plot_options.get('figure_name'), cycle_str)
         tmpdf = []
         for c, center in enumerate(centers):
-            tmp = df[c][qty]
+            tmp = full_df[c][qty]
             tmp.name = center
             index = []
             for single_platform in tmp.index:
@@ -238,8 +238,6 @@ def bokehcomparesummaryplot(df, palette, qty='TotImp', plot_options=None):
         ('Center', '$name'),
         ('Value', '@$name'),
         ('Units', plot_options['xlabel'])
-        # ('Obs Count', '@ObCnt'),
-        # ('Sigma', '@std')
     ]
     # create the figure
     plot = figure(

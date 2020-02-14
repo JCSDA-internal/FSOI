@@ -282,7 +282,7 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
         ('Units', plot_options['xlabel']),
         ('Obs Count', '@ObCnt')
     ]
-    if std is not None:
+    if qty == 'TotImp':
         tooltips.append(('Sigma', '@std'))
 
     # create the figure
