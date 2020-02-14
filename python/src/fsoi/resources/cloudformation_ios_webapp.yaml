@@ -3,6 +3,15 @@ Description: JCSDA's IOS FSOI Web Application (Performance Enhanced)
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  DeploymentType:
+    Description: Set to beta or '' to determine if this deployment is a beta version or operational
+    Type: String
+    Default: beta
+    AllowedValues:
+      - beta
+      - ''
+
 Resources:
 
   #
@@ -22,7 +31,7 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
-      RoleName: ios_lambda_role
+      RoleName: !Sub 'ios_lambda_role${DeploymentType}'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
@@ -32,9 +41,9 @@ Resources:
     DependsOn:
       - IosLambdaRole
     Properties:
-      PolicyName: allow_read_s3_ios
+      PolicyName: !Sub 'allow_read_s3_ios${DeploymentType}'
       Roles:
-        - ios_lambda_role
+        - !Ref IosLambdaRole
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -57,9 +66,9 @@ Resources:
     DependsOn:
       - IosLambdaRole
     Properties:
-      PolicyName: allow_crud_dynamodb_ios_requests
+      PolicyName: !Sub 'allow_crud_dynamodb_ios_requests${DeploymentType}'
       Roles:
-        - ios_lambda_role
+        - !Ref IosLambdaRole
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -77,8 +86,8 @@ Resources:
           - dynamodb:UpdateTable
           - dynamodb:GetRecords
           Resource:
-            - arn:aws:dynamodb:us-east-1:469205354006:table/ios_requests
-            - arn:aws:dynamodb:us-east-1:469205354006:table/ios_requests/stream/*
+            - !Sub 'arn:aws:dynamodb:us-east-1:469205354006:table/ios_requests${DeploymentType}'
+            - !Sub 'arn:aws:dynamodb:us-east-1:469205354006:table/ios_requests${DeploymentType}/stream/*'
         - Effect: Allow
           Action: dynamodb:ListTables
           Resource:
@@ -90,9 +99,9 @@ Resources:
     DependsOn:
       - IosLambdaRole
     Properties:
-      PolicyName: allow_rw_s3_ios_image_cache
+      PolicyName: !Sub 'allow_rw_s3_ios_image_cache${DeploymentType}'
       Roles:
-        - ios_lambda_role
+        - !Ref IosLambdaRole
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -176,9 +185,9 @@ Resources:
     DependsOn:
       - IosLambdaRole
     Properties:
-      PolicyName: allow_post_execute_api
+      PolicyName: !Sub 'allow_post_execute_api${DeploymentType}'
       Roles:
-        - ios_lambda_role
+        - !Ref IosLambdaRole
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -215,7 +224,7 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
-      TableName: ios_requests
+      TableName: !Sub 'ios_requests${DeploymentType}'
 
 
   #
@@ -256,7 +265,7 @@ Resources:
       ApiId: !Ref IosWebsocket
       Description: Forward to Lambda function
       IntegrationType: AWS_PROXY
-      IntegrationUri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:469205354006:function:ios_request_handler/invocations
+      IntegrationUri: !Sub 'arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:469205354006:function:ios_request_handler${DeploymentType}/invocations'
 
   Deployment:
     Type: AWS::ApiGatewayV2::Deployment
@@ -283,9 +292,9 @@ Resources:
     DependsOn:
       - IosLambdaRole
     Properties:
-      FunctionName: ios_request_handler
+      FunctionName: !Sub 'ios_request_handler${DeploymentType}'
       Handler: lambda_wrapper.handle_request
-      Role: arn:aws:iam::469205354006:role/ios_lambda_role
+      Role: !Sub 'arn:aws:iam::469205354006:role/ios_lambda_role${DeploymentType}'
       Code:
         S3Bucket: jcsda-scratch
         S3Key: fsoi_lambda.zip
@@ -304,7 +313,7 @@ Resources:
   AppBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: ios.jcsda.org
+      Bucket: !Sub 'ios${DeploymentType}.jcsda.org'
       PolicyDocument:
         Version: 2008-10-17
         Id: PolicyForCloudFrontPrivateContent
@@ -318,21 +327,21 @@ Resources:
                   - - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity
                     - !Ref CloudFrontOriginAccessIdentity
             Action: 's3:GetObject'
-            Resource: 'arn:aws:s3:::ios.jcsda.org/*'
+            Resource: !Sub 'arn:aws:s3:::ios${DeploymentType}.jcsda.org/*'
 
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: S3-ios.jcsda.org
+        Comment: !Sub 'S3-ios${DeploymentType}.jcsda.org'
 
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: JCSDA - FSOI
+        Comment: !Sub 'JCSDA - FSOI${DeploymentType}'
         Aliases:
-          - ios.jcsda.org
+          - !Sub 'ios${DeploymentType}.jcsda.org'
         DefaultRootObject: index.html
         Enabled: true
         IPV6Enabled: true
@@ -357,7 +366,7 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         Origins:
           - Id: !Ref CloudFrontOriginAccessIdentity
-            DomainName: ios.jcsda.org.s3.amazonaws.com
+            DomainName: !Sub 'ios${DeploymentType}.jcsda.org.s3.amazonaws.com'
             S3OriginConfig:
               OriginAccessIdentity:
                 Fn::Join:
@@ -384,7 +393,7 @@ Resources:
     DependsOn:
       - CloudFrontDistribution
     Properties:
-      Name: ios.jcsda.org
+      Name: !Sub 'ios${DeploymentType}.jcsda.org'
       HostedZoneId: Z1F2XBLX8SOJLO
       Type: CNAME
       TTL: 300
@@ -396,8 +405,7 @@ Resources:
     Properties:
       DomainName: jcsda.org
       SubjectAlternativeNames:
-        - ios.jcsda.org
-        - ios2.jcsda.org
+        - !Sub 'ios${DeploymentType}.jcsda.org'
         - fsoi.jcsda.org
         - '*.jcsda.org'
       ValidationMethod: DNS

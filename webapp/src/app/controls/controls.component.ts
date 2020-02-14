@@ -61,7 +61,8 @@ export class ControlsComponent implements OnInit
 
   /* Websocket connection */
   private websocket: WebSocket;
-  private websocketUrl = 'wss://prw9exvaxi.execute-api.us-east-1.amazonaws.com/v2';
+  private websocketUrl = 'wss://bj2c69kuw2.execute-api.us-east-1.amazonaws.com/v2'; // BETA
+  //private websocketUrl = 'wss://prw9exvaxi.execute-api.us-east-1.amazonaws.com/v2'; // OPS
 
   /* these headers can be added to an HTTP request to prevent using cached responses */
   private noCacheHeaders: HttpHeaders;
