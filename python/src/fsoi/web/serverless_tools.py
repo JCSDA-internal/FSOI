@@ -80,6 +80,8 @@ def create_response_body(key_list, hash_value, warns):
 
     # add each key in the list to the response
     for key in key_list:
+        if key.endswith('.json'):  # only looking for images here
+            continue
         tokens = key.split('/')[1].split('_')
         center = tokens[0]
         typ = tokens[1]

@@ -298,6 +298,8 @@ Resources:
       Code:
         S3Bucket: jcsda-scratch
         S3Key: fsoi_lambda.zip
+      Layers:
+        - arn:aws:lambda:us-east-1:469205354006:layer:ios-libs-layer:3
       Runtime: python3.7
       Timeout: 600
       MemorySize: 3008
@@ -308,6 +310,8 @@ Resources:
           REGION: us-east-1
           DATA_BUCKET: fsoi
           OBJECT_PREFIX: intercomp/hdf5
+          PYTHONPATH: /opt/python/libs
+          BOKEH_PHANTOMJS_PATH: /opt/phantomjs/bin/phantomjs
 
   # Static content hosting via CloudFront
   AppBucketPolicy:

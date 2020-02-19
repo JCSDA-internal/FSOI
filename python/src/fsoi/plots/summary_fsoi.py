@@ -7,20 +7,16 @@ import json
 import pandas
 import numpy
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from matplotlib import pyplot as plt
 import fsoi.stats.lib_utils as lib_utils
 import fsoi.stats.lib_obimpact as loi
 from fsoi import log
 import math
-from matplotlib import cm
-import matplotlib.colors
-from matplotlib.ticker import ScalarFormatter
-from bokeh.plotting import figure
-from bokeh.models import Title, ColorBar, LinearColorMapper, BasicTicker
-from bokeh.models.sources import ColumnDataSource
-from bokeh.embed import json_item
-from bokeh.io import export_png
-import bokeh.palettes
+# from bokeh.plotting import figure
+# from bokeh.models import Title, ColorBar, LinearColorMapper, BasicTicker
+# from bokeh.models.sources import ColumnDataSource
+# from bokeh.embed import json_item
+# from bokeh.io import export_png
+# import bokeh.palettes
 
 
 def summary_fsoi_main():
@@ -117,11 +113,6 @@ def summary_fsoi_main():
         except Exception as e:
             log.error('Failed to create summary plot for %s' % qty, e)
 
-    if savefig:
-        plt.close('all')
-    else:
-        plt.show()
-
 
 def matplotlibsummaryplot(df, qty='TotImp', plot_options=None, std=None):
     """
@@ -132,6 +123,10 @@ def matplotlibsummaryplot(df, qty='TotImp', plot_options=None, std=None):
     :param std:
     :return:
     """
+    from matplotlib import pyplot as plt
+    from matplotlib import cm
+    import matplotlib.colors
+    from matplotlib.ticker import ScalarFormatter
     if plot_options is None:
         plot_options = {}
 
@@ -246,6 +241,12 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
     :param std: {pandas.DataFrame} (optional) A data frame containing standard deviation values for df
     :return: None
     """
+    from bokeh.plotting import figure
+    from bokeh.models import Title, ColorBar, LinearColorMapper, BasicTicker
+    from bokeh.models.sources import ColumnDataSource
+    from bokeh.embed import json_item
+    from bokeh.io import export_png
+    import bokeh.palettes
     # create the data source
     if plot_options is None:
         plot_options = {}
@@ -268,7 +269,9 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
         cmin = 0
         if cmax == 0:
             cmax = 1
-    color_map = cm.get_cmap(plot_options['cmap'])
+    palette_blues = bokeh.palettes.brewer[plot_options['cmap']][256]
+    palette_blues.reverse()
+    color_map = LinearColorMapper(palette=palette_blues, low=cmin, high=cmax)
 
     # create the list of bar colors
     df1['ObCnt'] = df['ObCnt']

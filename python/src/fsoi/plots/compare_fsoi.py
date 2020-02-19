@@ -6,16 +6,14 @@ Some functions can be used elsewhere
 import pandas as pd
 import numpy as np
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from matplotlib import pyplot as plt
 import fsoi.stats.lib_utils as lib_utils
 import fsoi.stats.lib_obimpact as loi
 from fsoi.web.request_handler import filter_platforms_from_data
-from matplotlib.ticker import ScalarFormatter
-from bokeh.plotting import figure
-from bokeh.models import Title
-from bokeh.models.sources import ColumnDataSource
-from bokeh.embed import json_item
-from bokeh.io import export_png
+# from bokeh.plotting import figure
+# from bokeh.models import Title
+# from bokeh.models.sources import ColumnDataSource
+# from bokeh.embed import json_item
+# from bokeh.io import export_png
 import json
 
 
@@ -143,11 +141,6 @@ def compare_fsoi_main():
         # matplotlibcomparesummaryplot(df, palette, qty=qty, plotOpt=plot_options)
         bokehcomparesummaryplot(df, palette, qty=qty, plot_options=plot_options)
 
-    if savefig:
-        plt.close('all')
-    else:
-        plt.show()
-
 
 def matplotlibcomparesummaryplot(df, palette, plot_opt=None):
     """
@@ -157,6 +150,8 @@ def matplotlibcomparesummaryplot(df, palette, plot_opt=None):
     :param plot_opt: {dict} A dictionary of plot options
     :return: None
     """
+    from matplotlib import pyplot as plt
+    from matplotlib.ticker import ScalarFormatter
     if plot_opt is None:
         plot_opt = {}
     sort_me = df.copy()
@@ -216,6 +211,11 @@ def bokehcomparesummaryplot(df, palette, qty='TotImp', plot_options=None):
     :param plot_options: {dict} A dictionary of plot options
     :return: None
     """
+    from bokeh.plotting import figure
+    from bokeh.models import Title
+    from bokeh.models.sources import ColumnDataSource
+    from bokeh.embed import json_item
+    from bokeh.io import export_png
     if plot_options is None:
         plot_options = {}
 

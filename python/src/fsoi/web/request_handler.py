@@ -15,7 +15,7 @@ from fsoi.stats import lib_utils as lutils
 from fsoi import log
 from fsoi.data.datastore import ThreadedDataStore
 from fsoi.data.s3_datastore import S3DataStore, FsoiS3DataStore
-from fsoi.plots.summary_fsoi import bokehsummaryplot, matplotlibsummaryplot
+from fsoi.plots.summary_fsoi import bokehsummaryplot
 
 # List to hold errors and warnings encountered during processing
 errors = []

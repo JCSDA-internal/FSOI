@@ -716,15 +716,22 @@ def getbarcolors(data, logscale, cmax, cmin, cmap):
         if cnt <= cmin:
             cindex = 0
         elif cnt >= cmax:
-            cindex = cmap.N - 1
+            cindex = len(cmap.palette) - 1
         else:
             if logscale:  # linear in log-space
                 lcnt = _np.log10(cnt)
-                cindex = (lcnt - lmin) / (lmax - lmin) * (cmap.N - 1)
+                cindex = (lcnt - lmin) / (lmax - lmin) * (len(cmap.palette) - 1)
             else:
-                cindex = (cnt - cmin) / (cmax - cmin) * (cmap.N - 1)
+                cindex = (cnt - cmin) / (cmax - cmin) * (len(cmap.palette) - 1)
         cindex = _np.int(cindex)
-        barcolors.append(cmap(cindex))
+        c = cmap.palette[cindex]
+        barcolors.append(
+            [
+                int(c[1:3], 16) / 255,
+                int(c[3:5], 16) / 255,
+                int(c[5:7], 16) / 255
+            ]
+        )
 
     return barcolors
 
