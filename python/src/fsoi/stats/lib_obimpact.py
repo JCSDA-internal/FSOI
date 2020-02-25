@@ -5,15 +5,12 @@ Some functions can be used elsewhere
 
 import yaml
 import pkgutil
-import numpy as _np
 import pandas as _pd
-from matplotlib import pyplot as _plt
-from matplotlib import cm as _cm
-import matplotlib.colors as _colors
-from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 import itertools as _itertools
-import fsoi.stats.lib_utils as _lutils
 from fsoi import log
+import numpy as _np
+from fsoi.stats import lib_utils as _lutils
+
 
 
 class FSOI(object):
@@ -663,7 +660,7 @@ def getPlotOpt(qty='TotImp', **kwargs):
 
     plotOpt['title'] = '%s 24h Observation Impact Summary\n%s %s' % (
     str(plotOpt['center_name']), domain_str, plotOpt['cycle'])
-    plotOpt['figname'] = '%s' % qty if plotOpt['center'] is None else '%s_%s' % (
+    plotOpt['figure_name'] = '%s' % qty if plotOpt['center'] is None else '%s_%s' % (
     plotOpt['center'], qty)
 
     if qty == 'TotImp':
@@ -719,126 +716,24 @@ def getbarcolors(data, logscale, cmax, cmin, cmap):
         if cnt <= cmin:
             cindex = 0
         elif cnt >= cmax:
-            cindex = cmap.N - 1
+            cindex = len(cmap.palette) - 1
         else:
             if logscale:  # linear in log-space
                 lcnt = _np.log10(cnt)
-                cindex = (lcnt - lmin) / (lmax - lmin) * (cmap.N - 1)
+                cindex = (lcnt - lmin) / (lmax - lmin) * (len(cmap.palette) - 1)
             else:
-                cindex = (cnt - cmin) / (cmax - cmin) * (cmap.N - 1)
+                cindex = (cnt - cmin) / (cmax - cmin) * (len(cmap.palette) - 1)
         cindex = _np.int(cindex)
-        barcolors.append(cmap(cindex))
+        c = cmap.palette[cindex]
+        barcolors.append(
+            [
+                int(c[1:3], 16) / 255,
+                int(c[3:5], 16) / 255,
+                int(c[5:7], 16) / 255
+            ]
+        )
 
     return barcolors
-
-
-def summaryplot(df, qty='TotImp', plotOpt={}, std=None):
-    """
-
-    :param df:
-    :param qty:
-    :param plotOpt:
-    :param std:
-    :return:
-    """
-    if plotOpt['finite']:
-        df = df[_np.isfinite(df[qty])]
-
-    sort_by = qty if qty != 'FracBenNeuObs' else 'FracBenObs'
-    df.sort_values(by=sort_by, ascending=plotOpt['sortAscending'], inplace=True, na_position='first')
-
-    fig = _plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, facecolor='w')
-
-    alpha = plotOpt['alpha']
-    logscale = plotOpt['logscale']
-    cmax = plotOpt['cmax']
-    cmin = plotOpt['cmin']
-    cmap = _cm.get_cmap(plotOpt['cmap'])
-
-    barcolors = getbarcolors(df['ObCnt'], logscale, cmax, cmin, cmap)
-    norm = _colors.LogNorm() if logscale else _colors.Normalize()
-
-    # dummy plot for keeping colorbar on a bar plot
-    x = _np.array([0, 1, 2, 3, 4, 5, 6])
-    y = _np.array([1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6])
-    tmp = _plt.scatter(x, y, c=y, alpha=alpha, cmap=cmap, norm=norm, vmin=cmin, vmax=cmax)
-    _plt.clf()
-    cbar = _plt.colorbar(tmp, aspect=30, ticks=y, format='%.0e', alpha=alpha)
-
-    width = 1.0
-    if qty == 'FracBenNeuObs':
-        left = df['FracBenObs'].values
-        df['FracBenObs'].plot.barh(width=width, color=barcolors, alpha=alpha, edgecolor='k',
-                                   linewidth=1.25)
-        bax = df['FracNeuObs'].plot.barh(left=left, width=width, color=barcolors, alpha=alpha,
-                                         edgecolor='k', linewidth=1.25)
-    elif qty == 'TotImp':
-        df[qty].plot.barh(width=width, color=barcolors, alpha=alpha, edgecolor='k', linewidth=1.25,
-                          xerr=std[qty], capsize=2.0, ecolor='#FF6103')
-    else:
-        df[qty].plot.barh(width=width, color=barcolors, alpha=alpha, edgecolor='k', linewidth=1.25)
-
-    # For FracBenObs/FracBenNeuObs, draw a vline at 50% and hatch for FracBenNeuObs
-    if qty in ['FracBenObs', 'FracBenNeuObs']:
-        _plt.axvline(50., color='k', linestyle='--', linewidth=1.25)
-        if qty in ['FracBenNeuObs']:
-            bars = bax.patches
-            for b, bar in enumerate(bars):
-                if b >= len(bars) / 2:
-                    if _np.mod(b, 2):
-                        bar.set_hatch('//')
-                    else:
-                        bar.set_hatch('\\\\')
-
-    # Get a handle on the plot axis
-    ax = _plt.gca()
-
-    # Set title
-    ax.set_title(plotOpt['title'], fontsize=18)
-
-    # Set x-limits on the plot
-    if qty in ['FracBenNeuObs']:
-        xmin, xmax = df['FracBenObs'].min(), (df['FracBenObs'] + df['FracNeuObs']).max()
-    else:
-        df = df[qty]
-        xmin, xmax = df.min(), df.max()
-    dx = xmax - xmin
-    xmin, xmax = xmin - 0.1 * dx, xmax + 0.1 * dx
-    _plt.xlim(xmin, xmax)
-
-    # xticks = _np.arange(-3,0.1,0.5)
-    # ax.set_xticks(xticks)
-    # x.set_xticklabels(_np.ndarray.tolist(xticks),fontsize=12)
-    ax.set_xlabel(plotOpt['xlabel'], fontsize=14)
-    ax.get_xaxis().get_offset_text().set_x(0)
-    xfmt = _ScalarFormatter()
-    xfmt.set_powerlimits((-3, 3))
-    ax.xaxis.set_major_formatter(xfmt)
-
-    ax.set_ylabel('', visible=False)
-    ax.set_yticklabels(df.index, fontsize=12)
-
-    ax.autoscale(enable=True, axis='y', tight=True)
-    ax.grid(False)
-
-    # Colorbar properties
-    cbar.solids.set_edgecolor("face")
-    cbar.outline.set_visible(True)
-    cbar.outline.set_linewidth(1.25)
-    cbar.ax.tick_params(labelsize=12)
-
-    cbar.set_label('Observation Count per Analysis',
-                   rotation=90, fontsize=14, labelpad=20)
-    cbarytks = _plt.getp(cbar.ax.axes, 'yticklines')
-    _plt.setp(cbarytks, visible=True, alpha=alpha)
-
-    _plt.tight_layout()
-
-    if plotOpt['savefigure']:
-        _lutils.savefigure(fname=plotOpt['figname'])
-
-    return fig
 
 
 def getcomparesummarypalette(
@@ -868,60 +763,3 @@ def getcomparesummarypalette(
             palette.append(colors['ExtraBonus'])
 
     return palette
-
-
-def comparesummaryplot(df, palette, qty='TotImp', plotOpt={}):
-    """
-
-    :param df:
-    :param palette:
-    :param qty:
-    :param plotOpt:
-    :return:
-    """
-    sort_me = df.copy()
-    sort_me.fillna(value=0, inplace=True)
-    sort_me['SUM'] = 0
-    for center in df:
-        sort_me['SUM'] += sort_me[center]
-    sort_me.sort_values(by='SUM', ascending=plotOpt['sortAscending'], inplace=True, na_position='first')
-    sort_me.drop('SUM', 1, inplace=True)
-    df = sort_me
-
-    alpha = plotOpt['alpha']
-    barcolors = reversed(palette)
-
-    if palette is not None:
-        barcolors = palette
-
-    width = 0.9
-    df.plot.barh(width=width, stacked=True, color=barcolors, alpha=alpha, edgecolor='k',
-                 linewidth=1.25)
-    _plt.axvline(0., color='k', linestyle='-', linewidth=1.25)
-
-    _plt.legend(frameon=False, loc=0)
-
-    ax = _plt.gca()
-
-    ax.set_title(plotOpt['title'], fontsize=18)
-
-    xmin, xmax = ax.get_xlim()
-    _plt.xlim(xmin, xmax)
-    ax.set_xlabel(plotOpt['xlabel'], fontsize=14)
-    ax.get_xaxis().get_offset_text().set_x(0)
-    xfmt = _ScalarFormatter()
-    xfmt.set_powerlimits((-2, 2))
-    ax.xaxis.set_major_formatter(xfmt)
-
-    ax.set_ylabel('', visible=False)
-    ax.set_yticklabels(df.index, fontsize=10)
-
-    ax.autoscale(enable=True, axis='y', tight=True)
-    ax.grid(False)
-
-    _plt.tight_layout()
-
-    if plotOpt['savefigure']:
-        _lutils.savefigure(fname=plotOpt['figname'])
-
-    return

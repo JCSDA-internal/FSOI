@@ -1,4 +1,4 @@
 """
 FSOI Web Application (backend)
 """
-__all__ = ['batch_wrapper', 'lambda_wrapper', 'serverless_tools']
+__all__ = ['request_handler', 'lambda_wrapper', 'serverless_tools']

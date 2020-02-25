@@ -262,6 +262,40 @@ class S3DataStore(DataStore):
             log.error('Failed to download data to local file')
             print(e)
 
+    def load(self, source):
+        """
+        Load data from the data store to memory
+        :param source: {dict} A dictionary with attributes to describe the data store source
+        :return: {bytes} S3 data, or None if unsuccessful
+        """
+        try:
+            # validate the source descriptor
+            if not self._validate_descriptor(source):
+                return False
+
+            # verify that the data exist
+            if not self.data_exist(source):
+                return False
+
+            # get the bucket and key from the descriptor
+            bucket, key = self._to_bucket_and_key(source)
+
+            # get the S3 client
+            s3_client = self.__get_s3_client()
+
+            # download the data from S3 to a file
+            from io import BytesIO
+            bio = BytesIO()
+            s3_client.download_fileobj(Bucket=bucket, Key=key, Fileobj=bio)
+
+            # check that there was data returned
+            data = bio.getvalue()
+            return None if len(data) == 0 else data
+
+        except Exception as e:
+            log.error('Failed to download data to local file')
+            print(e)
+
     def list_data_store(self, filters):
         """
         Get a list of available data

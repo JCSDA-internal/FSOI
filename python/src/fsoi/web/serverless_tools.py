@@ -80,6 +80,8 @@ def create_response_body(key_list, hash_value, warns):
 
     # add each key in the list to the response
     for key in key_list:
+        if key.endswith('.json'):  # only looking for images here
+            continue
         tokens = key.split('/')[1].split('_')
         center = tokens[0]
         typ = tokens[1]
@@ -87,10 +89,24 @@ def create_response_body(key_list, hash_value, warns):
             center = tokens[0] + '_' + tokens[1]
             typ = tokens[2]
         url = 'http://%s.s3-website-%s.amazonaws.com/%s' % (bucket, region, key)
-        response['images'].append({'center': center, 'type': typ, 'url': url})
+        item = {'center': center, 'type': typ, 'url': url, 'bucket': bucket, 'key': key.replace('.png', '.json')}
+        response['images'].append(item)
 
     # return the response body as a string
     return json.dumps(response)
+
+
+def get_json_data(bucket, key):
+    """
+    Get JSON data from the S3 bucket
+    :param bucket: Bucket name
+    :param key: Key name
+    :return: {bytes} JSON data or None
+    """
+    from fsoi.data.s3_datastore import S3DataStore
+    source = {'bucket': bucket, 'key': key}
+    data = S3DataStore().load(source)
+    return data
 
 
 class RequestDao:

@@ -1,6 +1,6 @@
 #! /bin/sh
 
-bucket=ios.jcsda.org
+bucket=iosbeta.jcsda.org
 
 ng build --prod
 

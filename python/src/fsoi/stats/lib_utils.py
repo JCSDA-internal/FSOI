@@ -5,7 +5,6 @@ lib_utils.py contains handy utility functions
 import numpy as _np
 import pickle as _pickle
 import pandas as _pd
-import matplotlib.pyplot as _plt
 from fsoi import log
 
 
@@ -139,6 +138,7 @@ def discrete_colors(N, base_cmap=None, colormap=False):
     :param colormap:
     :return:
     """
+    import matplotlib.pyplot as _plt
     from matplotlib.colors import LinearSegmentedColormap as _lscmap
 
     # Note that if base_cmap is a string or None, you can simply do
@@ -164,6 +164,7 @@ def savefigure(fh=None, fname='test', format=['png', 'eps', 'pdf'], orientation=
     :param dpi:
     :return:
     """
+    import matplotlib.pyplot as _plt
     if fh is None:
         fh = _plt
     if 'png' in format:

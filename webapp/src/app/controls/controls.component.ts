@@ -15,6 +15,9 @@ import {DetailsComponent} from '../details/details.component';
 })
 export class ControlsComponent implements OnInit
 {
+  public static singleton: ControlsComponent;
+
+
   /* error messages */
   errorMessages = [];
 
@@ -50,9 +53,6 @@ export class ControlsComponent implements OnInit
   centersSummary = '(0) No selections made';
   platformsSummary = '(0) No selections made';
 
-  /* reference to display component */
-  private display: DisplayComponent;
-
   /* reference to app component */
   private app: AppComponent;
 
@@ -61,7 +61,8 @@ export class ControlsComponent implements OnInit
 
   /* Websocket connection */
   private websocket: WebSocket;
-  private websocketUrl = 'wss://prw9exvaxi.execute-api.us-east-1.amazonaws.com/v2';
+  private websocketUrl = 'wss://bj2c69kuw2.execute-api.us-east-1.amazonaws.com/v2'; // BETA
+  //private websocketUrl = 'wss://prw9exvaxi.execute-api.us-east-1.amazonaws.com/v2'; // OPS
 
   /* these headers can be added to an HTTP request to prevent using cached responses */
   private noCacheHeaders: HttpHeaders;
@@ -79,6 +80,7 @@ export class ControlsComponent implements OnInit
    */
   constructor(private dialog: MatDialog, private http: HttpClient, private route: ActivatedRoute)
   {
+    ControlsComponent.singleton = this;
     this.noCacheHeaders = new HttpHeaders({
       'Cache-Control': 'no-cache, no-store, must-revalidate, post-check=0, pre-check=0',
       'Pragma': 'no-cache',
@@ -149,17 +151,6 @@ export class ControlsComponent implements OnInit
   dateHelpLoaded(data): void
   {
     this.dateHelp = data;
-  }
-
-
-  /**
-   * Set a reference to the display component
-   *
-   * @param display Reference to the display component
-   */
-  setDisplay(display: DisplayComponent): void
-  {
-    this.display = display;
   }
 
 
@@ -502,8 +493,6 @@ export class ControlsComponent implements OnInit
 
     /* send data on the websocket */
     ws.send(JSON.stringify(data));
-    console.log('Websocket request sent: ');
-    console.log(data);
   }
 
 
@@ -512,10 +501,18 @@ export class ControlsComponent implements OnInit
    */
   receiveMessage(event): void
   {
-    console.log(event);
-
     const data = JSON.parse(event.data);
 
+    console.log(data);
+
+    /* handle response to a JSON data request */
+    if (data.json_data !== undefined)
+    {
+      DisplayComponent.singleton.setJsonData(data.json_data.key, data.data);
+      return;
+    }
+
+    /* required a request hash for all other responses */
     if (data.req_hash === undefined)
     {
       return;
@@ -544,7 +541,15 @@ export class ControlsComponent implements OnInit
     /* if response contains 'images' attribute, show images and remove progress bar */
     if (data.images !== undefined)
     {
-      this.display.setImages(data.images);
+      for (const image of data.images)
+      {
+        if (image.key.endsWith('.json'))
+        {
+          const jsonDataRequest = {'json_data': {'key': image.key}};
+          this.sendMessage(jsonDataRequest);
+        }
+      }
+      DisplayComponent.singleton.setImages(data.images);
       this.sessionRequests[requestIndex].images = data.images;
       this.sessionRequests[requestIndex].isComplete = true;
     }

@@ -22,7 +22,8 @@
     "@angular/platform-browser-dynamic": "^8.2.14",
     "@angular/router": "^8.2.14",
     "@types/jquery": "^3.3.31",
-    "core-js": "^2.6.9",
+    "bokehjs": "^1.4.0",
+    "core-js": "3",
     "rxjs": "~6.5.4",
     "tslib": "^1.9.0",
     "zone.js": "~0.9.1"

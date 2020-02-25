@@ -1,7 +1,6 @@
 import os
 import yaml
 import pkgutil
-import shutil
 import boto3
 from datetime import datetime
 from netCDF4 import Dataset

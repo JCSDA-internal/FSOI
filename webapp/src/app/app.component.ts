@@ -1,6 +1,7 @@
 import {Component, enableProdMode, OnInit, ViewChild} from '@angular/core';
 import {DisplayComponent} from './display/display.component';
 import {ControlsComponent} from './controls/controls.component';
+declare var Bokeh: any;
 
 @Component({
   selector: 'app-root',
@@ -25,8 +26,7 @@ export class AppComponent implements OnInit
   ngOnInit()
   {
     /* pass DisplayComponent and AppComponent references to the controls */
-    this.controls.setDisplay(this.display);
-    this.controls.setApp(this);
+    ControlsComponent.singleton.setApp(this);
   }
 
 
