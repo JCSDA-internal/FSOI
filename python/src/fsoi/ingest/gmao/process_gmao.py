@@ -3,6 +3,8 @@ import yaml
 import pkgutil
 import boto3
 from datetime import datetime
+# pylint wrongly believes No name 'Dataset' in module 'netCDF4' (no-name-in-module)
+# pylint: disable=E0611
 from netCDF4 import Dataset
 import numpy as np
 from argparse import ArgumentParser
