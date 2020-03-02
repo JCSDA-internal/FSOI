@@ -326,6 +326,8 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
         plot.add_layout(Title(text=line, text_font_size='1.5em', align='center'), 'above')
 
     # legend
+    # pylint wrongly believes Module 'bokeh.palettes' has no 'brewer' member (no-member)
+    # pylint: disable=E1101
     palette_blues = bokeh.palettes.brewer[plot_options['cmap']][256]
     palette_blues.reverse()
     color_map = LinearColorMapper(palette=palette_blues, low=cmin, high=cmax)
