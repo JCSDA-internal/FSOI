@@ -8,7 +8,7 @@ import json
 import boto3
 from fsoi.web.serverless_tools import ApiGatewaySender, RequestDao, get_reference_id, hash_request, \
     create_response_body
-from fsoi.web.batch_wrapper import handler
+from fsoi.web.request_handler import handler
 
 
 def handle_request(event, context):
@@ -35,6 +35,11 @@ def handle_request(event, context):
     # if this is a request for a cached job, return the cached images
     if 'cache_id' in request:
         send_cached_response(request['cache_id'], client_url)
+        return
+
+    # if this is a request to return JSON data (bokeh), return the json data
+    if 'json_data' in request:
+        send_json_data_response(request, client_url)
         return
 
     # validate the request
@@ -122,6 +127,26 @@ def send_cached_response(req_hash, client_url):
     send_response(response, client_url)
 
 
+def send_json_data_response(request, client_url):
+    """
+    Send a JSON data response
+    :param request: The request object
+    :param client_url: The URL to contact the client
+    :return: None
+    """
+    from fsoi.data.s3_datastore import S3DataStore
+    key = request['json_data']['key']
+    print('Retrieving s3://fsoi-image-cache/%s' % key)
+    try:
+        data = S3DataStore().load({'bucket': 'fsoi-image-cache', 'key': key})
+        if data:
+            request['data'] = json.loads(data.decode())
+        send_response(json.dumps(request), client_url)
+    except Exception as e:
+        print('Failed to load json data: s3://fsoi-image-cache/%s' % key)
+        print(e)
+
+
 def send_response(message, client_url):
     """
     Send a response to the client
@@ -130,6 +155,7 @@ def send_response(message, client_url):
     :return: None
     """
     ApiGatewaySender.send_message_to_ws_client(client_url, message)
+
 
 
 def validate_request(request):
@@ -181,5 +207,6 @@ def get_cached_object_keys(hash_value):
     # extract a list of object keys
     keys = []
     for item in objects['Contents']:
-        keys.append(item['Key'])
+        if item['Key'].endswith('.png'):
+            keys.append(item['Key'])
     return keys

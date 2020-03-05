@@ -29,8 +29,12 @@
   <!-- Add the visible images to the grid -->
   <div *ngFor="let image of images">
     <div *ngIf="image.selected" class="display-image-tile" [ngStyle]="{'width': tileWidth, 'height': tileHeight}">
-      <img id="{{image.center}},{{image.type}}" src="{{image.url}}" width="{{tileWidth}}" (click)="toggleSingleImage($event)">
+      <div style="overflow:hidden;" id="{{image.center}},{{image.type}}" (click)="showSingleInteractivePlot($event)">
+        <img id="{{image.center}},{{image.type}},theimage" src="{{image.url}}">
+      </div>
     </div>
   </div>
+
+  <div *ngIf="showInteractivePlot" id="interactivePlot" class="bk-root"></div>
 
 </div>

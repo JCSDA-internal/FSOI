@@ -15,6 +15,7 @@ from fsoi.stats import lib_utils as lutils
 from fsoi import log
 from fsoi.data.datastore import ThreadedDataStore
 from fsoi.data.s3_datastore import S3DataStore, FsoiS3DataStore
+from fsoi.plots.summary_fsoi import bokehsummaryplot
 
 # List to hold errors and warnings encountered during processing
 errors = []
@@ -352,11 +353,11 @@ def create_plots(request, center, descriptors):
     # create the plots
     for qty in ['TotImp', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp', 'ObCnt']:
         try:
-            plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center,
-                                          savefigure=True, platform=loi.Platforms('OnePlatform'), domain='Global')
-            plot_options['figname'] = '%s/plots/summary/%s/%s_%s_%s' % \
-                                      (request['root_dir'], center, center, qty, cycle_id)
-            loi.summaryplot(df, qty=qty, plotOpt=plot_options, std=df_std)
+            platforms = loi.Platforms('OnePlatform')
+            plot_options = loi.getPlotOpt(qty, cycle=cycle_ints, center=center, savefigure=True, platform=platforms, domain='Global')
+            plot_options['figure_name'] = '%s/plots/summary/%s/%s_%s_%s' % (request['root_dir'], center, center, qty, cycle_id)
+            # matplotlibsummaryplot(df, qty=qty, plot_options=plot_options, std=df_std)
+            bokehsummaryplot(df, qty=qty, plot_options=plot_options, std=df_std)
         except Exception as e:
             log.error('Failed to generate plots for %s' % qty, e)
 
@@ -423,7 +424,7 @@ def filter_platforms_from_data(df, platforms):
     """
     Filter out platforms that were not requested by the user
     :param df: The summary metrics data frame
-    :param request: {str} A comma-separated list of platforms that should be included
+    :param platforms: {str} A comma-separated list of platforms that should be included
     :return: None - 'df' object is modified
     """
     # create a list of all upper case platform present in the request
@@ -551,13 +552,14 @@ def cache_compare_plots_in_s3(hash_value, request):
 
     # list of files to cache
     files = [
-        img_dir + '/ImpPerOb___CYCLE__.png',
-        img_dir + '/FracImp___CYCLE__.png',
-        img_dir + '/ObCnt___CYCLE__.png',
-        img_dir + '/TotImp___CYCLE__.png',
-        img_dir + '/FracNeuObs___CYCLE__.png',
-        img_dir + '/FracBenObs___CYCLE__.png'
+        img_dir + '/ImpPerOb___CYCLE__.__EXT__',
+        img_dir + '/FracImp___CYCLE__.__EXT__',
+        img_dir + '/ObCnt___CYCLE__.__EXT__',
+        img_dir + '/TotImp___CYCLE__.__EXT__',
+        img_dir + '/FracNeuObs___CYCLE__.__EXT__',
+        img_dir + '/FracBenObs___CYCLE__.__EXT__'
     ]
+    exts = ['png', 'json']
 
     # create the S3 data store
     datastore = ThreadedDataStore(S3DataStore(), 20)
@@ -570,13 +572,14 @@ def cache_compare_plots_in_s3(hash_value, request):
     # loop through all centers and files
     key_list = []
     for file in files:
-        # replace the center in the file name
-        filename = file.replace('__CYCLE__', cycle)
-        if os.path.exists(filename):
-            print('Uploading %s to S3...' % filename)
-            key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
-            datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
-            key_list.append(key)
+        for ext in exts:
+            # replace the center in the file name
+            filename = file.replace('__CYCLE__', cycle).replace('__EXT__', ext)
+            if os.path.exists(filename):
+                print('Uploading %s to S3...' % filename)
+                key = hash_value + '/comparefull_' + filename[filename.rfind('/') + 1:]
+                datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
+                key_list.append(key)
 
     # wait for the uploads to finish
     datastore.join()
@@ -598,12 +601,12 @@ def cache_summary_plots_in_s3(hash_value, request):
 
     # list of files to cache
     files = [
-        img_dir + '/__CENTER__/__CENTER___ImpPerOb___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___FracImp___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___ObCnt___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___TotImp___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___FracNeuObs___CYCLE__.png',
-        img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__.png'
+        img_dir + '/__CENTER__/__CENTER___ImpPerOb___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___FracImp___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___ObCnt___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___TotImp___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___FracNeuObs___CYCLE__.__EXT__',
+        img_dir + '/__CENTER__/__CENTER___FracBenObs___CYCLE__.__EXT__'
     ]
 
     # create the S3 data store
@@ -618,13 +621,14 @@ def cache_summary_plots_in_s3(hash_value, request):
     key_list = []
     for center in request['centers']:
         for file in files:
-            # replace the center in the file name
-            filename = file.replace('__CENTER__', center).replace('__CYCLE__', cycle)
-            if os.path.exists(filename):
-                print('Uploading %s to S3...' % filename)
-                key = hash_value + '/' + filename[filename.rfind('/') + 1:]
-                datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
-                key_list.append(key)
+            for ext in ['png', 'json']:
+                # replace the center, cycle, and extension in the file name
+                filename = file.replace('__CENTER__', center).replace('__CYCLE__', cycle).replace('__EXT__', ext)
+                if os.path.exists(filename):
+                    print('Uploading %s to S3...' % filename)
+                    key = hash_value + '/' + filename[filename.rfind('/') + 1:]
+                    datastore.save_from_local_file(filename, {'bucket': bucket, 'key': key})
+                    key_list.append(key)
 
     # an empty list of S3 keys indicates that no plots were uploaded or generated
     if not key_list:
