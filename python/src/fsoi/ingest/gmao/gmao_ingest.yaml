@@ -102,6 +102,7 @@ kx:
   181: Land_Surface
   182: Dropsonde
   187: METAR
+  191: PAOB_surface_pressures
   199: Drifting_Buoy
   210: TCBogus
   220: Radiosonde
@@ -128,7 +129,9 @@ kx:
   259: MODIS_Wind
   280: Ship
   282: Moored_Buoy
+  283: SSMI_SSMIS_surface_wind_speeds
   285: RAPIDSCAT_Wind
+  286: ERS_wind_components
   290: ASCAT_Wind
   299: Drifting_Buoy
   304: OMI_AURA
@@ -138,3 +141,5 @@ kx:
   743: GPSRO
   744: GPSRO
   745: GPSRO
+  786: CNOFS_GPSRO_bending_angles
+  820: SACC_GPSRO_bending_angles
