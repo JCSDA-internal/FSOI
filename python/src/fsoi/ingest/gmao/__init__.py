@@ -5,6 +5,7 @@ __all__ = ['download_gmao', 'process_gmao', 'download_and_process_gmao']
 
 
 import yaml
+import json
 import pkgutil
 import datetime
 import time
@@ -13,6 +14,7 @@ from argparse import ArgumentDefaultsHelpFormatter as HelpFormatter
 from fsoi.ingest.gmao.download_gmao import download_gmao
 from fsoi.ingest.gmao.process_gmao import process_gmao
 from fsoi import log
+from fsoi.fsoilog import enable_cloudwatch_logs
 
 
 def download_and_process_gmao():
@@ -20,6 +22,10 @@ def download_and_process_gmao():
     Download GMAO data and convert to HDF5 files
     :return: None
     """
+    # enable cloudwatch logging
+    enable_cloudwatch_logs(True)
+    log.debug('Starting GMAO download and process')
+
     # read default parameter values from GMAO config file
     config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/gmao/gmao_ingest.yaml'))
     lag = config['lag_in_days']
@@ -53,4 +59,5 @@ def download_and_process_gmao():
     processed_files = process_gmao(norm, date=date_str)
 
     if files and processed_files:
+        log.info(json.dumps({'gmao_files_processed': len(processed_files)}))
         log.info('Ingest completed.')

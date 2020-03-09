@@ -92,7 +92,8 @@ def writeHDF(fname, vname, data, complevel=0, complib=None, fletcher32=False):
                            fletcher32=fletcher32)
         hdf.put(vname, data, format='table', append=True)
         hdf.close()
-    except RuntimeError:
+    except RuntimeError as re:
+        log.error('Failed to write data to file: %s' % fname)
         raise
     return
 

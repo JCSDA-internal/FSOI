@@ -6,6 +6,7 @@ __all__ = ['download_nrl', 'process_nrl', 'download_and_process_nrl']
 
 import os
 import yaml
+import json
 import pkgutil
 from argparse import ArgumentParser
 from argparse import ArgumentDefaultsHelpFormatter as HelpFormatter
@@ -15,6 +16,7 @@ from fsoi.ingest.nrl.process_nrl import download_from_s3
 from fsoi.ingest.nrl.process_nrl import process_nrl
 from fsoi.ingest.nrl.process_nrl import upload_to_s3
 from fsoi import log
+from fsoi.fsoilog import enable_cloudwatch_logs
 
 
 def download_and_process_nrl():
@@ -22,6 +24,10 @@ def download_and_process_nrl():
     Download NRL data and convert to HDF5 files
     :return: None
     """
+    # enable cloudwatch logs
+    enable_cloudwatch_logs(True)
+    log.debug('Starting NRL download and process')
+
     # load default values from the resource file
     config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/nrl/nrl_ingest.yaml'))
     bucket = config['raw_data_bucket']
@@ -65,3 +71,5 @@ def download_and_process_nrl():
         log.debug('Uploading %s to %s' % (processed_file, target_url))
         if not upload_to_s3(processed_file, target_url):
             log.error('Failed to upload file to S3: aws s3 cp %s %s' % (processed_file, target_url))
+
+    log.info(json.dumps({'nrl_files_processed': len(processed_files)}))
