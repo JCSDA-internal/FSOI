@@ -270,6 +270,9 @@ def bokehcomparesummaryplot(df, palette, qty='TotImp', plot_options=None):
     for line in title_lines:
         plot.add_layout(Title(text=line, text_font_size='1.5em', align='center'), 'above')
 
+    # make the plots interactive
+    plot.legend.click_policy = 'hide'
+
     # write the json object to a file
     with open('%s.json' % plot_options['figure_name'], 'w') as f:
         f.write(json.dumps(json_item(plot)))
