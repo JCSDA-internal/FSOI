@@ -132,6 +132,7 @@ kx:
   283: SSMI_SSMIS_surface_wind_speeds
   285: RAPIDSCAT_Wind
   286: ERS_wind_components
+  289: WindSat_wind_components
   290: ASCAT_Wind
   299: Drifting_Buoy
   304: OMI_AURA
