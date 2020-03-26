@@ -266,6 +266,8 @@ GMAO:
     - CRIS_NPP
   Dropsonde:
     - Dropsonde
+  ERS Wind:
+    - ERS_wind_components
   GOES:
     - SNDRD1_G13
     - SNDRD2_G13
@@ -276,7 +278,9 @@ GMAO:
     - SNDRD3_G15
     - SNDRD4_G15
   GPSRO:
+    - CNOFS_GPSRO_bending_angles
     - GPSRO
+    - SACC_GPSRO_bending_angles
   Geo Wind:
     - Geo_Wind
   HIRS:
@@ -290,6 +294,7 @@ GMAO:
   Land Surface:
     - Land_Surface
     - METAR
+    - PAOB_surface_pressures
   MHS:
     - MHS_N18
     - MHS_N19
@@ -310,20 +315,24 @@ GMAO:
     - RAPIDSCAT_Wind
   Radiosonde:
     - Radiosonde
-  SSMIS:
-    - SSMIS_F17
-    - SSMIS_F18
   Seviri:
     - SEVIRI_M10
   Ship:
     - Ship
     - Moored_Buoy
+  SSMIS Wind:
+    - SSMI_SSMIS_surface_wind_speeds
+  SSMIS:
+    - SSMIS_F17
+    - SSMIS_F18
   Synthetic:
     - TCBogus
   TMI Rain Rate:
     - PCP_TMI_TRMM
     - PCP_TMI_TRMM_LND
     - PCP_TMI_TRMM_OCN
+  WindSat Wind:
+    - WindSat_wind_components
 NRL:
   AIRS:
     - AIRS
