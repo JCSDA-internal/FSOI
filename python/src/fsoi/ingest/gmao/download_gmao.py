@@ -129,6 +129,9 @@ def download_gmao(lag, https_host, remote_path, bucket, cycle_hour):
         remote_path = remote_path % (date.year, date.month, date.day, cycle_hour)
         base_url = 'https://%s/%s' % (https_host, remote_path)
         files = get_list_of_files_from_url(base_url)
+        if files is None:
+            log.warn('No files were found on the remote server')
+            return []
 
         # start all data transfer threads
         threads = []

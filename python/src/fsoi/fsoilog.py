@@ -30,16 +30,25 @@ class CloudWatchHandler(Handler):
         if self.sequence_token is None:
             self._get_sequence_token()
 
-        # send the log event
-        res = self.log_client.put_log_events(
-            logGroupName=self.log_group,
-            logStreamName=self.log_stream,
-            logEvents=[CloudWatchHandler._record_to_log_event(record)],
-            sequenceToken=self.sequence_token
-        )
+        try:
+            # send the log event
+            res = self.log_client.put_log_events(
+                logGroupName=self.log_group,
+                logStreamName=self.log_stream,
+                logEvents=[CloudWatchHandler._record_to_log_event(record)],
+                sequenceToken=self.sequence_token
+            )
 
-        # store the next sequence token
-        self.sequence_token = res['nextSequenceToken']
+            # store the next sequence token
+            self.sequence_token = res['nextSequenceToken']
+
+            return
+        except Exception as e:
+            print(e)
+
+        # logging action failed, try to get the next sequence token
+        self._get_sequence_token()
+
 
     @staticmethod
     def _record_to_log_event(record: LogRecord):
