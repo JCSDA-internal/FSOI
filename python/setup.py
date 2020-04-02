@@ -11,7 +11,7 @@ setup(
   maintainer_email='hahnd@ucar.edu',
   packages=['fsoi', 'fsoi.data', 'fsoi.ingest', 'fsoi.ingest.emc', 'fsoi.ingest.gmao', 'fsoi.ingest.jma',
             'fsoi.ingest.met', 'fsoi.ingest.meteofr', 'fsoi.ingest.nrl', 'fsoi.plots', 'fsoi.stats',
-            'fsoi.web'],
+            'fsoi.web', 'fsoi.ingest.merra'],
   requires=['bokeh', 'pyyaml', 'boto3', 'botocore', 'certifi', 'matplotlib', 'numpy', 'pandas', 'requests',
             'urllib3', 'tables', 'fortranformat', 'netCDF4'],
   package_dir={'fsoi': 'src/fsoi'},
@@ -20,6 +20,7 @@ setup(
       'ingest/nrl/*.yaml',
       'ingest/gmao/*.yaml',
       'ingest/met/*.yaml',
+      'ingest/merra/*.yaml',
       'data/*.yaml',
       '*.yaml'
     ]
@@ -36,7 +37,10 @@ setup(
       'process_gmao=fsoi.ingest.gmao.process_gmao:main',
       'ingest_gmao=fsoi.ingest.gmao.__init__:download_and_process_gmao',
 
-      'process_met=fsoi.ingest.met.process_met:main'
+      'process_met=fsoi.ingest.met.process_met:main',
+
+      'process_merra=fsoi.ingest.merra.process_merra:main',
+      'batch_merra=fsoi.ingest.merra.process_merra:batch'
     ]
   }
 )

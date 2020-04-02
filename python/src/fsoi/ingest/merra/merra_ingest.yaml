@@ -1,11 +1,7 @@
-# This file contains constant values used to download and process NRL data
+# This file contains constant values used to process MERRA data
 ---
-lag_in_days: 3
-processed_data_bucket: fsoi
-processed_data_prefix: intercomp/hdf5/GMAO
-https_host: portal.nccs.nasa.gov
-remote_path: /datashare/gmao_ops/pub/fp/.internal/obs/Y%04d/M%02d/D%02d/H%02d
-raw_data_bucket: fsoi-gmao-ingest
+processed_data_bucket: fsoi-test
+processed_data_prefix: intercomp/hdf5/MERRA2
 arnUnknownPlatformsTopic: arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms
 norm:
   dry: txe
