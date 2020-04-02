@@ -1,4 +1,4 @@
 fsoi:
   s3:
     bucket: fsoi
-    key: intercomp/hdf5/%s2/%s%s.%s.%s%s.h5  # center, type, center, norm, date, hour
+    key: intercomp/hdf5/%s/%s%s.%s.%s%s.h5  # center, type, center, norm, date, hour

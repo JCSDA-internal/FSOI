@@ -15,7 +15,7 @@ def get_expected_data_list():
             for day in range(1,32):
                 dt = '%04d%02d%02d%02d' % (year, month, day, 0)
                 for type in [None, 'groupbulk', 'accumbulk', 'bulk']:
-                    descriptor = FsoiS3DataStore.create_descriptor('MERRA', 'moist', datetime=dt, type=type)
+                    descriptor = FsoiS3DataStore.create_descriptor('MERRA2', 'moist', datetime=dt, type=type)
                     descriptors.append(descriptor)
 
     return descriptors
