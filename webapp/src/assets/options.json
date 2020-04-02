@@ -33,6 +33,7 @@
       {"name": "Buoy", "selected": true},
       {"name": "CrIS", "selected": true},
       {"name": "Dropsonde", "selected": true},
+      {"name": "ERS Wind", "selected": true},
       {"name": "FY3_MWHS", "selected": true},
       {"name": "GAVHR", "selected": true},
       {"name": "GMI", "selected": true},
@@ -65,6 +66,7 @@
       {"name": "SEVIRI", "selected": true},
       {"name": "SSMI Wind", "selected": true},
       {"name": "SSMIS", "selected": true},
+      {"name": "SSMIS Wind", "selected": true},
       {"name": "Ship", "selected": true},
       {"name": "Synthetic", "selected": true},
       {"name": "TC_Press", "selected": true},
@@ -74,6 +76,7 @@
       {"name": "UNKNOWN", "selected": true},
       {"name": "VIIRS", "selected": true},
       {"name": "WindSat", "selected": true},
+      {"name": "WindSat Wind", "selected": true},
       {"name": "wndmi", "selected": true}
     ]
   }
