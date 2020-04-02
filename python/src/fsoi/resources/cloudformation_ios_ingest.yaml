@@ -105,6 +105,47 @@ Resources:
               - arn:aws:batch:us-east-1:469205354006:job-definition/ios_ingest_gmao_job:*
               - arn:aws:batch:us-east-1:469205354006:job-queue/ios_ingest_queue
 
+  AllowSnsPubs:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - IosIngestEventsRole
+    Properties:
+      PolicyName: allow_sns_publish
+      Roles:
+        - ios_ingest_batch_role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'SNS:Publish'
+              - 'SNS:ListTopics'
+            Resource: '*'
+
+  # Policy to allow batch jobs to write to CloudWatch Logs
+  AllowCloudWatchLogsAccess:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - IosIngestBatchRole
+    Properties:
+      PolicyName: allow_cloud_watch_logs_access
+      Roles:
+        - ios_ingest_batch_role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'logs:PutLogEvents'
+            Resource:
+              - 'arn:aws:logs:*:*:log-group:*:log-stream:*'
+          - Effect: Allow
+            Action:
+              - 'logs:DescribeLogGroups'
+              - 'logs:DescribeLogStreams'
+            Resource:
+              - 'arn:aws:logs:*:*:log-group:*'
+
   #
   # CLOUDWATCH EVENTS, METRICS, and ALARMS
   #

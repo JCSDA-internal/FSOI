@@ -6,6 +6,7 @@ import boto3
 import shutil
 import fsoi.stats.lib_utils as lutils
 import fsoi.stats.lib_obimpact as loi
+from fsoi.fsoilog import enable_cloudwatch_logs
 from datetime import datetime
 from fortranformat import FortranRecordReader
 from fsoi import log
@@ -339,6 +340,9 @@ def main():
 
     from argparse import ArgumentParser
     from argparse import ArgumentDefaultsHelpFormatter
+
+    # enable cloudwatch logging
+    enable_cloudwatch_logs(True)
 
     # setup the argument parser
     parser = ArgumentParser(description='Process NRL file',

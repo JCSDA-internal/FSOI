@@ -1,8 +1,7 @@
 import boto3
 import datetime as dt
 
-start = dt.datetime(2020, 3, 14, 0, 0, 0)
-# end = dt.datetime(2020, 3, 3, 0, 0, 0)
+start = dt.datetime(2020, 3, 22, 0, 0, 0)
 end = dt.datetime(2020, 3, 27, 0, 0, 0)
 one_day = dt.timedelta(1)
 
@@ -36,28 +35,27 @@ def submit_jobs_in_range():
     date = start
     while date <= end:
         date_str = str(date).replace('-', '').replace(' ', '').replace(':', '')[:10]
-        # submit_download_job_for_date(date)
-        submit_process_job_for_date(date_str)
+        submit_job_for_date(date_str)
         date = date + one_day
 
 
-def submit_process_job_for_date(date_str):
+def submit_job_for_date(date_str):
     """
     Submit a job for a single date
     :param date_str: {str} YYYYMMDDHH
     :return: None
     """
-    print('Submitting batch job to process GMAO for: %s' % date_str)
+    print('Submitting batch job to process NRL for: %s' % date_str)
 
     batch = boto3.client('batch')
 
-    latest = get_latest_revision('ios_ingest_gmao_job')
+    latest = get_latest_revision('ios_ingest_nrl_job')
     batch.submit_job(
-        jobName='gmao_%s' % date_str,
-        jobDefinition='ios_ingest_gmao_job:%d' % latest,
+        jobName='nrl_%s' % date_str,
+        jobDefinition='ios_ingest_nrl_job:%d' % latest,
         jobQueue='ios_ingest_queue',
         containerOverrides={
-            'command': ['process_gmao', '-d', date_str, '-n', 'moist']
+            'command': ['process_nrl', '-d', date_str]  #, '-n', 'moist']
         }
     )
 
@@ -71,17 +69,17 @@ def submit_download_job_for_date(date):
     now = dt.datetime.utcnow()
     date_str = str(date).replace('-', '').replace(' ', '').replace(':', '')[:10]
     lag = int((now - date).total_seconds() // 86400)
-    print('Submitting batch job to ingest GMAO for: %s, %d days ago' % (date_str, lag))
+    print('Submitting batch job to download NRL for: %s, %d days ago' % (date_str, lag))
 
     # submit the job
     batch = boto3.client('batch')
-    latest = get_latest_revision('ios_ingest_gmao_job')
+    latest = get_latest_revision('ios_ingest_nrl_job')
     batch.submit_job(
-        jobName='gmao_%s' % date_str,
-        jobDefinition='ios_ingest_gmao_job:%d' % latest,
+        jobName='nrl_%s' % date_str,
+        jobDefinition='ios_ingest_nrl_job:%d' % latest,
         jobQueue='ios_ingest_queue',
         containerOverrides={
-            'command': ['download_gmao', '--lag', str(lag)]
+            'command': ['download_nrl', '--lag', str(lag)]
         }
     )
 

@@ -136,6 +136,8 @@ def find_files_in_path(path, date):
     # append date directories to path
     path += '/Y%s/M%s/D%s/H%s' % (date[0:4], date[4:6], date[6:8], date[8:10])
     # list and filter files in directory
+    if not os.path.exists(path):
+        return []
     files = os.listdir(path)
     filtered_files = []
     for file in files:
@@ -211,8 +213,7 @@ def upload_to_s3(file, s3url):
         key = s3url.split(bucket + '/')[1]
 
         # upload the file to the S3 bucket
-        with open(file, 'rb') as file:
-            s3.upload_fileobj(file, bucket, key)
+        s3.upload_file(file, bucket, key)
         return True
 
     except Exception as e:
@@ -220,32 +221,25 @@ def upload_to_s3(file, s3url):
         return False
 
 
-def process_gmao(norm, date=None, path=None):
+def process_merra(norm, date=None, path=None):
     """
-    Process the GMAO data from a given day for the specified norm
+    Process the MERRA data from a given day for the specified norm
     :param norm: {str} moist or dry
     :param date: {str} Date string in the format YYYYMMDDHH or None (required if path is None)
     :param path: {str} Full path to search for files to process or None (required if date is None)
     :return: {list} List of local files
     """
-    config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/gmao/gmao_ingest.yaml'))
+    config = yaml.full_load(pkgutil.get_data('fsoi', 'ingest/merra/merra_ingest.yaml'))
     kx = config['kx']
     kt = config['kt']
     file_norm = config['norm'][norm]
-    input_bucket = config['raw_data_bucket']
     dt = datetime.strptime(date, '%Y%m%d%H')
 
     # prepare the workspace
     work_dir = prepare_workspace()
 
     # get a list of files
-    file_list = []
-
-    if path is not None:
-        file_list = find_files_in_path(path, date)
-    else:
-        s3_prefix = 's3://%s/Y%s/M%s/D%s/H%s/' % (input_bucket, date[0:4], date[4:6], date[6:8], date[8:10])
-        file_list = download_from_s3(s3_prefix, work_dir)
+    file_list = find_files_in_path(path, date)
 
     n_obs = 0
     bufr = []
@@ -288,7 +282,7 @@ def process_gmao(norm, date=None, path=None):
                 platid = int(e.args[0])
                 if platid not in ukwnplats:
                     ukwnplats.append(platid)
-                plat = 'UNKNOWN'
+                continue
 
             obtype = kt[ods.kt[o]][0]
 
@@ -303,16 +297,16 @@ def process_gmao(norm, date=None, path=None):
                 lev = ods.lev[o]
             imp = ods.xvec[o]
             omf = ods.omf[o]
-            oberr = -999.  # GMAO does not provide obs error in the impact ODS files
+            oberr = -999.  # MERRA does not provide obs error in the impact ODS files
             bufr.append([plat, obtype, channel, lon,
                          lat, lev, imp, omf, oberr])
 
-    # send email if unknown platforms ID are encountered while processing GMAO files
+    # send email if unknown platforms ID are encountered while processing MERRA files
     if ukwnplats :
         sns.publish(
             TopicArn=config['arnUnknownPlatformsTopic'],
-            Subject='Unknown Platform attribute GMAO file',
-            Message='Unknown platform attribute encountered while processing files from GMAO. Unknown platform ID(s): ' + ', '.join(str(e) for e in ukwnplats) + ', file timestamp : ' + date
+            Subject='Unknown Platform attribute MERRA file',
+            Message='Unknown platform attribute encountered while processing files from MERRA. Unknown platform ID(s): ' + ', '.join(str(e) for e in ukwnplats) + ', file timestamp : ' + date
         )
 
     log.debug('Total obs used in %s = %d' % (date, n_obs))
@@ -323,7 +317,7 @@ def process_gmao(norm, date=None, path=None):
 
     out_file_list = []
 
-    out_file = 'GMAO.%s.%s.h5' % (norm, date)
+    out_file = 'MERRA.%s.%s.h5' % (norm, date)
     s3_template = 's3://' + config['processed_data_bucket'] + '/' + config['processed_data_prefix'] + '/%s'
 
     df = loi.list_to_dataframe(dt, bufr)
@@ -363,16 +357,71 @@ def main():
 
     :return:
     """
-    parser = ArgumentParser(description='Process GMAO data', formatter_class=FormatHelper)
+    parser = ArgumentParser(description='Process MERRA data', formatter_class=FormatHelper)
     parser.add_argument('-d', '--date', help='analysis date to process', metavar='YYYYMMDDHH', required=True)
-    parser.add_argument('-p', '--path', help='path to search for files [S3 is used if not specified]', required=False)
+    parser.add_argument('-p', '--path', help='path to search for files', required=True)
     parser.add_argument('-n', '--norm', help='norm to process', type=str, default='moist', choices=['dry', 'moist'], required=False)
     args = parser.parse_args()
 
-    files = process_gmao(args.norm, args.date, args.path)
-    log.info('Processed GMAO files:')
-    for file in files:
-        log.info(file)
+    files = process_merra(args.norm, args.date, args.path)
+    log.info('Processed MERRA files:')
+    if files:
+        for file in files:
+            log.info(file)
+
+
+def batch():
+    """
+    Process a batch of MERRA2 data
+    :return: None
+    """
+    from fsoi.ingest.merra.rename_files import get_merra_dirs
+    import sys
+    import os
+
+    if len(sys.argv) != 3:
+        print('Usage:\n  %s <directory> <num_cores>' % sys.argv[0])
+        sys.exit(0)
+
+    # get command line parameters
+    directory = sys.argv[1]
+    num_cores = int(sys.argv[2])
+
+    # make the directory if it does not already exist
+    if not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+
+    # get a list of dates
+    path = '/data/MERRA'
+    dirs = get_merra_dirs(path)
+    dates = [''.join(x.split('/')[-4:]) for x in dirs]
+    dates.sort()
+
+    # open script files for writing
+    scripts = []
+    for i in range(num_cores):
+        scripts.append(open('%s/merra_core%02d.sh' % (directory, i + 1), 'w'))
+        scripts[-1].write('#! /bin/bash\n\n')
+
+    # process each date
+    for i in range(len(dates)):
+        date = dates[i].replace('Y', '').replace('M', '').replace('D', '').replace('H', '')
+        core = (i % len(scripts))
+        command = 'process_merra --date %s --path /data/MERRA --norm moist >> /tmp/merra_core%02d.log 2>&1\n' % \
+                  (date, core+1)
+        scripts[core].write(command)
+
+    for script in scripts:
+        script.close()
+
+    main_script = open('%s/merra_batch.sh' % directory, 'w')
+    main_script.write('#! /bin/bash\n\n')
+    for i in range(num_cores):
+        command = '/bin/bash %s/merra_core%02d.sh &\n' % (directory, i + 1)
+        main_script.write(command)
+    main_script.close()
+
+    print('Execute when ready:\n  /bin/bash %s/merra_batch.sh' % directory)
 
 
 if __name__ == '__main__':
