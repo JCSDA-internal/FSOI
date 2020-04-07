@@ -8,7 +8,6 @@ import numpy as np
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import fsoi.stats.lib_utils as lib_utils
 import fsoi.stats.lib_obimpact as loi
-from fsoi.web.request_handler import filter_platforms_from_data
 # from bokeh.plotting import figure
 # from bokeh.models import Title
 # from bokeh.models.sources import ColumnDataSource
@@ -282,6 +281,34 @@ def bokehcomparesummaryplot(df, palette, qty='TotImp', plot_options=None):
     export_png(plot, '%s.png' % plot_options['figure_name'])
 
     return
+
+
+def filter_platforms_from_data(df, platforms):
+    """
+    Filter out platforms that were not requested by the user
+    :param df: The summary metrics data frame
+    :param platforms: {str} A comma-separated list of platforms that should be included
+    :return: None - 'df' object is modified
+    """
+    # create a list of all upper case platform present in the request
+    included_platforms = []
+    for platform in platforms.split(','):
+        included_platforms.append(platform.upper())
+
+    # create a list of all platforms present in the data frame, but not the request
+    excluded_platforms = []
+    case_sensitive_included_platforms = []
+    for platform in df.index:
+        if platform.upper() not in included_platforms:
+            excluded_platforms.append(platform)
+        else:
+            case_sensitive_included_platforms.append(platform)
+
+    # drop platforms from the data frame that were not in the request
+    df.drop(excluded_platforms, inplace=True)
+
+    # update the index (i.e., list of platforms) in the data frame
+    df.reindex(case_sensitive_included_platforms)
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ import json
 import boto3
 from fsoi.web.serverless_tools import ApiGatewaySender, RequestDao, get_reference_id, hash_request, \
     create_response_body
-from fsoi.web.request_handler import handler
+from fsoi.web.request_handler import Handler
 
 
 def handle_request(event, context):
@@ -97,8 +97,13 @@ def process_here(validated_request, hash_value, client_url, ref_id):
     RequestDao.add_request(job)
     ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
 
+    # enable logging to cloud watch
+    from fsoi.fsoilog import enable_cloudwatch_logs
+    enable_cloudwatch_logs(True)
+
     # call the request handler directly
-    handler(validated_request)
+    handler = Handler(validated_request, parallel_type='lambda')
+    handler.run()
 
 
 def send_status_to_client(job, client_url):
@@ -155,7 +160,6 @@ def send_response(message, client_url):
     :return: None
     """
     ApiGatewaySender.send_message_to_ws_client(client_url, message)
-
 
 
 def validate_request(request):

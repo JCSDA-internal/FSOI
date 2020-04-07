@@ -12,6 +12,8 @@ import numpy as _np
 from fsoi.stats import lib_utils as _lutils
 
 
+all_platforms = {}
+
 
 class FSOI(object):
     """
@@ -297,12 +299,15 @@ def Platforms(center):
     :param center: {str} Name of the center
     :return: {dict} A dictionary of platforms for the given center
     """
-    platforms = yaml.full_load(pkgutil.get_data('fsoi', 'platforms.yaml'))
-    if center not in platforms:
+    if not all_platforms:
+        platforms = yaml.full_load(pkgutil.get_data('fsoi', 'platforms.yaml'))
+        for center in platforms:
+            all_platforms[center] = platforms[center]
+
+    if center not in all_platforms:
         log.warn('Unknown center requested: %s' % center)
         return None
-
-    return platforms[center]
+    return all_platforms[center]
 
 
 def add_dicts(dicts, unique=False):

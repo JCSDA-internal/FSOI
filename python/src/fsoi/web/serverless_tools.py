@@ -58,12 +58,13 @@ def create_error_response_body(req_hash, error_list, warn_list):
     return {'req_hash': req_hash, 'errors': error_list, 'warnings': warn_list}
 
 
-def create_response_body(key_list, hash_value, warns):
+def create_response_body(key_list, hash_value, warns, errors):
     """
     Create a response body with URLs to all created images
     :param key_list: {list} A list of S3 keys to images
     :param hash_value: {str} Hash value of the request
     :param warns: {list} A list of warnings possibly empty
+    :param errors: {list} A list of errors possibly empty
     :return: {str} A JSON string to be used for a response body
     """
     import os
@@ -74,9 +75,11 @@ def create_response_body(key_list, hash_value, warns):
     region = os.environ['REGION']
 
     # create a response stub
-    response = RequestDao.get_request(hash_value)
-    response['images'] = []
-    response['warnings'] = warns
+    response = {
+        'images': [],
+        'warnings': warns,
+        'errors': errors
+    }
 
     # add each key in the list to the response
     for key in key_list:
@@ -131,9 +134,11 @@ class RequestDao:
             'status_id': {'S': req_data['status_id']},
             'message': {'S': req_data['message']},
             'progress': {'N': req_data['progress']},
-            'connections': {'SS': req_data['connections']},
             'req_obj': {'S': req_data['req_obj']}
         }
+        if 'connections' in req_data:
+            item['connections'] = {'SS': req_data['connections']}
+
         dynamo.put_item(TableName=RequestDao.REQUEST_TABLE_NAME, Item=item)
 
     @staticmethod
