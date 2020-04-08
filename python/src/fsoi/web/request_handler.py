@@ -9,6 +9,7 @@ import copy
 import json
 import pandas as pd
 import boto3
+import base64
 from concurrent.futures import ProcessPoolExecutor, wait, ThreadPoolExecutor
 from fsoi.web.serverless_tools import hash_request, get_reference_id, create_response_body, \
     create_error_response_body, RequestDao, ApiGatewaySender
@@ -58,7 +59,7 @@ class Handler:
         self.parallel_type = parallel_type
 
         # create the process pool executor
-        self.executor = ProcessPoolExecutor(max_workers=4)
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
         # placeholder for the response
         self.response = {}
@@ -278,8 +279,30 @@ class Handler:
             return self.executor.submit(part_handler.run)
 
         if self.parallel_type == 'lambda':
-            # TODO: Implement
-            raise RuntimeError('Not implemented')
+            lbd = boto3.client('lambda')
+            req2 = copy.deepcopy(part_handler.request)
+            req2['cycles'] = ','.join(req2['cycles'])
+            req2['centers'] = ','.join(req2['centers'])
+            req_str = json.dumps(req2)
+            # ctx = base64.b64encode(json.dumps({'domainName': 'a','stage': 's','connectionId': 'c'}).encode()).decode()
+            payload = json.dumps(
+                {
+                    'body': req_str,
+                    'requestContext': {
+                        'domainName': '....',
+                        'stage': 'v1',
+                        'connectionId': 'none'
+                    }
+                }
+            ).encode()
+            return self.executor.submit(
+                lbd.invoke,
+                FunctionName='ios_request_handlerbeta',
+                InvocationType='RequestResponse',
+                # ClientContext=ctx,
+                LogType='None',
+                Payload=payload
+            )
 
     def _update_all_clients(self, status_id, message, progress, sync=False):
         """
@@ -497,7 +520,7 @@ class Handler:
             cycle_ints.append(int(c))
 
         # get ready for multiprocess
-        ppe = ProcessPoolExecutor(max_workers=4)
+        ppe = ThreadPoolExecutor(max_workers=1)
         futures = []
 
         # create the plots

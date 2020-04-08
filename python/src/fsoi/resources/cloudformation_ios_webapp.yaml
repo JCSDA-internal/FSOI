@@ -216,6 +216,30 @@ Resources:
               - - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:'
                 - !Ref LambdaIosRequestHandler
 
+  # Policy to allow batch jobs to write to CloudWatch Logs
+  AllowCloudWatchLogsAccess:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - IosLambdaRole
+    Properties:
+      PolicyName: allow_cloud_watch_logs_access
+      Roles:
+        - !Ref IosLambdaRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'logs:PutLogEvents'
+            Resource:
+              - 'arn:aws:logs:*:*:log-group:*:log-stream:*'
+          - Effect: Allow
+            Action:
+              - 'logs:DescribeLogGroups'
+              - 'logs:DescribeLogStreams'
+            Resource:
+              - 'arn:aws:logs:*:*:log-group:*'
+
   # Permission to allow API Gateway to invoke the lambda function
   LambdaInvokePermission:
     Type: AWS::Lambda::Permission

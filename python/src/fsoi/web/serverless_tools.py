@@ -9,6 +9,7 @@ import hmac
 import urllib.parse
 import requests
 import boto3
+from fsoi import log
 
 
 def hash_request(request):
@@ -336,15 +337,19 @@ class ApiGatewaySender:
             headers['X-Amz-Security-Token'] = aws_token
 
         # send the request
-        request_url = endpoint + canonical_uri
-        response = requests.post(request_url, headers=headers, data=request_data)
+        try:
+            request_url = endpoint + canonical_uri
+            response = requests.post(request_url, headers=headers, data=request_data)
 
-        # remove any URLs that give a 410 response code
-        # TODO: Need request hash here to remove the client connection URL
+            # remove any URLs that give a 410 response code
+            # TODO: Need request hash here to remove the client connection URL
 
-        # check the response
-        if response.status_code != 200:
-            print('Response code: %d' % response.status_code)
-            return False
+            # check the response
+            if response.status_code != 200:
+                print('Response code: %d' % response.status_code)
+                return False
+        except Exception as e:
+            log.warn('Failed to provide status update to client')
+            log.warn(e)
 
         return True

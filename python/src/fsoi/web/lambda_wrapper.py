@@ -9,6 +9,8 @@ import boto3
 from fsoi.web.serverless_tools import ApiGatewaySender, RequestDao, get_reference_id, hash_request, \
     create_response_body
 from fsoi.web.request_handler import Handler
+from fsoi import log
+from fsoi.fsoilog import enable_cloudwatch_logs
 
 
 def handle_request(event, context):
@@ -18,19 +20,23 @@ def handle_request(event, context):
     :param context: Contains details of the lambda function
     :return: None
     """
+    # enable cloudwatch logs
+    enable_cloudwatch_logs(False)
+    log.info('Starting FSOI request processing.')
+
     # request is all query string parameters
     request = json.loads(event['body'])
 
     # get the reference ID and put a marker in the CloudWatch Logs
     ref_id = 'RefId: %s' % get_reference_id(request)
-    print(ref_id)
+    log.info(ref_id)
 
     # build the client's connection url
     domain_name = event['requestContext']['domainName']
     stage = event['requestContext']['stage']
     connection_id = event['requestContext']['connectionId']
     client_url = 'https://%s/%s/@connections/%s' % (domain_name, stage, connection_id)
-    print(client_url)
+    log.debug(client_url)
 
     # if this is a request for a cached job, return the cached images
     if 'cache_id' in request:
@@ -97,10 +103,6 @@ def process_here(validated_request, hash_value, client_url, ref_id):
     RequestDao.add_request(job)
     ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
 
-    # enable logging to cloud watch
-    from fsoi.fsoilog import enable_cloudwatch_logs
-    enable_cloudwatch_logs(True)
-
     # call the request handler directly
     handler = Handler(validated_request, parallel_type='lambda')
     handler.run()
@@ -141,15 +143,15 @@ def send_json_data_response(request, client_url):
     """
     from fsoi.data.s3_datastore import S3DataStore
     key = request['json_data']['key']
-    print('Retrieving s3://fsoi-image-cache/%s' % key)
+    log.info('Retrieving s3://fsoi-image-cache/%s' % key)
     try:
         data = S3DataStore().load({'bucket': 'fsoi-image-cache', 'key': key})
         if data:
             request['data'] = json.loads(data.decode())
         send_response(json.dumps(request), client_url)
     except Exception as e:
-        print('Failed to load json data: s3://fsoi-image-cache/%s' % key)
-        print(e)
+        log.error('Failed to load json data: s3://fsoi-image-cache/%s' % key)
+        log.error(e)
 
 
 def send_response(message, client_url):
