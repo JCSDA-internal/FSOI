@@ -1,11 +1,20 @@
 import os
 import hashlib
-from fsoi.plots.managers import PlotGenerator
+from fsoi.plots.managers import SummaryPlotGenerator, ComparisonPlotGenerator
 
 
 def test_bokeh_plots():
-    pg = PlotGenerator('20200301', '20200331', 'NRL', 'both', [0], 'IASI,Aircraft', 'bokeh')
-    pg.create_plot_set()
+    platforms = 'IASI,Aircraft'
+    centers = ['NRL', 'GMAO']
+    spgs = {}
+    pickles = []
+    for center in centers:
+        spg = SummaryPlotGenerator('20200301', '20200331', center, 'both', [0], platforms, 'bokeh')
+        spg.create_plot_set()
+        spgs[center] = spg
+        pickles += spg.pickles
+    cpg = ComparisonPlotGenerator(centers, 'both', [0], platforms, 'bokeh', pickles)
+    cpg.create_plot_set()
 
     expected = {
         'NRL_FracBenObs_00Z.png': '215d0b1a83e0edb2faa348956ec49a535590632d1bcab5e87f6b2cfbf2863d61',
@@ -22,16 +31,17 @@ def test_bokeh_plots():
         'NRL_TotImp_00Z.json': '478647f3993d2182a526e4a832592f88bcbf62411de6b8553d65085656a0201c'
     }
 
-    assert len(pg.plots) == 6
-    for plot in pg.plots:
+    nrl_spg = spgs['NRL']
+    assert len(nrl_spg.plots) == 6
+    for plot in nrl_spg.plots:
         data = open(plot, 'rb').read()
         chksum = hashlib.sha256(data).hexdigest()
         file_key = plot.split('/')[-1]
         expected[file_key] = chksum
         # assert expected[file_key] == chksum
 
-    assert len(pg.plots) == 6
-    for json_data in pg.json_data:
+    assert len(nrl_spg.plots) == 6
+    for json_data in nrl_spg.json_data:
         data = open(json_data, 'rb').read()
         chksum = hashlib.sha256(data).hexdigest()
         file_key = json_data.split('/')[-1]
@@ -39,5 +49,5 @@ def test_bokeh_plots():
         # assert expected[file_key] == chksum
 
     print(expected)
-    pg.clean_up()
-    assert not os.path.exists(pg.work_dir)
+    nrl_spg.clean_up()
+    assert not os.path.exists(nrl_spg.work_dir)

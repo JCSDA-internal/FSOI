@@ -7,18 +7,13 @@ import sys
 import os
 import copy
 import json
-import pandas as pd
 import boto3
-import base64
-from concurrent.futures import ProcessPoolExecutor, wait, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from fsoi.web.serverless_tools import hash_request, get_reference_id, create_response_body, \
     create_error_response_body, RequestDao, ApiGatewaySender
-from fsoi.stats import lib_obimpact as loi
-from fsoi.stats import lib_utils as lutils
 from fsoi import log
 from fsoi.data.datastore import ThreadedDataStore
 from fsoi.data.s3_datastore import S3DataStore, FsoiS3DataStore
-from fsoi.plots.summary_fsoi import bokehsummaryplot, matplotlibsummaryplot
 
 
 class Handler:
@@ -57,9 +52,6 @@ class Handler:
         if parallel_type not in ['local', 'lambda']:
             raise ValueError('Invalid value for parallel_type must be either local or lambda: %s' % parallel_type)
         self.parallel_type = parallel_type
-
-        # create the process pool executor
-        self.executor = ThreadPoolExecutor(max_workers=1)
 
         # placeholder for the response
         self.response = {}
@@ -301,38 +293,6 @@ class Handler:
                 shutil.rmtree(root_dir)
             except FileNotFoundError:
                 print('%s not found when cleaning up' % root_dir)
-
-    def _process_fsoi_compare(self):
-        """
-        Run the compare_fsoi.py script on the final statistics
-        :return: None, results are written to a file based on the request
-        """
-        from fsoi.plots.compare_fsoi import compare_fsoi_main
-
-        try:
-            sys.argv = [
-                'script',
-                '--rootdir',
-                self.request['root_dir'],
-                '--centers']
-            sys.argv += self.request['centers']
-            sys.argv += [
-                '--norm',
-                self.request['norm'],
-                '--savefigure',
-                '--cycle'
-            ]
-            sys.argv += self.request['cycles']
-            sys.argv += [
-                '--platform',
-                self.request['platforms']
-            ]
-
-            print('running compare_fsoi_main: %s' % ' '.join(sys.argv))
-            compare_fsoi_main()
-        except Exception as e:
-            log.error('Failed to create comparison plots')
-            self.warns.append('Error creating FSOI comparison plots')
 
     def _cache_compare_plots_in_s3(self):
         """
