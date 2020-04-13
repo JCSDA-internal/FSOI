@@ -24,6 +24,9 @@ def handle_request(event, context):
     enable_cloudwatch_logs(False)
     log.info('Starting FSOI request processing.')
 
+    # get the lambda function name
+    lambda_function_name = context.function_name
+
     # request is all query string parameters
     request = json.loads(event['body'])
 
@@ -63,7 +66,7 @@ def handle_request(event, context):
 
     # if the job has not previously been requested, or it failed, then submit a new request
     if job is None or 'status_id' not in job or job['status_id'] == 'FAIL':
-        process_here(validated_request, hash_value, client_url, ref_id)
+        process_here(validated_request, hash_value, client_url, ref_id, lambda_function_name)
 
     # if the job is currently running or pending, notify the client and add their URL to the DB
     elif job['status_id'] in ['PENDING', 'RUNNING']:
@@ -79,13 +82,14 @@ def handle_request(event, context):
         send_response({'error': ['Error processing job.', ref_id]}, client_url)
 
 
-def process_here(validated_request, hash_value, client_url, ref_id):
+def process_here(validated_request, hash_value, client_url, ref_id, lambda_function_name):
     """
     Process there request "here" (presumably in AWS Lambda)
     :param validated_request: All of the request parameters
     :param hash_value: A hash of the request
     :param client_url: A URL to contact the client
     :param ref_id: A text marker in the CloudWatch Logs, user can include as ref for debugging
+    :param lambda_function_name: {str} The name of this lambda function
     :return: None
     """
     # log info
@@ -104,7 +108,7 @@ def process_here(validated_request, hash_value, client_url, ref_id):
     ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
 
     # call the request handler directly
-    handler = Handler(validated_request, parallel_type='lambda')
+    handler = Handler(validated_request, lambda_function_name)
     handler.run()
 
 
@@ -130,7 +134,7 @@ def send_cached_response(req_hash, client_url):
     :return: None
     """
     key_list = get_cached_object_keys(req_hash)
-    response = create_response_body(key_list, req_hash, [])
+    response = create_response_body(key_list, req_hash, [], [])
     send_response(response, client_url)
 
 

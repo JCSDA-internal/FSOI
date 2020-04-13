@@ -14,20 +14,26 @@ from fsoi.web.serverless_tools import hash_request, get_reference_id, create_res
 from fsoi import log
 from fsoi.data.datastore import ThreadedDataStore
 from fsoi.data.s3_datastore import S3DataStore, FsoiS3DataStore
+from fsoi.plots.managers import SummaryPlotGenerator, ComparisonPlotGenerator
 
 
 class Handler:
     """
     A class to handle a full request and/or a partial request for a single center as part of a full request.
     """
-    def __init__(self, request, plot_util='bokeh', parallel_type='local'):
+    def __init__(self, request, lambda_function_name, plot_util='bokeh', parallel_type='local'):
         """
         Create the handler with the request
         :param request: {dict} Request object
+        :param lambda_function_name: {str} Name of this lambda function
         :param plot_util: {str} Specify which plotting utility to use for this request: 'bokeh' or 'matplotlib'
+        :param parallel_type: {str} May be either 'local' or 'lambda'
         """
         # copy the request object
         self.request = copy.deepcopy(request)
+
+        # get the name of the current lambda function
+        self.lambda_function_name = lambda_function_name
 
         # get the request hash value and the reference ID based on the type of request (partial or full)
         if 'is_partial' not in self.request or not self.request['is_partial']:
@@ -48,16 +54,22 @@ class Handler:
             raise ValueError('Invalid value for plot_util must be either bokeh or matplotlib: %s' % plot_util)
         self.plot_util = plot_util
 
-        # save the parallel type
-        if parallel_type not in ['local', 'lambda']:
-            raise ValueError('Invalid value for parallel_type must be either local or lambda: %s' % parallel_type)
-        self.parallel_type = parallel_type
-
         # placeholder for the response
         self.response = {}
 
         # empty list for pickle descriptors
         self.pickle_descriptors = []
+
+        # validate and store the parallel type value
+        if parallel_type not in ['local', 'lambda']:
+            raise ValueError('Invalid value for parallel_type must be either local or lambda: %s' % parallel_type)
+        self.parallel_type = parallel_type
+
+        # thread pool for lambda invocations
+        if self.parallel_type == 'local':
+            self.executor = ThreadPoolExecutor(max_workers=1)
+        else:
+            self.executor = ThreadPoolExecutor(max_workers=10)
 
     def __getstate__(self):
         """
@@ -100,9 +112,9 @@ class Handler:
         try:
             # process the request
             if 'is_partial' in self.request and self.request['is_partial']:
-                response = self.process_partial_request()
+                response = self._process_partial_request()
             else:
-                response = self.process_full_request()
+                response = self._process_full_request()
 
             # send the response to all listeners
             log.info(json.dumps(response))
@@ -118,7 +130,7 @@ class Handler:
             self._update_all_clients('FAIL', 'Request processing failed', 0)
             raise e
 
-    def process_full_request(self):
+    def _process_full_request(self):
         """
         Create a chart as a PNG based on the input parameters
         :return: JSON response
@@ -128,40 +140,49 @@ class Handler:
         log.info('Request hash: %s' % self.hash_value)
         log.info('Request:\n%s' % json.dumps(self.request))
 
-        # track the progress percentage
-        progress = 0
-        self._update_all_clients('RUNNING', 'Creating plots', progress)
+        try:
+            # track the progress percentage
+            progress = 0
+            self._update_all_clients('RUNNING', 'Starting request processing', progress)
 
-        # create and run a partial request for each center
-        futures = []
-        part_handlers = []
-        centers = self.request['centers']
-        for center in centers:
-            part_req = copy.deepcopy(self.request)
-            part_req['centers'] = [center]
-            part_req['is_partial'] = True
-            part_req['hash_value'] = self.hash_value
-            part_req['ref_id'] = self.ref_id
-            part_handler = Handler(part_req)
-            part_handlers.append(part_handler)
-            futures.append(self._submit_partial_request(part_handler))
+            # create and run a partial request for each center
+            futures = []
+            part_handlers = []
+            centers = self.request['centers']
+            for center in centers:
+                part_req = copy.deepcopy(self.request)
+                part_req['centers'] = [center]
+                part_req['is_partial'] = True
+                part_req['hash_value'] = self.hash_value
+                part_req['ref_id'] = self.ref_id
+                part_handler = Handler(part_req)
+                part_handlers.append(part_handler)
+                futures.append(self._submit_partial_request(part_handler))
 
-        # aggregate results from responses
-        key_list = []
-        for future in futures:
-            part_handler = future.result()
-            self.errors += part_handler.errors
-            self.warns += part_handler.warns
-            part_response = json.loads(part_handler.response)
-            key_list += [image['key'] for image in part_response['images']]
+            # aggregate results from partial requests
+            key_list = []
+            for future in futures:
+                part_handler = json.loads(future.result())
+                self.errors += part_handler.errors
+                self.warns += part_handler.warns
+                part_response = json.loads(part_handler.response)
+                key_list += [image['key'] for image in part_response['images']]
 
-            # download the pickles needed for the comparison plots
-            data_store = S3DataStore()
-            for pickle_source in part_response['pickles']:
-                pickle_loaded = data_store.load_to_local_file(pickle_source, pickle_source['file'])
-                if not pickle_loaded:
-                    log.warn('Failed to load pickle: %s -> %s' %
-                             (data_store.descriptor_to_string(pickle_source), pickle_source['file']))
+                # download the pickles needed for the comparison plots
+                data_store = S3DataStore()
+                for pickle_source in part_response['pickles']:
+                    pickle_loaded = data_store.load_to_local_file(pickle_source, pickle_source['file'])
+                    if not pickle_loaded:
+                        log.warn('Failed to load pickle: %s -> %s' %
+                                 (data_store.descriptor_to_string(pickle_source), pickle_source['file']))
+
+        except Exception as e:
+            log.error('Failed to process request: %s' % self.hash_value, e)
+            return self._create_error_response_body()
+
+
+
+
 
         # create the comparison summary plots
         if not self.errors:
@@ -188,6 +209,94 @@ class Handler:
 
         return create_error_response_body(self.hash_value, self.errors, self.warns)
 
+    def _process_partial_request(self):
+        """
+        Create plots for a single center
+        :return: {str} JSON response
+        """
+        # log the request information
+        log.info('Reference ID: %s+%s' % (self.ref_id, self.request['centers'][0]))
+        log.info('Request hash: %s' % self.hash_value)
+        log.info('Request:\n%s' % json.dumps(self.request))
+
+        try:
+            # create the plots
+            plot_gen = SummaryPlotGenerator(
+                self.request['start_date'],
+                self.request['end_date'],
+                self.request['centers'][0],
+                self.request['norm'],
+                self.request['cycles'],
+                self.request['platforms'],
+                self.plot_util
+            )
+            plot_gen.create_plot_set()
+
+            # set some storage parameters
+            bucket = os.environ('CACHE_BUCKET')
+            region = os.environ('REGION')
+            data_store = S3DataStore()
+
+            # store the summary plots
+            plot_urls = []
+            for plot in plot_gen.plots:
+                prefix = self.hash_value
+                key = plot.split('/')[-1]
+                plot_descriptor = {
+                    'bucket': bucket,
+                    'prefix': prefix,
+                    'key': key
+                }
+                if data_store.save_from_local_file(plot, plot_descriptor):
+                    url = 'http://%s.s3-website-%s.amazonaws.com/%s/%s' % (bucket, region, prefix, key)
+                    plot_urls.append(url)
+
+            # store the pickles in S3 to be used in comparison plots
+            prefix = '%s' % self.hash_value
+            for pickle in plot_gen.pickles:
+                pickle_descriptor = {
+                    'bucket': bucket,
+                    'prefix': prefix,
+                    'name': pickle.split('/')[-1]
+                }
+                if not data_store.save_from_local_file(pickle, pickle_descriptor):
+                    self.warns.append('Failed to save comparision data for %s' % self.request['centers'][0])
+
+            self._create_partial_response_body(plot_urls)
+
+        except Exception as e:
+            log.error('Failed to process partial request: %s' % self.hash_value, e)
+            self.errors.append('Reference ID: ' + self.ref_id)
+            self.errors.append('Failed to process request for %s' % self.request['centers'][0])
+            self._create_error_response_body()
+
+        return self
+
+    def _create_partial_response_body(self, plot_urls):
+        """
+        Create a response body with for a partial (single center) request
+        :param plot_urls: {list} List of plot URL strings
+        :return: {str} A JSON string to be used for a response body
+        """
+        self.response = {
+            'req_hash': self.hash_value,
+            'pickles': self.pickle_descriptors,
+            'plots': plot_urls,
+            'warnings': self.warns,
+            'errors': self.errors
+        }
+
+    def _create_error_response_body(self):
+        """
+        Create a response with errors
+        :return: Formatted response body
+        """
+        self.response = {
+            'req_hash': self.hash_value,
+            'errors': self.errors,
+            'warnings': self.warns
+        }
+
     def _submit_partial_request(self, part_handler):
         """
         Submit a new partial request
@@ -203,7 +312,6 @@ class Handler:
             req2['cycles'] = ','.join(req2['cycles'])
             req2['centers'] = ','.join(req2['centers'])
             req_str = json.dumps(req2)
-            # ctx = base64.b64encode(json.dumps({'domainName': 'a','stage': 's','connectionId': 'c'}).encode()).decode()
             payload = json.dumps(
                 {
                     'body': req_str,
@@ -216,9 +324,8 @@ class Handler:
             ).encode()
             return self.executor.submit(
                 lbd.invoke,
-                FunctionName='ios_request_handlerbeta',
+                FunctionName=self.lambda_function_name,
                 InvocationType='RequestResponse',
-                # ClientContext=ctx,
                 LogType='None',
                 Payload=payload
             )
