@@ -7,3 +7,7 @@
 
 *.mod
 *.o
+venv
+docker
+webapp/node_modules
+webapp/dist

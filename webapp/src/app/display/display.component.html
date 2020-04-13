@@ -1,0 +1,40 @@
+<!-- grid for the images -->
+<div #imageContainer class="display-image-container" [ngStyle]="{'grid-template-columns': '225px repeat('+(columns)+', auto)', 'grid-template-rows': 'repeat('+rows+', auto)'}">
+
+  <!-- list for the image selectors -->
+  <div class="display-image-selector-list-container">
+
+    <!-- show button to select all images if images are present -->
+    <div *ngIf="allImages.length > 0" class="display-button-container">
+      <button mat-stroked-button (click)="selectAll()">All</button>
+    </div>
+
+    <!-- show button to select all comparison images if images are present -->
+    <div *ngIf="allImages.length > 0" class="display-button-container">
+      <button mat-stroked-button (click)="selectOnlyComparisons()">Center Comparisons</button>
+    </div>
+
+    <!-- show button to exclusively select a center -->
+    <div class="display-button-container" *ngFor="let center of uniqueCenters">
+      <button *ngIf="center != 'comparefull'" mat-stroked-button (click)="selectOnlyCenter(center)">{{center}} Only</button>
+    </div>
+
+    <!-- show button to exclusively select a plot type -->
+    <div class="display-button-container" *ngFor="let type of uniqueTypes">
+      <button mat-stroked-button (click)="selectOnlyType(type)">{{type}} Only</button>
+    </div>
+
+  </div>
+
+  <!-- Add the visible images to the grid -->
+  <div *ngFor="let image of images">
+    <div *ngIf="image.selected" class="display-image-tile" [ngStyle]="{'width': tileWidth, 'height': tileHeight}">
+      <div style="overflow:hidden;" id="{{image.center}},{{image.type}}" (click)="showSingleInteractivePlot($event)">
+        <img id="{{image.center}},{{image.type}},theimage" src="{{image.url}}">
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showInteractivePlot" id="interactivePlot" class="bk-root"></div>
+
+</div>

@@ -1,0 +1,26 @@
+<!-- add the options title -->
+<div class="option-title">{{title.toUpperCase()}}</div>
+
+<!-- Show the four buttons: All | None | Invert | Close -->
+<div class="option-buttons">
+  <button [disabled]="!selectMultiple" class="control-option-button" mat-stroked-button (click)="selectAll()">All</button>
+  <button [disabled]="!selectMultiple"class="control-option-button" mat-stroked-button (click)="unselectAll()">None</button>
+  <button [disabled]="!selectMultiple"class="control-option-button" mat-stroked-button (click)="invertSelection()">Invert</button>
+  <button class="control-option-button" mat-stroked-button (click)="closeDialog()">Done</button>
+</div>
+
+<!-- Add a list of options as checkboxes -->
+<div *ngIf="selectMultiple" class="option-list divider-color">
+  <div *ngFor="let item of data['list']['options']">
+    <mat-checkbox class="option-list-item" [(ngModel)]="item['selected']" labelPosition="after">{{item['name']}}</mat-checkbox>
+  </div>
+</div>
+
+<!-- Add a list of options as radio buttons -->
+<div *ngIf="!selectMultiple">
+  <mat-radio-group class="option-list divider-color" [(ngModel)]="selectedOption">
+    <mat-radio-button class="option-list-item" *ngFor="let item of data['list']['options']" [value]="item.name">
+      {{item.name}}
+    </mat-radio-button>
+  </mat-radio-group>
+</div>

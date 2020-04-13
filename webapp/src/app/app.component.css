@@ -1,0 +1,107 @@
+.header-div
+{
+  overflow              : hidden;
+  background-image      : url("/assets/nasa-43566-unsplash.jpg");
+  background-size       : cover;
+  background-position-y : -60%;
+  width                 : 100%;
+  height                : 98px;
+  border-radius         : 6px 6px 0 0;
+}
+
+.header-shade
+{
+  color                 : #fff;
+  display               : grid;
+  grid-template-columns : 120px auto;
+  position              : absolute;
+  left                  : 8px;
+  width                 : calc(100% - 16px);
+  height                : 98px;
+  background-color      : rgba(0, 0, 0, 0.3);
+  border-radius         : 6px 6px 0 0;
+}
+
+.control-div
+{
+  border-width  : 1px;
+  border-style  : solid;
+  border-color  : #677174;
+  border-radius : 0 0 0 6px;
+  padding       : 8px;
+  margin        : 8px 0 8px 8px;
+  position      : absolute;
+  top           : 97px;
+  left          : 0;
+  overflow-y    : scroll;
+  height        : calc(100% - 20px - 16px - 97px); /* 100% - 2*margin - 2*padding - header */
+  transition    : all 0.4s ease-in;
+}
+
+.control-div-open
+{
+  width : 474px;
+}
+
+.control-div-collapsed
+{
+  width : 24px;
+}
+
+.control-components-open
+{
+  visibility : visible;
+}
+
+.control-components-collapsed
+{
+  visibility : hidden;
+}
+
+.collapse-icon
+{
+  position            : relative;
+  left                : calc(100% - 8px - 16px);
+  width               : 24px;
+  height              : 24px;
+  background-size     : 100%;
+  background-repeat   : no-repeat;
+  background-position : center center;
+}
+
+.collapse-icon-open
+{
+  background-image : url("../assets/open.svg");
+}
+
+.collapse-icon-collapsed
+{
+  background-image : url("../assets/collapse.svg");
+}
+
+.display-div
+{
+  border-width  : 1px;
+  border-style  : solid;
+  border-color  : #677174;
+  border-radius : 0 0 6px 0;
+  padding       : 8px;
+  margin        : 8px;
+  position      : absolute;
+  overflow      : scroll;
+  top           : 97px;
+  height        : calc(100% - 20px - 16px - 97px);
+  transition    : all 0.4s ease-in;
+}
+
+.display-div-open
+{
+  left  : calc(455px + 16px + 20px);
+  width : calc(100% - (455px + 30px + 40px));
+}
+
+.display-div-collapsed
+{
+  left  : calc(24px + 16px + 1px); /* control-div-collapsed-width + control-div-padding*2 + 1 */
+  width : calc(100% - 24px - 54px - 16px + 19px);
+}

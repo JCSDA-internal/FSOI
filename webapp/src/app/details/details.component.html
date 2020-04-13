@@ -1,0 +1,63 @@
+<mat-card style="margin-bottom:15px;">
+  <mat-card-header>
+    <mat-card-title>ID: {{requestHash.substr(0, 10)}}</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="details-section-header">DATES</div>
+    <div>{{requestObject.start_date}} to {{requestObject.end_date}}</div>
+
+    <div class="details-section-header">CENTERS</div>
+    <div>
+      <mat-list>
+        <mat-list-item *ngFor="let center of requestObject.centers">
+          <li>{{center}}</li>
+        </mat-list-item>
+      </mat-list>
+    </div>
+
+    <div class="details-section-header">CYCLES</div>
+    <div>
+      <mat-list>
+        <mat-list-item *ngFor="let cycle of requestObject.cycles">
+          <li>{{cycle}}</li>
+        </mat-list-item>
+      </mat-list>
+    </div>
+
+    <div class="details-section-header">NORM</div>
+    <div>
+      <mat-list>
+        <mat-list-item *ngFor="let norm of requestObject.norm.split(',')">
+          <li>{{norm}}</li>
+        </mat-list-item>
+      </mat-list>
+    </div>
+
+    <div class="details-section-header">PLATFORMS</div>
+    <div>
+      <mat-list>
+        <mat-list-item *ngFor="let platform of requestObject.platforms.split(',')">
+          <li>{{platform}}</li>
+        </mat-list-item>
+      </mat-list>
+    </div>
+
+    <div class="details-section-header">WARNINGS</div>
+    <div>
+      <mat-list>
+        <mat-list-item *ngFor="let warning of warnings">
+          <li>{{warning}}</li>
+        </mat-list-item>
+      </mat-list>
+    </div>
+
+    <div class="details-section-header">ERRORS</div>
+    <div>
+      <mat-list>
+        <mat-list-item *ngFor="let error of errors">
+          <li>{{error}}</li>
+        </mat-list-item>
+      </mat-list>
+    </div>
+  </mat-card-content>
+</mat-card>

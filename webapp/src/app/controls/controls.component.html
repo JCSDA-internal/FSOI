@@ -1,0 +1,100 @@
+<div class="controls-grid">
+
+  <!-- Date range controls -->
+  <div class="control-label" style="margin-top:20px;">
+    DATE RANGE
+  </div>
+  <div class="control-grid-item">
+    <div style="padding:0 5px 0 0;display:inline-block;">
+      <mat-form-field>
+        <input matInput [matDatepicker]="picker1" [value]="startDate" placeholder="Start Date"
+               (dateChange)="changeDate($event)">
+        <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+        <mat-datepicker #picker1></mat-datepicker>
+      </mat-form-field>
+    </div>
+    <div style="padding:0 0 0 5px;display:inline-block;">
+      <mat-form-field>
+        <input matInput [matDatepicker]="picker2" [value]="endDate" placeholder="End Date"
+               (dateChange)="changeDate($event)">
+        <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+        <mat-datepicker #picker2></mat-datepicker>
+      </mat-form-field>
+    </div>
+    <div style="width:100%;display:block;">
+      <button style="width:97%;" mat-stroked-button color="none" (click)="showDateHelp()">Help Selecting Dates</button>
+    </div>
+  </div>
+
+  <!-- Cycle selection -->
+  <div class="control-label">CYCLES</div>
+  <div class="control-cycles-grid">
+    <img class="cycle-hint" id="cycle_hint"
+         src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="/>
+    <mat-checkbox [(ngModel)]="c00z" (click)="timeout(validateRequest, 50)" (mouseenter)="showCycleHint(0)"
+                  (mouseleave)="clearCycleHint()" labelPosition="after">00
+    </mat-checkbox>
+    <mat-checkbox [(ngModel)]="c06z" (click)="timeout(validateRequest, 50)" (mouseenter)="showCycleHint(6)"
+                  (mouseleave)="clearCycleHint()" labelPosition="after">06
+    </mat-checkbox>
+    <mat-checkbox [(ngModel)]="c12z" (click)="timeout(validateRequest, 50)" (mouseenter)="showCycleHint(12)"
+                  (mouseleave)="clearCycleHint()" labelPosition="after">12
+    </mat-checkbox>
+    <mat-checkbox [(ngModel)]="c18z" (click)="timeout(validateRequest, 50)" (mouseenter)="showCycleHint(18)"
+                  (mouseleave)="clearCycleHint()" labelPosition="after">18
+    </mat-checkbox>
+  </div>
+
+  <!-- Norm selection -->
+  <div class="control-label">NORM</div>
+  <div class="control-option-list">
+    <button class="control-option-button" mat-stroked-button (click)="showOptionDialog('norm', false)">
+      {{normSummary}}
+    </button>
+  </div>
+
+  <!-- Center selection -->
+  <div class="control-label">CENTERS</div>
+  <div class="control-option-list">
+    <button class="control-option-button" mat-stroked-button (click)="showOptionDialog('center', true)">
+      {{centersSummary}}
+    </button>
+  </div>
+
+  <!-- Platform selection -->
+  <div class="control-label">PLATFORMS</div>
+  <div class="control-option-list">
+    <button class="control-option-button" mat-stroked-button (click)="showOptionDialog('platform', true)">
+      {{platformsSummary}}
+    </button>
+  </div>
+
+  <!-- List of errors -->
+  <div class="error-container">
+    <div *ngFor="let item of errorMessages" class="error-item">{{item}}</div>
+  </div>
+
+  <!-- Submit button -->
+  <div class="submit-button-container">
+    <button mat-raised-button color="primary" (click)="submitRequest()" [disabled]="invalidRequest">Submit</button>
+  </div>
+
+  <!-- Progress bar showing all session requests -->
+  <div [hidden]="sessionRequests.length == 0">
+    <mat-card class="request-card" *ngFor="let req of sessionRequests">
+      <mat-card-header>
+        <mat-card-title>ID: {{req.req_hash.substr(0,10)}}</mat-card-title>
+        <mat-card-subtitle>{{req.message}}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content><mat-progress-bar [mode]="req.progressMode" [value]="req.progress"></mat-progress-bar></mat-card-content>
+      <mat-card-actions>
+        <button mat-button [disabled]="req.status_id !== 'SUCCESS'" (click)="display.setImages(req.images)">VIEW</button>
+        <button mat-button [disabled]="req.status_id !== 'SUCCESS'" (click)="showShareUrl('http://ios.jcsda.org?cache_id=' + req.req_hash)">SHARE</button>
+        <button mat-button (click)="showDetails(req.req_hash, req.req_obj, req.errors, req.warnings)">DETAILS</button>
+        <span class="statusIcon" [hidden]="!(req.isComplete && !req.hasWarnings && !req.hasErrors)"><img alt="ok" src="../../assets/ok.png"></span>
+        <span class="statusIcon" [hidden]="!req.hasWarnings"><img alt="warn" src="../../assets/warn.png"></span>
+        <span class="statusIcon" [hidden]="!req.hasErrors"><img alt="error" src="../../assets/error.png"></span>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

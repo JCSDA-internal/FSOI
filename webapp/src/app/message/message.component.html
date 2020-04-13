@@ -1,0 +1,3 @@
+<div class="message-title">{{title.toUpperCase()}}</div>
+<div class="message-text" [innerHTML]="message"></div>
+<div [hidden]=!showCopyButton><button color="primary" mat-raised-button (click)="copyToClipboard()">Copy to clipboard</button></div>

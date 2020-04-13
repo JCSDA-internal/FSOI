@@ -1,0 +1,415 @@
+---
+Description: JCSDA's IOS FSOI Web Application (Performance Enhanced)
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  DeploymentType:
+    Description: Set to beta or '' to determine if this deployment is a beta version or operational
+    Type: String
+    Default: beta
+    AllowedValues:
+      - beta
+      - ''
+
+Resources:
+
+  #
+  # PERMISSIONS
+  #
+
+  # Role for the lambda function
+  IosLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      RoleName: !Sub 'ios_lambda_role${DeploymentType}'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Policy to allow read access to s3://fsoi
+  AllowReadS3Ios:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - IosLambdaRole
+    Properties:
+      PolicyName: !Sub 'allow_read_s3_ios${DeploymentType}'
+      Roles:
+        - !Ref IosLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+            - s3:GetObjectAcl
+            - s3:GetObject
+            - s3:ListBucket
+          Resource:
+            - arn:aws:s3:::fsoi/*
+            - arn:aws:s3:::fsoi
+        - Effect: Allow
+          Action: s3:HeadBucket
+          Resource:
+            - arn:aws:s3:::fsoi
+
+  # Policy to allow CRUD operations on the DynamoDB table for requests
+  AllowCrudDynamodbIosRequests:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - IosLambdaRole
+    Properties:
+      PolicyName: !Sub 'allow_crud_dynamodb_ios_requests${DeploymentType}'
+      Roles:
+        - !Ref IosLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:BatchWriteItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:PutItem
+          - dynamodb:DescribeTable
+          - dynamodb:DeleteItem
+          - dynamodb:GetItem
+          - dynamodb:Scan
+          - dynamodb:Query
+          - dynamodb:UpdateItem
+          - dynamodb:UpdateTable
+          - dynamodb:GetRecords
+          Resource:
+            - !Sub 'arn:aws:dynamodb:us-east-1:469205354006:table/ios_requests${DeploymentType}'
+            - !Sub 'arn:aws:dynamodb:us-east-1:469205354006:table/ios_requests${DeploymentType}/stream/*'
+        - Effect: Allow
+          Action: dynamodb:ListTables
+          Resource:
+            - arn:aws:dynamodb:us-east-1:*:*
+
+  # Policy to allow read/write to s3://fsoi-image-cache
+  AllowRwS3IosImageCache:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - IosLambdaRole
+    Properties:
+      PolicyName: !Sub 'allow_rw_s3_ios_image_cache${DeploymentType}'
+      Roles:
+        - !Ref IosLambdaRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:PutAnalyticsConfiguration
+              - s3:GetObjectVersionTagging
+              - s3:CreateBucket
+              - s3:ReplicateObject
+              - s3:GetObjectAcl
+              - s3:DeleteBucketWebsite
+              - s3:PutLifecycleConfiguration
+              - s3:GetObjectVersionAcl
+              - s3:PutObjectTagging
+              - s3:DeleteObject
+              - s3:DeleteObjectTagging
+              - s3:GetBucketPolicyStatus
+              - s3:GetBucketWebsite
+              - s3:PutReplicationConfiguration
+              - s3:DeleteObjectVersionTagging
+              - s3:GetBucketNotification
+              - s3:PutBucketCORS
+              - s3:GetReplicationConfiguration
+              - s3:ListMultipartUploadParts
+              - s3:PutObject
+              - s3:GetObject
+              - s3:PutBucketNotification
+              - s3:PutBucketLogging
+              - s3:GetAnalyticsConfiguration
+              - s3:GetObjectVersionForReplication
+              - s3:GetLifecycleConfiguration
+              - s3:ListBucketByTags
+              - s3:GetInventoryConfiguration
+              - s3:GetBucketTagging
+              - s3:PutAccelerateConfiguration
+              - s3:DeleteObjectVersion
+              - s3:GetBucketLogging
+              - s3:ListBucketVersions
+              - s3:ReplicateTags
+              - s3:RestoreObject
+              - s3:ListBucket
+              - s3:GetAccelerateConfiguration
+              - s3:GetBucketPolicy
+              - s3:PutEncryptionConfiguration
+              - s3:GetEncryptionConfiguration
+              - s3:GetObjectVersionTorrent
+              - s3:AbortMultipartUpload
+              - s3:PutBucketTagging
+              - s3:GetBucketRequestPayment
+              - s3:GetObjectTagging
+              - s3:GetMetricsConfiguration
+              - s3:DeleteBucket
+              - s3:PutBucketVersioning
+              - s3:GetBucketPublicAccessBlock
+              - s3:ListBucketMultipartUploads
+              - s3:PutMetricsConfiguration
+              - s3:PutObjectVersionTagging
+              - s3:GetBucketVersioning
+              - s3:GetBucketAcl
+              - s3:PutInventoryConfiguration
+              - s3:GetObjectTorrent
+              - s3:PutBucketWebsite
+              - s3:PutBucketRequestPayment
+              - s3:GetBucketCORS
+              - s3:GetBucketLocation
+              - s3:ReplicateDelete
+              - s3:GetObjectVersion
+            Resource:
+              - arn:aws:s3:::*/*
+              - arn:aws:s3:::fsoi-image-cache
+          - Effect: Allow
+            Action:
+              - s3:GetAccountPublicAccessBlock
+              - s3:ListAllMyBuckets
+              - s3:HeadBucket
+            Resource: '*'
+
+  # Policy to allow updates to API Gateway websocket clients
+  AllowPostExecuteApi:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - IosLambdaRole
+    Properties:
+      PolicyName: !Sub 'allow_post_execute_api${DeploymentType}'
+      Roles:
+        - !Ref IosLambdaRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: execute-api:*
+            Resource: arn:aws:execute-api:us-east-1:469205354006:*/*/*/*
+
+  # Permission to allow API Gateway to invoke the lambda function
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - IosWebsocket
+      - LambdaIosRequestHandler
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaIosRequestHandler
+      Principal: apigateway.amazonaws.com
+
+
+  #
+  # DYNAMODB
+  #
+
+  # Create the DynamoDB Table
+  DynamoTableIosRequests:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: req_hash
+          AttributeType: S
+      KeySchema:
+        - AttributeName: req_hash
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: !Sub 'ios_requests${DeploymentType}'
+
+
+  #
+  # API GATEWAY
+  #
+  IosWebsocket:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: IOS Websocket API Gateway
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "\\$default"
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref IosWebsocket
+      RouteKey: $connect
+      AuthorizationType: NONE
+      OperationName: Default
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref IosWebsocket
+      RouteKey: $default
+      AuthorizationType: NONE
+      OperationName: Default
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref DefaultIntegration
+
+  DefaultIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - LambdaIosRequestHandler
+    Properties:
+      ApiId: !Ref IosWebsocket
+      Description: Forward to Lambda function
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:469205354006:function:ios_request_handler${DeploymentType}/invocations'
+
+  Deployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - DefaultRoute
+    Properties:
+      ApiId: !Ref IosWebsocket
+
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: v2
+      DeploymentId: !Ref Deployment
+      ApiId: !Ref IosWebsocket
+
+  #
+  # LAMBDA
+  #
+
+  # Function to handle user requests
+  LambdaIosRequestHandler:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - IosLambdaRole
+    Properties:
+      FunctionName: !Sub 'ios_request_handler${DeploymentType}'
+      Handler: lambda_wrapper.handle_request
+      Role: !Sub 'arn:aws:iam::469205354006:role/ios_lambda_role${DeploymentType}'
+      Code:
+        S3Bucket: jcsda-scratch
+        S3Key: fsoi_lambda.zip
+      Layers:
+        - arn:aws:lambda:us-east-1:469205354006:layer:ios-libs-layer:3
+      Runtime: python3.7
+      Timeout: 600
+      MemorySize: 3008
+      Environment:
+        Variables:
+          CACHE_BUCKET: fsoi-image-cache
+          FSOI_ROOT_DIR: /tmp/fsoi
+          REGION: us-east-1
+          DATA_BUCKET: fsoi
+          OBJECT_PREFIX: intercomp/hdf5
+          PYTHONPATH: /opt/python/libs
+          BOKEH_PHANTOMJS_PATH: /opt/phantomjs/bin/phantomjs
+
+  # Static content hosting via CloudFront
+  AppBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Sub 'ios${DeploymentType}.jcsda.org'
+      PolicyDocument:
+        Version: 2008-10-17
+        Id: PolicyForCloudFrontPrivateContent
+        Statement:
+          - Sid: Allow CloudFront Origin Access Identity to access bucket content
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join:
+                  - ' '
+                  - - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity
+                    - !Ref CloudFrontOriginAccessIdentity
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::ios${DeploymentType}.jcsda.org/*'
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'S3-ios${DeploymentType}.jcsda.org'
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub 'JCSDA - FSOI${DeploymentType}'
+        Aliases:
+          - !Sub 'ios${DeploymentType}.jcsda.org'
+        DefaultRootObject: index.html
+        Enabled: true
+        IPV6Enabled: true
+        Logging:
+          Bucket: jcsda-scratch.s3.amazonaws.com
+          IncludeCookies: true
+          Prefix: ''
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: false
+          DefaultTTL: 3600
+          ForwardedValues:
+            Cookies:
+              Forward: all
+            QueryString: true
+          TargetOriginId: !Ref CloudFrontOriginAccessIdentity
+          ViewerProtocolPolicy: redirect-to-https
+        Origins:
+          - Id: !Ref CloudFrontOriginAccessIdentity
+            DomainName: !Sub 'ios${DeploymentType}.jcsda.org.s3.amazonaws.com'
+            S3OriginConfig:
+              OriginAccessIdentity:
+                Fn::Join:
+                  - '/'
+                  -
+                    - origin-access-identity
+                    - cloudfront
+                    - !Ref CloudFrontOriginAccessIdentity
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn: !Ref Certificate
+          MinimumProtocolVersion: TLSv1.1_2016
+          SslSupportMethod: sni-only
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  CloudFrontDnsEntry:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - CloudFrontDistribution
+    Properties:
+      Name: !Sub 'ios${DeploymentType}.jcsda.org'
+      HostedZoneId: Z1F2XBLX8SOJLO
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !GetAtt CloudFrontDistribution.DomainName
+
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: jcsda.org
+      SubjectAlternativeNames:
+        - !Sub 'ios${DeploymentType}.jcsda.org'
+        - fsoi.jcsda.org
+        - '*.jcsda.org'
+      ValidationMethod: DNS

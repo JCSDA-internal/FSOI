@@ -1,0 +1,12 @@
+[MASTER]
+ignored-modules=emc, jma, mpl_toolkits
+extension-pkg-whitelist=netCDF4
+
+[TYPECHECK]
+ignored-modules=lib_utils,lib_obimpact,lib_mapping,TaylorDiagram
+
+[VARIABLES]
+additional-builtins=FortranRecordReader
+
+[BASIC]
+good-names=y,m,d,h,i,e,s3,kt,kx,s,c,fh,df,tf

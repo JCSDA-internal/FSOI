@@ -1,0 +1,49 @@
+.display-image-container
+{
+  width           : 100%;
+  height          : 100%;
+  display         : grid;
+  grid-row-gap    : 15px;
+  grid-column-gap : 15px;
+}
+
+.display-image-tile
+{
+  background-size     : 100%;
+  background-repeat   : no-repeat;
+  background-position : center center;
+  overflow            : hidden;
+}
+
+.display-image-tile img
+{
+  width : 100%;
+}
+
+.display-image-selector-list-container
+{
+  grid-column  : 1;
+  grid-row     : 1 / -1;
+  margin       : 0;
+  padding      : 0;
+  border-right : 1px solid #ccc;
+  overflow     : scroll;
+}
+
+.display-button-container
+{
+  display               : grid;
+  grid-template-columns : auto;
+  width                 : 80%;
+  margin                : 10px 0 0 9%;
+  overflow              : hidden;
+}
+
+.display-link-container
+{
+  display               : grid;
+  grid-template-columns : repeat(2, auto);
+  width                 : 80%;
+  margin                : 10px 0 0 9%;
+  padding               : 20px;
+}

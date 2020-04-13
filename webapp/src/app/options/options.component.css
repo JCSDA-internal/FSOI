@@ -1,0 +1,33 @@
+.option-title
+{
+  font-family : "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size   : 1em;
+  margin      : 10px 5px 5px 5px;
+}
+
+.option-buttons
+{
+  display               : grid;
+  grid-template-columns : auto auto auto auto;
+  grid-column-gap       : 30px;
+}
+
+.option-list
+{
+  display               : grid;
+  grid-template-columns : auto auto;
+  margin                : 10px 0 15px 0;
+  padding               : 15px 0 15px 0;
+  border-width          : 1px;
+  border-style          : solid;
+  border-radius         : 6px;
+  width                 : 100%;
+  height                : calc(100% - 64px - 30px - 32px);
+  overflow-y            : scroll;
+}
+
+.option-list-item
+{
+  margin : 4px 20px 4px 20px;
+  height : 32px;
+}
