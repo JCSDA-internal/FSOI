@@ -43,7 +43,7 @@ def summary_fsoi_main():
     cyclestr = ''.join('%02dZ' % c for c in cycle)
 
     fname = '%s/work/%s/%s/bulk_stats.h5' % (rootdir, center, norm)
-    fpkl = '%s/work/%s/%s/group_stats.pkl' % (rootdir, center, norm)
+    fpkl = '%s/work/%s/%s/%s_group_stats.pkl' % (rootdir, center, norm, center)
 
     if os.path.isfile(fpkl):
         overwrite = input('%s exists, OVERWRITE [y/N]: ' % fpkl)

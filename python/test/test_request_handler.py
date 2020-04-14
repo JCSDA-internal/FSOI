@@ -18,8 +18,8 @@ def test_pass_requests():
     """
     import time
     import yaml
-    from fsoi.web.request_handler import Handler
-    from fsoi.web.serverless_tools import hash_request, RequestDao
+    from fsoi.web.request_handler import FullRequestHandler
+    from fsoi.web.data import RequestDao
 
     data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
 
@@ -34,7 +34,7 @@ def test_pass_requests():
 
         # add an unused request field to generate a unique hash
         req['time'] = time.time()
-        req_hash = hash_request(req)
+        req_hash = FullRequestHandler.hash_request(req)
 
         # run the batch process
         job = {
@@ -45,7 +45,7 @@ def test_pass_requests():
             'req_obj': json.dumps(req)
         }
         RequestDao.add_request(job)
-        handler = Handler(req)
+        handler = FullRequestHandler(req)
         handler.run()
 
         req_status = RequestDao.get_request(req_hash)
@@ -58,8 +58,8 @@ def test_fail_requests():
     """
     import time
     import yaml
-    from fsoi.web.request_handler import Handler
-    from fsoi.web.serverless_tools import hash_request, RequestDao
+    from fsoi.web.request_handler import FullRequestHandler
+    from fsoi.web.data import RequestDao
 
     data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
 
@@ -77,7 +77,7 @@ def test_fail_requests():
 
         # add an unused request field to generate a unique hash
         req['time'] = time.time()
-        req_hash = hash_request(req)
+        req_hash = FullRequestHandler.hash_request(req)
 
         # run the batch process
         job = {
@@ -88,7 +88,7 @@ def test_fail_requests():
             'req_obj': json.dumps(req)
         }
         RequestDao.add_request(job)
-        handler = Handler(req)
+        handler = FullRequestHandler(req)
         handler.run()
 
         req_status = RequestDao.get_request(req_hash)
@@ -101,8 +101,8 @@ def test_focus_requests():
     """
     import time
     import yaml
-    from fsoi.web.request_handler import Handler
-    from fsoi.web.serverless_tools import hash_request, RequestDao
+    from fsoi.web.request_handler import FullRequestHandler
+    from fsoi.web.data import RequestDao
 
     data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
 
@@ -121,7 +121,7 @@ def test_focus_requests():
 
             # add an unused request field to generate a unique hash
             req['time'] = time.time()
-            req_hash = hash_request(req)
+            req_hash = FullRequestHandler.hash_request(req)
 
             if 'cache_id' in req:
                 from fsoi.web.lambda_wrapper import get_cached_object_keys, create_response_body
@@ -138,7 +138,8 @@ def test_focus_requests():
                     'req_obj': json.dumps(req)
                 }
                 RequestDao.add_request(job)
-                handler = Handler(req, parallel_type='lambda')
+                # handler = FullRequestHandler(req, parallel_type='lambda', lambda_function_name='ios_request_handlerbeta')
+                handler = FullRequestHandler(req)  # local processing
                 handler.run()
 
             req_status = RequestDao.get_request(req_hash)

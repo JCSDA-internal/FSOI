@@ -6,9 +6,8 @@ H5 files from S3 and create plots using existing functions.
 import os
 import json
 import boto3
-from fsoi.web.serverless_tools import ApiGatewaySender, RequestDao, get_reference_id, hash_request, \
-    create_response_body
-from fsoi.web.request_handler import Handler
+from fsoi.web.data import ApiGatewaySender, RequestDao
+from fsoi.web.request_handler import FullRequestHandler, PartialRequestHandler
 from fsoi import log
 from fsoi.fsoilog import enable_cloudwatch_logs
 
@@ -31,7 +30,7 @@ def handle_request(event, context):
     request = json.loads(event['body'])
 
     # get the reference ID and put a marker in the CloudWatch Logs
-    ref_id = 'RefId: %s' % get_reference_id(request)
+    ref_id = 'RefId: %s' % FullRequestHandler.get_reference_id(request)
     log.info(ref_id)
 
     # build the client's connection url
@@ -59,14 +58,15 @@ def handle_request(event, context):
         return
 
     # get the request hash value
-    hash_value = hash_request(validated_request)
+    hash_value = FullRequestHandler.hash_request(validated_request)
 
     # get the status of the request
     job = RequestDao.get_request(hash_value)
 
     # if the job has not previously been requested, or it failed, then submit a new request
     if job is None or 'status_id' not in job or job['status_id'] == 'FAIL':
-        process_here(validated_request, hash_value, client_url, ref_id, lambda_function_name)
+        handler = process_here(validated_request, hash_value, client_url, ref_id, lambda_function_name)
+        send_success_response(handler)
 
     # if the job is currently running or pending, notify the client and add their URL to the DB
     elif job['status_id'] in ['PENDING', 'RUNNING']:
@@ -107,9 +107,16 @@ def process_here(validated_request, hash_value, client_url, ref_id, lambda_funct
     RequestDao.add_request(job)
     ApiGatewaySender.send_message_to_ws_client(client_url, json.dumps(job))
 
+    # create the request handler for this type of request
+    if 'is_partial' in validated_request and validated_request['is_partial']:
+        handler = PartialRequestHandler(validated_request, plot_util='bokeh')
+    else:
+        handler = FullRequestHandler(validated_request, parallel_type='lambda', lambda_function_name=lambda_function_name)
+
     # call the request handler directly
-    handler = Handler(validated_request, lambda_function_name)
     handler.run()
+
+    return handler
 
 
 def send_status_to_client(job, client_url):
@@ -136,6 +143,19 @@ def send_cached_response(req_hash, client_url):
     key_list = get_cached_object_keys(req_hash)
     response = create_response_body(key_list, req_hash, [], [])
     send_response(response, client_url)
+
+
+def create_response_body(key_list, req_hash, warns, errors):
+    """
+    Create a response body
+    :param key_list:
+    :param req_hash:
+    :param warns:
+    :param errors:
+    :return:
+    """
+    # TODO: Implement
+    return {}
 
 
 def send_json_data_response(request, client_url):
@@ -166,6 +186,15 @@ def send_response(message, client_url):
     :return: None
     """
     ApiGatewaySender.send_message_to_ws_client(client_url, message)
+
+
+def send_success_response(handler):
+    """
+    Handler in successful state
+    :param handler: {FullRequestHandler}
+    :return: None
+    """
+    # TODO: Implement
 
 
 def validate_request(request):

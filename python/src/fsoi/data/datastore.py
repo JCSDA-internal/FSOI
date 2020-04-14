@@ -164,6 +164,7 @@ class ThreadedDataStore(DataStore):
         self.datastore = backing_datastore
         self.thread_pool = ThreadPoolExecutor(max_workers=thread_pool_size)
         self.futures = []
+        self.errors = []
 
     def join(self):
         """
