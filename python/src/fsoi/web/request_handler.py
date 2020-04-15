@@ -126,8 +126,8 @@ class Handler:
         bucket = os.environ['CACHE_BUCKET']
 
         for file in files:
-            key = file.split('/')[-1]
-            descriptor = {'bucket': bucket, 'prefix': self.hash_value, 'key': key}
+            name = file.split('/')[-1]
+            descriptor = {'bucket': bucket, 'prefix': self.hash_value, 'name': name}
             descriptors.append(descriptor)
             datastore.save_from_local_file(file, descriptor)
 
@@ -247,15 +247,18 @@ class FullRequestHandler(Handler):
             part_handlers = self._run_partial_requests()
 
             # aggregate results from partial requests
-            pickles = []
+            pickle_descriptors = []
             for part_handler in part_handlers:
-                pickles += part_handler.pickle_descriptors
+                pickle_descriptors += part_handler.pickle_descriptors
+
+            # download the pickle files
+            pickles = self._download_pickles(pickle_descriptors)
 
             # create the comparison summary plots
             cpg = ComparisonPlotGenerator(
                 self.request['centers'],
                 self.request['norm'],
-                self.request['cycles'],
+                [int(c) for c in self.request['cycles']],
                 self.request['platforms'],
                 self.plot_util,
                 pickles
@@ -269,6 +272,7 @@ class FullRequestHandler(Handler):
             # handle success cases
             if not self.errors:
                 self._update_all_clients('SUCCESS', 'Done.', 100)
+                return
 
             # handle error cases
             self._update_all_clients('FAIL', 'Failed to process request', progress)
@@ -278,6 +282,23 @@ class FullRequestHandler(Handler):
 
         except Exception as e:
             log.error('Failed to process request: %s' % self.hash_value)
+            log.error(e)
+
+    def _download_pickles(self, pickle_descriptors):
+        """
+        Download pickle files
+        :param pickle_descriptors: {list} List of pickle descriptors
+        :return: {list} List of local files
+        """
+        datastore = ThreadedDataStore(S3DataStore(), 20)
+        local_dir = self.request['root_dir']
+        files = []
+        for pickle_descriptor in pickle_descriptors:
+            file = '%s/%s' % (local_dir, pickle_descriptor['name'])
+            datastore.load_to_local_file(pickle_descriptor, file)
+            files.append(file)
+
+        return files
 
     def _run_partial_requests(self):
         """
@@ -319,7 +340,7 @@ class FullRequestHandler(Handler):
         # download the pickles needed for the comparison plots
         data_store = S3DataStore()
         for pickle_source in part_handler.pickle_descriptors:
-            file = '%s/pickles/%s' % (root_dir, pickle_source['key'])
+            file = '%s/pickles/%s' % (root_dir, pickle_source['name'])
             data_store.load_to_local_file(pickle_source, file)
             pickles.append(file)
 
@@ -386,11 +407,6 @@ class FullRequestHandler(Handler):
 
         # wait for the datastore to finish uploading files
         datastore.join()
-
-        # TODO: Find any errors in operations
-        for op in datastore.operations:
-            if not op.success:
-                print('failed')
 
 
 class PartialRequestHandler(Handler):

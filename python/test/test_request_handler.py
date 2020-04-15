@@ -141,6 +141,7 @@ def test_focus_requests():
                 # handler = FullRequestHandler(req, parallel_type='lambda', lambda_function_name='ios_request_handlerbeta')
                 handler = FullRequestHandler(req)  # local processing
                 handler.run()
+                handler = None  # TODO: Get a lambda response
 
             req_status = RequestDao.get_request(req_hash)
             assert req_status['status_id'] == 'SUCCESS'
