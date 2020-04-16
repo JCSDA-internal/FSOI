@@ -130,6 +130,7 @@ class Handler:
             descriptor = {'bucket': bucket, 'prefix': self.hash_value, 'name': name}
             descriptors.append(descriptor)
             datastore.save_from_local_file(file, descriptor)
+            os.remove(file)  # TODO: Not necessary once S3 cache is sorted out
 
 
 class FullRequestHandler(Handler):
@@ -220,6 +221,10 @@ class FullRequestHandler(Handler):
         try:
             # process the request
             self._process_request()
+
+            # send the response
+            self._send_response()
+
         except Exception as e:
             log.error('Failed to process request')
             ref_id = self.get_reference_id(self.request)
@@ -240,23 +245,34 @@ class FullRequestHandler(Handler):
 
         try:
             # track the progress percentage
-            progress = 0
-            self._update_all_clients('RUNNING', 'Starting request processing', progress)
+            self._update_all_clients('RUNNING', 'Starting request processing', 1)
 
             # create and run all of the partial requests
+            self._update_all_clients('RUNNING', 'Creating plots for all centers', 3)
             part_handlers = self._run_partial_requests()
 
             # aggregate results from partial requests
             pickle_descriptors = []
             for part_handler in part_handlers:
                 pickle_descriptors += part_handler.pickle_descriptors
+                self.plot_descriptors += part_handler.plot_descriptors
+                self.json_descriptors += part_handler.json_descriptors
+
+            # update clients
+            self._update_all_clients('RUNNING', 'Creating comparison plots', 95, sync=False)
 
             # download the pickle files
             pickles = self._download_pickles(pickle_descriptors)
 
+            # create a list of centers with data
+            centers_with_data = []
+            for part_handler in part_handlers:
+                if len(part_handler.pickle_descriptors) > 0:
+                    centers_with_data.append(part_handler.center)
+
             # create the comparison summary plots
             cpg = ComparisonPlotGenerator(
-                self.request['centers'],
+                centers_with_data,
                 self.request['norm'],
                 [int(c) for c in self.request['cycles']],
                 self.request['platforms'],
@@ -275,7 +291,7 @@ class FullRequestHandler(Handler):
                 return
 
             # handle error cases
-            self._update_all_clients('FAIL', 'Failed to process request', progress)
+            self._update_all_clients('FAIL', 'Failed to process request', 0)
             log.info('Errors:\n%s' % ','.join(self.errors))
             log.info('Warnings:\n%s' % ','.join(self.warns))
             self.errors.append('Reference ID: ' + self.ref_id)
@@ -290,12 +306,14 @@ class FullRequestHandler(Handler):
         :param pickle_descriptors: {list} List of pickle descriptors
         :return: {list} List of local files
         """
-        datastore = ThreadedDataStore(S3DataStore(), 20)
+        datastore = S3DataStore()
         local_dir = self.request['root_dir']
         files = []
         for pickle_descriptor in pickle_descriptors:
             file = '%s/%s' % (local_dir, pickle_descriptor['name'])
-            datastore.load_to_local_file(pickle_descriptor, file)
+            got_it = datastore.load_to_local_file(pickle_descriptor, file)
+            if not got_it:
+                log.error('Failed to download pickle file: %s' % file)
             files.append(file)
 
         return files
@@ -308,6 +326,9 @@ class FullRequestHandler(Handler):
         # create and run a partial request for each center
         futures = []
         centers = self.request['centers']
+        num_centers = len(self.request['centers'])
+        progress = 0
+        progress_delta = 100 / (num_centers + 1)
         for center in centers:
             part_req = copy.deepcopy(self.request)
             part_req['centers'] = [center]
@@ -322,6 +343,13 @@ class FullRequestHandler(Handler):
         for future in futures:
             part_handler = self._get_partial_handler_from_future(future)
             part_handlers.append(part_handler)
+            progress += progress_delta
+            self._update_all_clients(
+                'RUNNING',
+                'Completed %s plots' % part_handler.center,
+                progress,
+                sync=False
+            )
 
         return part_handlers
 
@@ -379,16 +407,18 @@ class FullRequestHandler(Handler):
                 Payload=payload
             )
 
-    @staticmethod
-    def _get_partial_handler_from_future(future: Future):
+    def _get_partial_handler_from_future(self, future: Future):
         """
         Get a PartialRequestHandler object from a Future
         :param future: The result of a partial request handler execution
         :return: {PartialRequestHandler} Executed PRH
         """
-        dummy = {'centers':[''], 'hash_value': '', 'ref_id': '', 'is_partial': True}
+        dummy = {'centers': [''], 'hash_value': '', 'ref_id': '', 'is_partial': True}
         part_handler = PartialRequestHandler(dummy)
-        part_handler.__setstate__(future.result())
+        data = future.result() \
+            if 'local' == self.parallel_type \
+            else json.loads(future.result()['Payload'].read().decode())
+        part_handler.__setstate__(data)
         return part_handler
 
     def _cache_compare_plots_in_s3(self, plot_gen):
@@ -398,15 +428,90 @@ class FullRequestHandler(Handler):
         :return: None
         """
         # create the S3 data store
-        datastore = ThreadedDataStore(S3DataStore(), 20)
+        datastore = S3DataStore()
 
         # store the summary plots, comparison pickles, and maybe json files (if using bokeh)
         self._cache_file_list_in_s3(datastore, plot_gen.plots, self.plot_descriptors)
         if 'bokeh' == self.plot_util:
             self._cache_file_list_in_s3(datastore, plot_gen.json_data, self.json_descriptors)
 
-        # wait for the datastore to finish uploading files
-        datastore.join()
+    def _send_response(self):
+        """
+        Handler in successful state
+        :return: None
+        """
+        if self.errors:
+            self._create_error_response()
+        else:
+            self._create_success_response()
+
+        RequestDao.add_response(self.hash_value, self.response)
+        self._message_all_clients(self.response, True)
+
+    def _create_error_response(self):
+        """
+        Create an error response
+        :param handler: {FullRequestHandler}
+        :return: {dict} A response message
+        """
+        self.response = {
+            'req_hash': self.hash_value,
+            'isComplete': False,
+        }
+
+        # maybe add warnings
+        has_warns = len(self.warns) > 0
+        self.response['hasWarnings'] = has_warns
+        if has_warns:
+            self.response['warnings'] = self.warns
+
+        # maybe add errors
+        has_errors = len(self.errors) > 0
+        self.response['hasErrors'] = has_errors
+        if has_errors:
+            self.response['errors'] = self.errors
+
+    def _create_success_response(self):
+        """
+        Create a success response
+        :param handler: {FullRequestHandler}
+        :return: {dict} A response message
+        """
+        self.response = {
+            'req_hash': self.hash_value,
+            'status_id': 'SUCCESS',
+            'message': 'Done.',
+            'progress': '100',
+            'isComplete': True,
+            'req_obj': json.dumps(self.request)
+        }
+
+        # maybe add warnings
+        self.response['hasWarnings'] = len(self.warns) > 0
+        if self.response['hasWarnings']:
+            self.response['warnings'] = self.warns
+
+        # maybe add errors
+        self.response['hasErrors'] = len(self.errors) > 0
+        if self.response['hasErrors']:
+            self.response['errors'] = self.errors
+
+        # add the image list
+        from fsoi.data.s3_datastore import S3DataStore
+        images = []
+        for plot in self.plot_descriptors:
+            bucket, key = S3DataStore._to_bucket_and_key(plot)
+            images.append(
+                {
+                    'center': plot['name'].split('_')[0],
+                    'type': plot['name'].split('_')[1],
+                    'bucket': bucket,
+                    'key': key.replace('.png', '.json'),
+                    'selected': True,
+                    'url': S3DataStore._to_public_url(plot)
+                }
+            )
+        self.response['images'] = images
 
 
 class PartialRequestHandler(Handler):
@@ -484,7 +589,7 @@ class PartialRequestHandler(Handler):
     def run(self):
         """
         Create a chart as a PNG based on the input parameters
-        :return: None - result will be sent via API Gateway Websocket Connection URL
+        :return: None
         """
         try:
             # process the request
@@ -494,6 +599,7 @@ class PartialRequestHandler(Handler):
             return self.__getstate__()
         except Exception as e:
             log.error('Failed to process partial request')
+            log.error(e)
             self.errors.append('Failed to create plots for %s' % self.center)
             raise e
 
@@ -524,10 +630,9 @@ class PartialRequestHandler(Handler):
             self._cache_data_in_s3(plot_gen)
 
         except Exception as e:
-            log.error('Failed to process partial request: %s' % self.hash_value, e)
+            log.error('Failed to process partial request: %s-%s' % (self.hash_value, self.center))
+            log.error(e)
             self.errors.append('Failed to process request for %s' % self.center)
-
-        return self
 
     def _cache_data_in_s3(self, plot_gen):
         """
@@ -536,13 +641,10 @@ class PartialRequestHandler(Handler):
         :return: None
         """
         # create the S3 data store
-        datastore = ThreadedDataStore(S3DataStore(), 20)
+        datastore = S3DataStore()
 
         # store the summary plots, comparison pickles, and maybe json files (if using bokeh)
         self._cache_file_list_in_s3(datastore, plot_gen.plots, self.plot_descriptors)
         self._cache_file_list_in_s3(datastore, plot_gen.pickles, self.pickle_descriptors)
         if 'bokeh' == self.plot_util:
             self._cache_file_list_in_s3(datastore, plot_gen.json_data, self.json_descriptors)
-
-        # wait for the datastore to finish uploading files
-        datastore.join()

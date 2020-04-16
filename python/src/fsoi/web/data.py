@@ -1,5 +1,6 @@
 import sys
 import datetime
+import json
 import urllib
 import urllib.parse
 import requests
@@ -66,6 +67,8 @@ class RequestDao:
             item['connections'] = res['Item']['connections']['SS']
         if 'req_obj' in res['Item']:
             item['req_obj'] = res['Item']['req_obj']['S']
+        if 'res_obj' in res['Item']:
+            item['res_obj'] = res['Item']['res_obj']['S']
         return item
 
     @staticmethod
@@ -84,6 +87,27 @@ class RequestDao:
             Key=key,
             UpdateExpression='ADD connections :connections',
             ExpressionAttributeValues={':connections': {'SS': [client_url]}}
+        )
+
+        return res['ResponseMetadata']['HTTPStatusCode'] == 200
+
+    @staticmethod
+    def add_response(req_hash, response):
+        """
+        Add a client URL to the dynamodb table for this request
+        :param req_hash: The request hash to identify a specific request
+        :param response: The request's response as a dictionary
+        :return: True if successful, False if failed
+        """
+        dynamo = boto3.client('dynamodb')
+
+        res_str = json.dumps(response)
+        key = {'req_hash': {'S': req_hash}}
+        res = dynamo.update_item(
+            TableName=RequestDao.REQUEST_TABLE_NAME,
+            Key=key,
+            UpdateExpression='SET res_obj = :res_obj',
+            ExpressionAttributeValues={':res_obj': {'S': res_str}}
         )
 
         return res['ResponseMetadata']['HTTPStatusCode'] == 200

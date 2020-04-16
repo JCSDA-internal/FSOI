@@ -4,7 +4,6 @@ Test the lambda_wrapper function
 import os
 import json
 
-
 os.environ['CACHE_BUCKET'] = 'fsoi-image-cache'
 os.environ['OBJECT_PREFIX'] = 'intercomp/hdf5'
 os.environ['FSOI_ROOT_DIR'] = '/tmp/pycharm/test/fsoi'
@@ -138,10 +137,13 @@ def test_focus_requests():
                     'req_obj': json.dumps(req)
                 }
                 RequestDao.add_request(job)
-                # handler = FullRequestHandler(req, parallel_type='lambda', lambda_function_name='ios_request_handlerbeta')
-                handler = FullRequestHandler(req)  # local processing
+                handler = FullRequestHandler(req, parallel_type='lambda', lambda_function_name='ios_request_handlerbeta')
+                # handler = FullRequestHandler(req)  # local processing
                 handler.run()
-                handler = None  # TODO: Get a lambda response
 
             req_status = RequestDao.get_request(req_hash)
             assert req_status['status_id'] == 'SUCCESS'
+
+
+if __name__ == '__main__':
+    test_focus_requests()

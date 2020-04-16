@@ -66,7 +66,8 @@ def handle_request(event, context):
     # if the job has not previously been requested, or it failed, then submit a new request
     if job is None or 'status_id' not in job or job['status_id'] == 'FAIL':
         handler = process_here(validated_request, hash_value, client_url, ref_id, lambda_function_name)
-        send_success_response(handler)
+        if isinstance(handler, PartialRequestHandler):
+            return handler.__getstate__()
 
     # if the job is currently running or pending, notify the client and add their URL to the DB
     elif job['status_id'] in ['PENDING', 'RUNNING']:
@@ -90,7 +91,7 @@ def process_here(validated_request, hash_value, client_url, ref_id, lambda_funct
     :param client_url: A URL to contact the client
     :param ref_id: A text marker in the CloudWatch Logs, user can include as ref for debugging
     :param lambda_function_name: {str} The name of this lambda function
-    :return: None
+    :return: {fsoi.web.request_handler.Handler} Return the complete request handler
     """
     # log info
     print('%s: Processing the request in AWS Lambda' % ref_id)
@@ -111,11 +112,13 @@ def process_here(validated_request, hash_value, client_url, ref_id, lambda_funct
     if 'is_partial' in validated_request and validated_request['is_partial']:
         handler = PartialRequestHandler(validated_request, plot_util='bokeh')
     else:
+        # handler = FullRequestHandler(validated_request, parallel_type='local')
         handler = FullRequestHandler(validated_request, parallel_type='lambda', lambda_function_name=lambda_function_name)
 
     # call the request handler directly
     handler.run()
 
+    # return the handler
     return handler
 
 
@@ -140,22 +143,9 @@ def send_cached_response(req_hash, client_url):
     :param client_url: The URL to contact the client
     :return: None
     """
-    key_list = get_cached_object_keys(req_hash)
-    response = create_response_body(key_list, req_hash, [], [])
+    job = RequestDao.get_request(req_hash)
+    response = job['res_obj']
     send_response(response, client_url)
-
-
-def create_response_body(key_list, req_hash, warns, errors):
-    """
-    Create a response body
-    :param key_list:
-    :param req_hash:
-    :param warns:
-    :param errors:
-    :return:
-    """
-    # TODO: Implement
-    return {}
 
 
 def send_json_data_response(request, client_url):
@@ -186,15 +176,6 @@ def send_response(message, client_url):
     :return: None
     """
     ApiGatewaySender.send_message_to_ws_client(client_url, message)
-
-
-def send_success_response(handler):
-    """
-    Handler in successful state
-    :param handler: {FullRequestHandler}
-    :return: None
-    """
-    # TODO: Implement
 
 
 def validate_request(request):
