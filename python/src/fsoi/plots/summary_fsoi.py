@@ -338,7 +338,7 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
 
     # write the png file
     try:
-        export_png(plot, '%s.png' % plot_options['figure_name'])
+        export_png(plot, filename='%s.png' % plot_options['figure_name'])
     except ValueError as ve:
         print(ve)
 

@@ -144,6 +144,6 @@ def bokehcomparesummaryplot(df, palette, qty='TotImp', plot_options=None):
         f.close()
 
     # write the png file
-    export_png(plot, '%s.png' % plot_options['figure_name'])
+    export_png(plot, filename='%s.png' % plot_options['figure_name'])
 
     return
