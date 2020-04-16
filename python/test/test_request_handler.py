@@ -137,8 +137,8 @@ def test_focus_requests():
                     'req_obj': json.dumps(req)
                 }
                 RequestDao.add_request(job)
-                handler = FullRequestHandler(req, parallel_type='lambda', lambda_function_name='ios_request_handlerbeta')
-                # handler = FullRequestHandler(req)  # local processing
+                # handler = FullRequestHandler(req, parallel_type='lambda', lambda_function_name='ios_request_handlerbeta')
+                handler = FullRequestHandler(req)  # local processing
                 handler.run()
 
             req_status = RequestDao.get_request(req_hash)
