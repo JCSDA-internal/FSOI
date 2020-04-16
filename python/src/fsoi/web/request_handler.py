@@ -257,6 +257,7 @@ class FullRequestHandler(Handler):
                 pickle_descriptors += part_handler.pickle_descriptors
                 self.plot_descriptors += part_handler.plot_descriptors
                 self.json_descriptors += part_handler.json_descriptors
+                self.warns += part_handler.warns
 
             # update clients
             self._update_all_clients('RUNNING', 'Creating comparison plots', 95, sync=False)
@@ -280,6 +281,8 @@ class FullRequestHandler(Handler):
                 pickles
             )
             cpg.create_plot_set()
+            self.errors += cpg.errors
+            self.warns += cpg.warns
             self._cache_compare_plots_in_s3(cpg)
 
             # clean up the working directory

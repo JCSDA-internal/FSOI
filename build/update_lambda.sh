@@ -33,4 +33,4 @@ aws s3 cp ${zip_dir}/${zip_file} s3://jcsda-scratch/fsoi_lambda.zip
 aws s3 cp ${zip_dir}/${zip_file} s3://jcsda-scratch/${zip_file}
 
 # print the command to update the lambda function code
-aws lambda update-function-code --function-name ios_request_handlerbeta --s3-bucket jcsda-scratch --s3-key ${zip_file}
+echo aws lambda update-function-code --function-name ios_request_handlerbeta --s3-bucket jcsda-scratch --s3-key ${zip_file}
