@@ -2,7 +2,7 @@
 Test the lambda_wrapper function
 """
 import os
-
+import json
 
 os.environ['CACHE_BUCKET'] = 'fsoi-image-cache'
 os.environ['OBJECT_PREFIX'] = 'intercomp/hdf5'
@@ -17,8 +17,8 @@ def test_pass_requests():
     """
     import time
     import yaml
-    from fsoi.web.request_handler import handler
-    from fsoi.web.serverless_tools import hash_request, RequestDao
+    from fsoi.web.request_handler import FullRequestHandler
+    from fsoi.web.data import RequestDao
 
     data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
 
@@ -33,10 +33,20 @@ def test_pass_requests():
 
         # add an unused request field to generate a unique hash
         req['time'] = time.time()
-        req_hash = hash_request(req)
+        req_hash = FullRequestHandler.hash_request(req)
 
         # run the batch process
-        handler(req)
+        job = {
+            'req_hash': req_hash,
+            'status_id': 'PENDING',
+            'message': 'Pending',
+            'progress': '0',
+            'req_obj': json.dumps(req)
+        }
+        RequestDao.add_request(job)
+        # handler = FullRequestHandler(req, parallel_type='lambda', lambda_function_name='ios_request_handlerbeta')
+        handler = FullRequestHandler(req)  # local processing
+        handler.run()
 
         req_status = RequestDao.get_request(req_hash)
         assert req_status['status_id'] == 'SUCCESS'
@@ -48,8 +58,8 @@ def test_fail_requests():
     """
     import time
     import yaml
-    from fsoi.web.request_handler import handler
-    from fsoi.web.serverless_tools import hash_request, RequestDao
+    from fsoi.web.request_handler import FullRequestHandler
+    from fsoi.web.data import RequestDao
 
     data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
 
@@ -67,10 +77,20 @@ def test_fail_requests():
 
         # add an unused request field to generate a unique hash
         req['time'] = time.time()
-        req_hash = hash_request(req)
+        req_hash = FullRequestHandler.hash_request(req)
 
         # run the batch process
-        handler(req)
+        job = {
+            'req_hash': req_hash,
+            'status_id': 'PENDING',
+            'message': 'Pending',
+            'progress': '0',
+            'req_obj': json.dumps(req)
+        }
+        RequestDao.add_request(job)
+        # handler = FullRequestHandler(req, parallel_type='lambda', lambda_function_name='ios_request_handlerbeta')
+        handler = FullRequestHandler(req)  # local processing
+        handler.run()
 
         req_status = RequestDao.get_request(req_hash)
         assert req_status['status_id'] == 'FAIL'
@@ -82,8 +102,8 @@ def test_focus_requests():
     """
     import time
     import yaml
-    from fsoi.web.request_handler import handler
-    from fsoi.web.serverless_tools import hash_request, RequestDao
+    from fsoi.web.request_handler import FullRequestHandler
+    from fsoi.web.data import RequestDao
 
     data = yaml.full_load(open('../test_resources/fsoi_sample_requests.yaml'))
 
@@ -102,17 +122,30 @@ def test_focus_requests():
 
             # add an unused request field to generate a unique hash
             req['time'] = time.time()
-            req_hash = hash_request(req)
+            req_hash = FullRequestHandler.hash_request(req)
 
             if 'cache_id' in req:
-                import json
                 from fsoi.web.lambda_wrapper import get_cached_object_keys, create_response_body
                 key_list = get_cached_object_keys(req_hash)
-                response = create_response_body(key_list, req_hash, [])
+                response = create_response_body(key_list, req_hash, [], [])
                 print(json.dumps(response))
             else:
                 # run the batch process
-                handler(req)
+                job = {
+                    'req_hash': req_hash,
+                    'status_id': 'PENDING',
+                    'message': 'Pending',
+                    'progress': '0',
+                    'req_obj': json.dumps(req)
+                }
+                RequestDao.add_request(job)
+                # handler = FullRequestHandler(req, parallel_type='lambda', lambda_function_name='ios_request_handlerbeta')
+                handler = FullRequestHandler(req)  # local processing
+                handler.run()
 
             req_status = RequestDao.get_request(req_hash)
             assert req_status['status_id'] == 'SUCCESS'
+
+
+if __name__ == '__main__':
+    test_focus_requests()

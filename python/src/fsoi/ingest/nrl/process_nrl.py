@@ -441,3 +441,7 @@ def upload_to_s3(file, s3url):
         log.error('Failed to upload file to S3: %s to %s' % (file, s3url))
         log.error(e)
         return False
+
+
+if __name__ == '__main__':
+    main()

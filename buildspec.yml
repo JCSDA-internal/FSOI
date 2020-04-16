@@ -7,6 +7,7 @@ phases:
       - pip3 install coverage
       - pip3 install pytest
       - pip3 install pylint
+      - pip3 install bokeh==1.4.0
   build: 
     commands:
       - echo build_stage

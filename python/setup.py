@@ -32,13 +32,10 @@ setup(
       'download_nrl=fsoi.ingest.nrl.download_nrl:main',
       'process_nrl=fsoi.ingest.nrl.process_nrl:main',
       'ingest_nrl=fsoi.ingest.nrl.__init__:download_and_process_nrl',
-
       'download_gmao=fsoi.ingest.gmao.download_gmao:main',
       'process_gmao=fsoi.ingest.gmao.process_gmao:main',
       'ingest_gmao=fsoi.ingest.gmao.__init__:download_and_process_gmao',
-
       'process_met=fsoi.ingest.met.process_met:main',
-
       'process_merra=fsoi.ingest.merra.process_merra:main',
       'batch_merra=fsoi.ingest.merra.process_merra:batch'
     ]
