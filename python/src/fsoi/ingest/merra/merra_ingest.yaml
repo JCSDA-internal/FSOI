@@ -86,6 +86,7 @@ kt:
 kx:
   3: GPSRO
   4: GPSRO
+  41: CHAMP_bending_angles
   42: GPSRO
   43: GPSRO
   112: TCBogus
@@ -135,6 +136,7 @@ kx:
   722: GPSRO
   740: GPSRO
   741: GPSRO
+  742: COSMIC_FM3_bending_angles
   743: GPSRO
   744: GPSRO
   745: GPSRO
