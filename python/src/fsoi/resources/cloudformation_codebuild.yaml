@@ -129,10 +129,9 @@ Resources:
         NamespaceType: BUILD_ID
         EncryptionDisabled: true
         Packaging: ZIP
-
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-batch:latest
+        Image: 469205354006.dkr.ecr.us-east-1.amazonaws.com/fsoi-codebuild:latest
         ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: false
         Type: LINUX_CONTAINER
