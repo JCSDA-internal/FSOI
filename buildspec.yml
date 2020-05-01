@@ -4,6 +4,7 @@ phases:
   install:
     commands:
       - echo install stage
+      - whoami
   build: 
     commands:
       - echo build_stage
