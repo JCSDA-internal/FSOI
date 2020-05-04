@@ -342,7 +342,7 @@ def main():
     from argparse import ArgumentDefaultsHelpFormatter
 
     # enable cloudwatch logging
-    enable_cloudwatch_logs(True)
+    enable_cloudwatch_logs(True, 'ingest_nrl')
 
     # setup the argument parser
     parser = ArgumentParser(description='Process NRL file',

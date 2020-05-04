@@ -308,7 +308,7 @@ def process_gmao(norm, date=None, path=None):
                          lat, lev, imp, omf, oberr])
 
     # send email if unknown platforms ID are encountered while processing GMAO files
-    if ukwnplats :
+    if ukwnplats:
         sns.publish(
             TopicArn=config['arnUnknownPlatformsTopic'],
             Subject='Unknown Platform attribute GMAO file',
