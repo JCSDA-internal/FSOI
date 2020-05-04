@@ -6,17 +6,12 @@ import os
 import json
 import pandas
 import numpy
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from argparse import ArgumentParser
+from argparse import ArgumentDefaultsHelpFormatter as ArgumentHelp
 import fsoi.stats.lib_utils as lib_utils
 import fsoi.stats.lib_obimpact as loi
 from fsoi import log
 import math
-# from bokeh.plotting import figure
-# from bokeh.models import Title, ColorBar, LinearColorMapper, BasicTicker
-# from bokeh.models.sources import ColumnDataSource
-# from bokeh.embed import json_item
-# from bokeh.io import export_png
-# import bokeh.palettes
 
 
 def summary_fsoi_main():
@@ -24,20 +19,16 @@ def summary_fsoi_main():
 
     :return:
     """
-    parser = ArgumentParser(description='Create and Plot Observation Impacts Statistics',
-                            formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--center', help='originating center', type=str, required=True,
-                        choices=['EMC', 'GMAO', 'NRL', 'JMA_adj', 'JMA_ens', 'MET', 'MeteoFr'])
-    parser.add_argument('--norm', help='metric norm', type=str, default='dry',
-                        choices=['dry', 'moist'], required=False)
-    parser.add_argument('--rootdir', help='root path to directory', type=str,
-                        default='/scratch3/NCEPDEV/stmp2/Rahul.Mahajan/test/Thomas.Auligne/FSOI',
-                        required=False)
+    centers = ['EMC', 'GMAO', 'NRL', 'JMA_adj', 'JMA_ens', 'MET', 'MeteoFr']
+    cycles = [0, 6, 12, 18]
+    parser = ArgumentParser(description='Create and Plot Observation Impacts Statistics', formatter_class=ArgumentHelp)
+    parser.add_argument('--center', help='originating center', type=str, required=True, choices=centers)
+    parser.add_argument('--norm', help='metric norm', type=str, default='dry', choices=['dry', 'moist'], required=False)
+    parser.add_argument('--rootdir', help='root path to directory', type=str, required=False)
     parser.add_argument('--platform', help='platform to plot', type=str, default='', required=False)
     parser.add_argument('--savefigure', help='save figures', action='store_true', required=False)
     parser.add_argument('--exclude', help='exclude platforms', type=str, nargs='+', required=False)
-    parser.add_argument('--cycle', help='cycle to process', nargs='+', type=int, default=[0],
-                        choices=[0, 6, 12, 18], required=False)
+    parser.add_argument('--cycle', help='cycle hour', nargs='+', type=int, default=[0], choices=cycles, required=False)
 
     args = parser.parse_args()
 
@@ -52,7 +43,7 @@ def summary_fsoi_main():
     cyclestr = ''.join('%02dZ' % c for c in cycle)
 
     fname = '%s/work/%s/%s/bulk_stats.h5' % (rootdir, center, norm)
-    fpkl = '%s/work/%s/%s/group_stats.pkl' % (rootdir, center, norm)
+    fpkl = '%s/work/%s/%s/%s_group_stats.pkl' % (rootdir, center, norm, center)
 
     if os.path.isfile(fpkl):
         overwrite = input('%s exists, OVERWRITE [y/N]: ' % fpkl)
@@ -347,7 +338,7 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
 
     # write the png file
     try:
-        export_png(plot, '%s.png' % plot_options['figure_name'])
+        export_png(plot, filename='%s.png' % plot_options['figure_name'])
     except ValueError as ve:
         print(ve)
 

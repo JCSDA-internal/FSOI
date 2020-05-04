@@ -1,9 +1,9 @@
 import boto3
 import datetime as dt
 
-start = dt.datetime(2020, 3, 14, 0, 0, 0)
-# end = dt.datetime(2020, 3, 3, 0, 0, 0)
-end = dt.datetime(2020, 3, 27, 0, 0, 0)
+start = dt.datetime(2020, 4, 4, 0, 0, 0)
+end = dt.datetime(2020, 4, 7, 0, 0, 0)
+# end = dt.datetime(2020, 3, 27, 0, 0, 0)
 one_day = dt.timedelta(1)
 
 
@@ -53,7 +53,7 @@ def submit_process_job_for_date(date_str):
 
     latest = get_latest_revision('ios_ingest_gmao_job')
     batch.submit_job(
-        jobName='gmao_%s' % date_str,
+        jobName='process_gmao_%s' % date_str,
         jobDefinition='ios_ingest_gmao_job:%d' % latest,
         jobQueue='ios_ingest_queue',
         containerOverrides={
@@ -77,7 +77,7 @@ def submit_download_job_for_date(date):
     batch = boto3.client('batch')
     latest = get_latest_revision('ios_ingest_gmao_job')
     batch.submit_job(
-        jobName='gmao_%s' % date_str,
+        jobName='download_gmao_%s' % date_str,
         jobDefinition='ios_ingest_gmao_job:%d' % latest,
         jobQueue='ios_ingest_queue',
         containerOverrides={

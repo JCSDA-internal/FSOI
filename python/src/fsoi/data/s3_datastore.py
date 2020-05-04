@@ -62,6 +62,19 @@ class S3DataStore(DataStore):
         return None
 
     @staticmethod
+    def _to_public_url(descriptor):
+        """
+        Get the public URL for the object (permissions must already be set)
+        :param descriptor: {dict} A 'target' or 'source' data descriptor
+        :return: {str} Public URL to the S3 bucket (bucket must already be public)
+        """
+        region = os.environ['REGION']
+        bucket, key = S3DataStore._to_bucket_and_key(descriptor)
+        public_url = 'http://%s.s3-website-%s.amazonaws.com/%s' % (bucket, region, key)
+
+        return public_url
+
+    @staticmethod
     def __get_s3_client():
         """
         Get an S3 client

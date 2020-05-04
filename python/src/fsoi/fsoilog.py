@@ -26,11 +26,11 @@ class CloudWatchHandler(Handler):
         :param record: The information to log
         :return: None
         """
-        # make sure we have a sequence token to provide
-        if self.sequence_token is None:
-            self._get_sequence_token()
-
         try:
+            # make sure we have a sequence token to provide
+            if self.sequence_token is None:
+                self._get_sequence_token()
+
             # send the log event
             res = self.log_client.put_log_events(
                 logGroupName=self.log_group,
@@ -42,13 +42,8 @@ class CloudWatchHandler(Handler):
             # store the next sequence token
             self.sequence_token = res['nextSequenceToken']
 
-            return
         except Exception as e:
-            print(e)
-
-        # logging action failed, try to get the next sequence token
-        self._get_sequence_token()
-
+            pass  # silently fail
 
     @staticmethod
     def _record_to_log_event(record: LogRecord):
@@ -79,10 +74,11 @@ class CloudWatchHandler(Handler):
         self.sequence_token = res['logStreams'][0]['uploadSequenceToken']
 
 
-def enable_cloudwatch_logs(turn_on_cloudwatch_logs: bool):
+def enable_cloudwatch_logs(turn_on_cloudwatch_logs: bool, app_name='fsoi_general'):
     """
     Enable or disable FSOI logging to CloudWatch Logs
     :param turn_on_cloudwatch_logs: Enable CloudWatch Logs if True, otherwise disable CloudWatch Logs
+    :param app_name: Tells us which log stream to use
     :return: None
     """
     from fsoi import log
@@ -94,7 +90,7 @@ def enable_cloudwatch_logs(turn_on_cloudwatch_logs: bool):
 
     if turn_on_cloudwatch_logs:
         if len(cloudwatch_handlers) == 0:
-            log.addHandler(CloudWatchHandler('fsoi_ingest', 'ingest_nrl'))
+            log.addHandler(CloudWatchHandler('fsoi_ingest', app_name))
     else:
         for cwh in cloudwatch_handlers:
             log.removeHandler(cwh)

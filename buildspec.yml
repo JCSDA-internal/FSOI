@@ -4,12 +4,11 @@ phases:
   install:
     commands:
       - echo install stage
-      - pip3 install coverage
-      - pip3 install pytest
-      - pip3 install pylint
-  build: 
+  build:
     commands:
       - echo build_stage
+      - source ~/.bashrc
+      - ls -l /opt/python/bin/pylint
       - bash build/check_python.sh
       - bash build/test_python.sh
   post_build:

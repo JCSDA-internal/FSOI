@@ -342,7 +342,7 @@ def main():
     from argparse import ArgumentDefaultsHelpFormatter
 
     # enable cloudwatch logging
-    enable_cloudwatch_logs(True)
+    enable_cloudwatch_logs(True, 'ingest_nrl')
 
     # setup the argument parser
     parser = ArgumentParser(description='Process NRL file',
@@ -441,3 +441,7 @@ def upload_to_s3(file, s3url):
         log.error('Failed to upload file to S3: %s to %s' % (file, s3url))
         log.error(e)
         return False
+
+
+if __name__ == '__main__':
+    main()

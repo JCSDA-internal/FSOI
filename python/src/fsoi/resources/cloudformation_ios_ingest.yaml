@@ -169,47 +169,69 @@ Resources:
       State: ENABLED
 
   # Create a metric filter that will parse the downloaded file size from the NRL log files
-  IosIngestNrlDownloadSizeMetric:
+  IosIngestNrlIngestMetric:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: /aws/batch/job
-      FilterPattern: "{ $.ok IS TRUE }"
+      FilterPattern: "{ $.nrl_ok IS TRUE }"
       MetricTransformations:
-        - MetricName: ios_ingest_nrl_download_size
-          MetricValue: "$.size"
+        - MetricName: ios_ingest_nrl
+          MetricValue: "$.nrl_files_processed"
           MetricNamespace: FSOI
 
   # Create a metric filter that will parse the downloaded file size from the GMAO log files
-  IosIngestGmaoDownloadSizeMetric:
+  IosIngestGmaoIngestMetric:
     Type: AWS::Logs::MetricFilter
-    DependsOn:
-      - IosIngestGmaoLogGroup
     Properties:
       LogGroupName: /aws/batch/job
-      FilterPattern: "{ $.ok IS TRUE }"
+      FilterPattern: "{ $.gmao_ok IS TRUE }"
       MetricTransformations:
-        - MetricName: ios_ingest_gmao_download_size
-          MetricValue: "$.size"
+        - MetricName: ios_ingest_gmao
+          MetricValue: "$.gmao_files_processed"
           MetricNamespace: FSOI
 
-  # Create a metric filter that will parse the downloaded file count from the GMAO log files
-  IosIngestGmaoFileCountMetric:
-    Type: AWS::Logs::MetricFilter
-    DependsOn:
-      - IosIngestGmaoLogGroup
+  IosNrlAlarm:
+    Type: AWS::CloudWatch::Alarm
     Properties:
-      LogGroupName: /aws/batch/job
-      FilterPattern: "{ $.ok IS TRUE }"
-      MetricTransformations:
-        - MetricName: ios_ingest_gmao_file_count
-          MetricValue: "$.file_count"
-          MetricNamespace: FSOI
+      Namespace: FSOI
+      AlarmName: NRL Ingest Alarm
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref IosAlarmTopic
+      OKActions:
+        - !Ref IosAlarmTopic
+      InsufficientDataActions:
+        - !Ref IosAlarmTopic
+      MetricName: ios_ingest_nrl
+      Threshold: 4
+      Statistic: Sum
+      Period: 86400
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: breaching
+      DatapointsToAlarm: 1
+      EvaluationPeriods: 1
 
-  # Create a log group for the GMAO lambda function to write to
-  IosIngestGmaoLogGroup:
-    Type: AWS::Logs::LogGroup
+  IosGmaoAlarm:
+    Type: AWS::CloudWatch::Alarm
     Properties:
-      LogGroupName: /aws/batch/ios_ingest_gmao
+      Namespace: FSOI
+      AlarmName: GMAO Ingest Alarm
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref IosAlarmTopic
+      OKActions:
+        - !Ref IosAlarmTopic
+      InsufficientDataActions:
+        - !Ref IosAlarmTopic
+      MetricName: ios_ingest_gmao
+      Threshold: 4
+      Statistic: Sum
+      Period: 86400
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: breaching
+      DatapointsToAlarm: 1
+      EvaluationPeriods: 1
+
 
   # Create a topic for FSOI alarms and subscribe my email
   IosAlarmTopic:
@@ -219,52 +241,6 @@ Resources:
       Subscription:
         - Endpoint: hahnd@ucar.edu
           Protocol: email
-
-  # Send an alarm when NRL data was not downloaded
-  IosIngestNrlAlarm:
-    Type: AWS::CloudWatch::Alarm
-    DependsOn:
-      - IosAlarmTopic
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - Ref: IosAlarmTopic
-      InsufficientDataActions:
-        - Ref: IosAlarmTopic
-      AlarmName: ios_ingest_nrl_alarm
-      ComparisonOperator: LessThanOrEqualToThreshold
-      DatapointsToAlarm: 1
-      EvaluationPeriods: 1
-      MetricName: ios_ingest_nrl_download_size
-      Namespace: FSOI
-      Period: 86400
-      Statistic: Maximum
-      Threshold: 20971520
-      TreatMissingData: breaching
-      Unit: Bytes
-
-  # Send an alarm when NRL data was not downloaded
-  IosIngestGmaoAlarm:
-    Type: AWS::CloudWatch::Alarm
-    DependsOn:
-      - IosAlarmTopic
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - Ref: IosAlarmTopic
-      InsufficientDataActions:
-        - Ref: IosAlarmTopic
-      AlarmName: ios_ingest_gmao_alarm
-      ComparisonOperator: LessThanOrEqualToThreshold
-      DatapointsToAlarm: 1
-      EvaluationPeriods: 1
-      MetricName: ios_ingest_gmao_download_size
-      Namespace: FSOI
-      Period: 86400
-      Statistic: Maximum
-      Threshold: 669888434
-      TreatMissingData: breaching
-      Unit: Bytes
 
   #
   # BATCH
