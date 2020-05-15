@@ -46,7 +46,7 @@ def download_met(date_str, ftp_host, remote_file_templates, bucket_name):
         if successful:
             s3_urls.append('s3://%s/%s' % (bucket_name, key))
         else:
-            log.error('Failed to download data from %s' % url)
+            log.error('Failed to save data from %s' % url)
             return None
 
     return s3_urls
