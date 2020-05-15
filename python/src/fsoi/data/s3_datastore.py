@@ -161,12 +161,14 @@ class S3DataStore(DataStore):
             log.error('Failed to save data from URL: %s' % url, e)
             return False
 
-    def save_from_ftp(self, url, target):
+    def save_from_ftp(self, url, target, username=None, password=None):
         """
         Save data from the URL to the data store
         :param url: {str} URL with FTP protocol
         :param target: {dict} A dictionary with attributes to describe the data store target
-        :return:
+        :param username: {str} An optional username
+        :param password: {str} An optional password
+        :return: {boolean} True if successfully downloaded from FTP and uploaded to S3
         """
         try:
 
@@ -185,7 +187,10 @@ class S3DataStore(DataStore):
 
             # connect and login
             ftp = FTP(host)
-            ftp.login()
+            if username is not None:
+                ftp.login(user=username, passwd=password)
+            else:
+                ftp.login()
             ftp.makepasv()
 
             # parse file names
