@@ -146,6 +146,24 @@ Resources:
             Resource:
               - 'arn:aws:logs:*:*:log-group:*'
 
+  # Policy to allow access to UK Met FTP credentials
+  AllowUkMetFtpCredentials:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - IosIngestBatchRole
+    Properties:
+      PolicyName: allow_ukmet_ftp_credentials
+      Roles:
+        - ios_ingest_batch_role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'secretsmanager:GetSecretValue'
+            Resource:
+              - 'arn:aws:secretsmanager:us-east-1:469205354006:secret:ukmet_ftp-460w84'
+
   #
   # CLOUDWATCH EVENTS, METRICS, and ALARMS
   #
