@@ -211,7 +211,12 @@ def process_met(input_file, output_path, date, date_str):
             break
 
         # parse a single line and increase the observation count
-        data = _parse_line(config, line, reader, unknown_platforms)
+        data = None
+        try:
+            data = _parse_line(config, line, reader, unknown_platforms)
+        except Exception:
+            log.warn('Failed to parse line: %s' % line)
+
         if data is None:
             continue
         nobs += 1
