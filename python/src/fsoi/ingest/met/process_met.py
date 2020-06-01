@@ -205,6 +205,8 @@ def process_met(input_file, output_path, date, date_str):
     while True:
         try:
             line = fh.readline()
+            if line == b'':
+                break
         except Exception as e:
             log.warn('Unexpected end of file after %d lines read' % nobs)
             log.warn(e)
