@@ -463,6 +463,7 @@ MET:
   FY3_MWHS:
     - FY-3B_MWHS-1
     - FY-3C_MWHS-2
+    - FY-3C_MWRI
   GOES:
     - GOES_CSR
   GPM_GMI:
@@ -622,6 +623,7 @@ OnePlatform:
   AMSUA:
     - AMSUA_N15
     - AMSUA_NOAA15
+    - AMSUA_N16
     - AMSUA_N18
     - AMSUA_NOAA18
     - AMSUA_N19
@@ -710,6 +712,7 @@ OnePlatform:
     - HIRS4_Metop-A
     - HIRS4_METOP-B
     - HIRS4_Metop-BHIRS_METOP-A
+    - HIRS_N19
     - HIRS_Metop-A
     - HIRS_METOP-B
     - HIRS_Metop-B
