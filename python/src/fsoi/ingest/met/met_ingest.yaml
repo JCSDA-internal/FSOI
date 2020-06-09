@@ -1,5 +1,15 @@
 # This file contains constant values used to download and process UK Met data
 ---
+raw_data_bucket: fsoi-met-ingest
+ftp_host: ftp.metoffice.gov.uk
+remote_path:
+  - JamesCotton/fsoi/DATET0000Z.FSO.gz
+  - JamesCotton/fsoi/DATET0600Z.FSO.gz
+  - JamesCotton/fsoi/DATET1200Z.FSO.gz
+  - JamesCotton/fsoi/DATET1800Z.FSO.gz
+lag_in_days: '4'
+processed_data_bucket: fsoi
+processed_data_prefix: intercomp/hdf5/MET
 fortran_format_string: i8,1x,e15.8,1x,e15.8,1x,e16.8,1x,f6.2,1x,f6.2,1x,f10.4,1x,i3,1x,i5,1x,i6,1x,e14.8,1x,f6.2,1x,a35
 arnUnknownPlatformsTopic: arn:aws:sns:us-east-1:469205354006:fsoiUnknownPlatforms
 kt:
