@@ -54,7 +54,7 @@ export class ControlsComponent implements OnInit
   platformsSummary = '(0) No selections made';
 
   /* reference to app component */
-  private app: AppComponent;
+  app: AppComponent;
 
   /* Object that contains a request to the server */
   private requestData: object;
