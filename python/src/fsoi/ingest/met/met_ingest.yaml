@@ -60,6 +60,7 @@ platforms:
       - GOES 223
       - MSG   3
       - MSG   4
+      - MSG   5
     Dropsonde:
       - DROP
     GPSRO:
@@ -83,6 +84,7 @@ platforms:
       - GOES 257
       - GOES 259
       - GOES 270
+      - GOES 271
     ASCAT_Wind:
       - ASCAT   3
       - ASCAT   4
@@ -175,6 +177,7 @@ platforms:
     GOES_CSR:
       - GOES15 GOESImClr GOES
       - GOES16 GOESImClr GOES
+      - GOES16 ABIClr ABI
     Himawari_CSR:
       - Himawari8 AHIClr AHI
     F17_SSMIS:

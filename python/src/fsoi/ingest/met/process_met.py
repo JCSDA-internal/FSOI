@@ -208,8 +208,8 @@ def process_met(input_file, output_path, date, date_str):
             if line == b'':
                 break
         except Exception as e:
-            log.warn('Unexpected end of file after %d lines read' % nobs)
-            log.warn(e)
+            log.warning('Unexpected end of file after %d lines read' % nobs)
+            log.warning(e)
             break
 
         # parse a single line and increase the observation count
@@ -217,7 +217,7 @@ def process_met(input_file, output_path, date, date_str):
         try:
             data = _parse_line(config, line, reader, unknown_platforms)
         except Exception:
-            log.warn('Failed to parse line: %s' % line)
+            log.warning('Failed to parse line: %s' % line)
 
         if data is None:
             continue
