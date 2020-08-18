@@ -1,9 +1,9 @@
 import boto3
 import datetime as dt
 
-start = dt.datetime(2020, 4, 1, 6, 0, 0)
+start = dt.datetime(2020, 6, 1, 0, 0, 0)
 # end = dt.datetime(2020, 4, 1, 0, 0, 0)
-end = dt.datetime(2020, 4, 30, 18, 0, 0)
+end = dt.datetime(2020, 6, 30, 18, 0, 0)
 one_day = dt.timedelta(hours=6)
 
 
