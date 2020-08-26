@@ -231,7 +231,6 @@ def process_nrl(raw_bzip2_file, output_path, output_file, date):
     :param date: {str} Date and time string in the format YYYYMMDDHH
     :return: {list} A list of output files, or None
     """
-
     sns = boto3.client("sns")
 
     # list saving unknown platforms IDs

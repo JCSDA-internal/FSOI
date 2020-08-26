@@ -3,10 +3,10 @@
 raw_data_bucket: fsoi-met-ingest
 ftp_host: ftp.metoffice.gov.uk
 remote_path:
-  - JamesCotton/fsoi/DATET0000Z.FSO.gz
-  - JamesCotton/fsoi/DATET0600Z.FSO.gz
-  - JamesCotton/fsoi/DATET1200Z.FSO.gz
-  - JamesCotton/fsoi/DATET1800Z.FSO.gz
+  - JamesCotton/DATET0000Z.FSO.gz
+  - JamesCotton/DATET0600Z.FSO.gz
+  - JamesCotton/DATET1200Z.FSO.gz
+  - JamesCotton/DATET1800Z.FSO.gz
 lag_in_days: '4'
 processed_data_bucket: fsoi
 processed_data_prefix: intercomp/hdf5/MET

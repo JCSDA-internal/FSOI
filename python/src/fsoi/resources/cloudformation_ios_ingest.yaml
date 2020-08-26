@@ -79,12 +79,15 @@ Resources:
             - arn:aws:s3:::fsoi-navy-ingest
             - arn:aws:s3:::fsoi-gmao-ingest/*
             - arn:aws:s3:::fsoi-gmao-ingest
+            - arn:aws:s3:::fsoi-met-ingest/*
+            - arn:aws:s3:::fsoi-met-ingest
         - Effect: Allow
           Action: s3:HeadBucket
           Resource:
             - arn:aws:s3:::fsoi
             - arn:aws:s3:::fsoi-navy-ingest
             - arn:aws:s3:::fsoi-gmao-ingest
+            - arn:aws:s3:::fsoi-met-ingest
 
   # Policy to allow CloudWatch events to submit batch jobs
   AllowIosIngestSubmitBatchJobs:

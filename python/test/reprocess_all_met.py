@@ -1,9 +1,10 @@
 import boto3
 import datetime as dt
 
-start = dt.datetime(2020, 4, 11, 0, 0, 0)
-end = dt.datetime(2020, 4, 11, 0, 0, 0)
-one_day = dt.timedelta(1)
+start = dt.datetime(2020, 6, 1, 0, 0, 0)
+# end = dt.datetime(2020, 4, 1, 0, 0, 0)
+end = dt.datetime(2020, 6, 30, 18, 0, 0)
+one_day = dt.timedelta(hours=6)
 
 
 def get_latest_revision(job_definition_name):
@@ -51,11 +52,11 @@ def submit_job_for_date(date_str):
 
     latest = get_latest_revision('ios_ingest_nrl_job')
     batch.submit_job(
-        jobName='nrl_%s' % date_str,
+        jobName='met_%s' % date_str,
         jobDefinition='ios_ingest_nrl_job:%d' % latest,
         jobQueue='ios_ingest_queue',
         containerOverrides={
-            'command': ['process_nrl', '-d', date_str]  #, '-n', 'moist']
+            'command': ['process_met', '-o', '/tmp', '-d', date_str]  #, '-n', 'moist']
         }
     )
 
@@ -63,23 +64,20 @@ def submit_job_for_date(date_str):
 def submit_download_job_for_date(date):
     """
     Submit a job for a single date
-    :param date_str: {datetime} Valid time of data to download
+    :param date: {str} Date/time string to download in the format YYYYMMDDHH
     :return: None
     """
-    now = dt.datetime.utcnow()
-    date_str = str(date).replace('-', '').replace(' ', '').replace(':', '')[:10]
-    lag = int((now - date).total_seconds() // 86400)
-    print('Submitting batch job to download NRL for: %s, %d days ago' % (date_str, lag))
+    print('Submitting batch job to download NRL for: %s' % date)
 
     # submit the job
     batch = boto3.client('batch')
     latest = get_latest_revision('ios_ingest_nrl_job')
     batch.submit_job(
-        jobName='nrl_%s' % date_str,
+        jobName='nrl_%s' % date,
         jobDefinition='ios_ingest_nrl_job:%d' % latest,
         jobQueue='ios_ingest_queue',
         containerOverrides={
-            'command': ['download_nrl', '--lag', str(lag)]
+            'command': ['download_met', '--date', date]
         }
     )
 

@@ -240,7 +240,7 @@ class S3DataStore(DataStore):
             return self.data_exist(target)
 
         except Exception as e:
-            log.error('Failed to save data from local file')
+            log.error('Failed to save data from local file: %s' % local_file)
             return False
 
     def load_to_local_file(self, source, local_file):

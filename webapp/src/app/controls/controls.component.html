@@ -88,7 +88,7 @@
       </mat-card-header>
       <mat-card-content><mat-progress-bar [mode]="req.progressMode" [value]="req.progress"></mat-progress-bar></mat-card-content>
       <mat-card-actions>
-        <button mat-button [disabled]="req.status_id !== 'SUCCESS'" (click)="display.setImages(req.images)">VIEW</button>
+        <button mat-button [disabled]="req.status_id !== 'SUCCESS'" (click)="app.display.setImages(req.images)">VIEW</button>
         <button mat-button [disabled]="req.status_id !== 'SUCCESS'" (click)="showShareUrl('http://ios.jcsda.org?cache_id=' + req.req_hash)">SHARE</button>
         <button mat-button (click)="showDetails(req.req_hash, req.req_obj, req.errors, req.warnings)">DETAILS</button>
         <span class="statusIcon" [hidden]="!(req.isComplete && !req.hasWarnings && !req.hasErrors)"><img alt="ok" src="../../assets/ok.png"></span>
