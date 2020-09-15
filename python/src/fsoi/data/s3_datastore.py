@@ -109,6 +109,35 @@ class S3DataStore(DataStore):
         hour = descriptor['hour'] if 'hour' in descriptor else descriptor['datetime'][8:10]
         return 'type=%s, center=%s, norm=%s, date=%s, hour=%s' % (type, center, norm, date, hour)
 
+    @staticmethod
+    def url_to_descriptor(url):
+        """
+        Convert an S3 url to a descriptor with bucket and key attributes
+        :param url: {str} The S3 URL
+        :return: {dict} A descriptor with bucket and key attributes
+        """
+        # validate the s3 protocol
+        if not url.startswith('s3://'):
+            return None
+
+        # strip off the protocol
+        url = url[5:]
+
+        # get the bucket and path elements in a list
+        tokens = url.split('/')
+
+        # validate the length of the element list (must have bucket and key)
+        if len(tokens) < 2:
+            return None
+
+        # save the bucket and key values
+        bucket = tokens[0]
+        key = '/%s' % '/'.join(tokens[1:])
+
+        # build and return data descriptor
+        return {'bucket': bucket, 'key': key}
+
+
     def save_from_http(self, url, target):
         """
         Save data from the URL to the data store

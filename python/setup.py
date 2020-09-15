@@ -38,6 +38,7 @@ setup(
       'ingest_gmao=fsoi.ingest.gmao.__init__:download_and_process_gmao',
       'download_met=fsoi.ingest.met.download_met:main',
       'process_met=fsoi.ingest.met.process_met:main',
+      'ingest_met=fsoi.ingest.met.__init__:download_and_process_met',
       'process_merra=fsoi.ingest.merra.process_merra:main',
       'batch_merra=fsoi.ingest.merra.process_merra:batch'
     ]

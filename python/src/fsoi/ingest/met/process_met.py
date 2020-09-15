@@ -178,7 +178,7 @@ def main():
 def process_met(input_file, output_path, date, date_str):
     """
     Process a raw NRL file
-    :param input_file: {str} Full path to a raw NRL gzip file
+    :param input_file: {str} Full path to a raw MET gzip file
     :param output_path: {str} Full path to the output directory
     :param date: {datetime} A localized to UTC datetime object
     :param date_str: {str} A datetime string in the format YYYYMMDDHH
@@ -196,6 +196,9 @@ def process_met(input_file, output_path, date, date_str):
     # pylint wrongly believes that the FortranRecordReader constructor is not callable
     # pylint: disable=E1102
     reader = FortranRecordReader(config['fortran_format_string'])
+
+    # list of output files
+    output_files = []
 
     # process each line in the file
     # read the lines from the data file
@@ -247,26 +250,30 @@ def process_met(input_file, output_path, date, date_str):
         local_file = '%s/%s' % (output_path, output_file)
         lutils.writeHDF(local_file, 'df', df, complevel=1, complib='zlib', fletcher32=True)
         descriptor = FsoiS3DataStore.create_descriptor(center='MET', norm='moist', datetime=date_str)
-        datastore.save_from_local_file(local_file, descriptor)
+        if datastore.save_from_local_file(local_file, descriptor):
+            output_files.append(local_file)
 
         df = loi.BulkStats(df)
         local_file = '%s/bulk.%s' % (output_path, output_file)
         lutils.writeHDF(local_file, 'df', df)
         descriptor = FsoiS3DataStore.create_descriptor(center='MET', norm='moist', datetime=date_str, type='bulk')
-        datastore.save_from_local_file(local_file, descriptor)
+        if datastore.save_from_local_file(local_file, descriptor):
+            output_files.append(local_file)
 
         df = loi.accumBulkStats(df)
         local_file = '%s/accumbulk.%s' % (output_path, output_file)
         lutils.writeHDF('%s/accumbulk.%s' % (output_path, output_file), 'df', df)
         descriptor = FsoiS3DataStore.create_descriptor(center='MET', norm='moist', datetime=date_str, type='accumbulk')
-        datastore.save_from_local_file(local_file, descriptor)
+        if datastore.save_from_local_file(local_file, descriptor):
+            output_files.append(local_file)
 
         platforms = loi.Platforms('OnePlatform')
         df = loi.groupBulkStats(df, platforms)
         local_file = '%s/groupbulk.%s' % (output_path, output_file)
         lutils.writeHDF('%s/groupbulk.%s' % (output_path, output_file), 'df', df)
         descriptor = FsoiS3DataStore.create_descriptor(center='MET', norm='moist', datetime=date_str, type='groupbulk')
-        datastore.save_from_local_file(local_file, descriptor)
+        if datastore.save_from_local_file(local_file, descriptor):
+            output_files.append(local_file)
 
     # wait here for uploads to finish
     datastore.join()
@@ -288,6 +295,7 @@ def process_met(input_file, output_path, date, date_str):
                     ', '.join(str(e) for e in unknown_platforms) + ', file timestamp : ' + date_str
         )
 
+    return output_files
 
 
 if __name__ == '__main__':

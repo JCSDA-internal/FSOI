@@ -1,9 +1,9 @@
 import boto3
 import datetime as dt
+from fsoi.ingest import compute_lag_from_date
 
-start = dt.datetime(2020, 4, 4, 0, 0, 0)
-end = dt.datetime(2020, 4, 7, 0, 0, 0)
-# end = dt.datetime(2020, 3, 27, 0, 0, 0)
+start = dt.datetime(2020, 7, 23, 0, 0, 0)
+end = dt.datetime(2020, 9, 15, 0, 0, 0)
 one_day = dt.timedelta(1)
 
 
@@ -51,13 +51,15 @@ def submit_process_job_for_date(date_str):
 
     batch = boto3.client('batch')
 
+    lag = compute_lag_from_date(date_str)
+
     latest = get_latest_revision('ios_ingest_gmao_job')
     batch.submit_job(
         jobName='process_gmao_%s' % date_str,
         jobDefinition='ios_ingest_gmao_job:%d' % latest,
         jobQueue='ios_ingest_queue',
         containerOverrides={
-            'command': ['process_gmao', '-d', date_str, '-n', 'moist']
+            'command': ['ingest_gmao', '--lag', str(lag), '--norm', 'moist']
         }
     )
 
