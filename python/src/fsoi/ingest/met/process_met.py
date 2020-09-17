@@ -184,9 +184,6 @@ def process_met(input_file, output_path, date, date_str):
     :param date_str: {str} A datetime string in the format YYYYMMDDHH
     :return: {list} A list of output files, or None
     """
-    # client to notify SNS topic if there are unknown platforms
-    sns = boto3.client("sns")
-
     # list saving unknown platforms IDs
     unknown_platforms = []
 
@@ -199,6 +196,16 @@ def process_met(input_file, output_path, date, date_str):
 
     # list of output files
     output_files = []
+
+    # download the input file from S3 if it was not provided
+    if input_file is None:
+        ds = S3DataStore()
+        input_file = tempfile.mktemp('.gz', 'UKMet')
+        key = '%sT%s00Z.FSO.gz' % (date_str[0:8], date_str[8:10])
+        source = {'bucket': 'fsoi-met-ingest', 'key': key}
+        if not ds.load_to_local_file(source, input_file):
+            log.error('Failed to load data from S3: %s' % key)
+            return None
 
     # process each line in the file
     # read the lines from the data file
@@ -287,6 +294,7 @@ def process_met(input_file, output_path, date, date_str):
     log.debug('Total obs = %d' % nobs)
 
     if unknown_platforms:
+        sns = boto3.client("sns")
         unknown_platforms = list(set(unknown_platforms))
         sns.publish(
             TopicArn=config['arnUnknownPlatformsTopic'],
