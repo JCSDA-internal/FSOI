@@ -233,7 +233,7 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
     :return: None
     """
     from bokeh.plotting import figure
-    from bokeh.models import Title, ColorBar, LinearColorMapper, BasicTicker
+    from bokeh.models import Title, ColorBar, LinearColorMapper, BasicTicker, Span
     from bokeh.models.sources import ColumnDataSource
     from bokeh.embed import json_item
     from bokeh.io import export_png
@@ -308,6 +308,12 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
                 xs.append([df1[qty][i] - df1['std'][i], df1[qty][i] + df1['std'][i]])
                 ys.append([df1.index[i], df1.index[i]])
         plot.multi_line(xs=xs, ys=ys, color='#f1631f', line_width=3, line_cap='square')
+
+    # maybe add a reference line
+    if qty in ['FracBenObs', 'FracBenNeuObs']:
+        plot.add_layout(Span(location=50,
+                             dimension='height', line_color='black',
+                             line_dash='dashed', line_width=1))
 
     # add the labels
     plot.xaxis.axis_label = plot_options['xlabel']
