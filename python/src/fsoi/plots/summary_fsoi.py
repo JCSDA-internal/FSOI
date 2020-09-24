@@ -233,7 +233,7 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
     :return: None
     """
     from bokeh.plotting import figure
-    from bokeh.models import Title, ColorBar, LinearColorMapper, BasicTicker, Span
+    from bokeh.models import Title, ColorBar, LinearColorMapper, BasicTicker, Span, Whisker
     from bokeh.models.sources import ColumnDataSource
     from bokeh.embed import json_item
     from bokeh.io import export_png
@@ -301,13 +301,13 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
 
     # maybe add error bars
     if qty == 'TotImp':
-        xs = []
-        ys = []
-        for i in range(len(df1.index)):
-            if not math.isnan(df1['std'][i]):
-                xs.append([df1[qty][i] - df1['std'][i], df1[qty][i] + df1['std'][i]])
-                ys.append([df1.index[i], df1.index[i]])
-        plot.multi_line(xs=xs, ys=ys, color='#f1631f', line_width=3, line_cap='square')
+        df1[qty+'_upper'] = df1[qty] + df1['std']
+        df1[qty+'_lower'] = df1[qty] - df1['std']
+        errbar = ColumnDataSource(df1)
+        plot.add_layout(Whisker(source=errbar, dimension='width', base='PLATFORMS',
+                                upper=qty+'_upper', lower=qty+'_lower', level='overlay',
+                                line_color='#f1631f', line_width=3, line_cap='square',
+                                lower_head=None, upper_head=None))
 
     # maybe add a reference line
     if qty in ['FracBenObs', 'FracBenNeuObs']:
