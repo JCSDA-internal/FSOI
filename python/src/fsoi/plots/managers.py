@@ -499,7 +499,7 @@ class ComparisonPlotGenerator(PlotGenerator):
                 else:
                     platform_count[platform] = 1
 
-        # set 'pref' to a list of platforms included by 2 or more centers
+        # set 'pref' to a list of platforms included by 1 or more centers
         pref = []
         for key in platform_count:
             if platform_count[key] >= 1:
