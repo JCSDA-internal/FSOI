@@ -309,11 +309,16 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
                                 line_color='#f1631f', line_width=3, line_cap='square',
                                 lower_head=None, upper_head=None))
 
-    # maybe add a reference line
+    # maybe add a vertical reference line
     if qty in ['FracBenObs', 'FracBenNeuObs']:
-        plot.add_layout(Span(location=50,
+        plot.add_layout(Span(location=50.,
                              dimension='height', line_color='black',
                              line_dash='dashed', line_width=1))
+
+    # add a vertical zero line
+    plot.add_layout(Span(location=0.,
+                         dimension='height', line_color='black',
+                         line_dash='solid', line_width=1))
 
     # add the labels
     plot.xaxis.axis_label = plot_options['xlabel']
