@@ -2,14 +2,13 @@ requests:
   batch:
     focus:
     - centers:
-        #- EMC
-        #- GMAO
-        #- NRL
-        #- JMA_adj
-        #- JMA_ens
-        #- MET
-        #- MeteoFr
-        - MERRA2
+        - EMC
+        - GMAO
+        - NRL
+        - JMA_adj
+        - JMA_ens
+        - MET
+        - MeteoFr
       cycles:
         - '00'
       end_date: '20150111'
@@ -23,3 +22,294 @@ requests:
         Wind,wndmi
       root_dir: /tmp/fsoi
       start_date: '20150101'
+
+    pass:
+    - start_date: '20150101'
+      end_date: '20150131'
+      cycles:
+        - '00'
+      interval: 24
+      centers:
+        - EMC
+        - GMAO
+        - NRL
+        - MERRA2
+      norm: both
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+                    Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+                    Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20150220'
+      end_date: '20150221'
+      cycles:
+        - '18'
+      interval: 24
+      centers:
+        - EMC
+        - GMAO
+        - NRL
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+                    Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+                    Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20190510'
+      end_date: '20190531'
+      cycles:
+        - '0'
+      interval: 24
+      centers:
+        - GMAO
+        - NRL
+      norm: both
+      platforms: IASI
+    - comment: MERRA2 test
+      start_date: '20150101'
+      end_date: '20150131'
+      cycles:
+        - '0'
+      interval: 24
+      centers:
+        - MERRA2
+      norm: moist
+      platforms: AHI,AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,BOGUS,Buoy,CrIS,Dropsonde,FY3_MWHS,GAVHR,GMI,GNSSDELAY,GOES,GPM_GMI,GPSRO,Geo Wind,Ground GPS,HIRS,IASI,KUSCAT,LEO-GEO,Land Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD Wind,NewUnknown,Ozone,PIBAL,PRH,Profiler Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SEVIRI,SSMI Wind,SSMIS,Ship,Synthetic,TC_Press,TMI Rain Rate,TPW,UAS,UNKNOWN,VIIRS,WindSat,wndmi
+    - comment: GMAO Late 2019-Oct
+      start_date: '20191025'
+      end_date: '20191031'
+      cycles:
+        - '0'
+      interval: 24
+      centers:
+        - GMAO
+      norm: moist
+      platforms: AHI,AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,BOGUS,Buoy,CrIS,Dropsonde,FY3_MWHS,GAVHR,GMI,GNSSDELAY,GOES,GPM_GMI,GPSRO,Geo Wind,Ground GPS,HIRS,IASI,KUSCAT,LEO-GEO,Land Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD Wind,NewUnknown,Ozone,PIBAL,PRH,Profiler Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SEVIRI,SSMI Wind,SSMIS,Ship,Synthetic,TC_Press,TMI Rain Rate,TPW,UAS,UNKNOWN,VIIRS,WindSat,wndmi
+    - comment: NRL Early 2019-Nov
+      start_date: '20191101'
+      end_date: '20191105'
+      cycles:
+        - '0'
+      interval: 24
+      centers:
+        - NRL
+      norm: dry
+      platforms: AHI,AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,BOGUS,Buoy,CrIS,Dropsonde,FY3_MWHS,GAVHR,GMI,GNSSDELAY,GOES,GPM_GMI,GPSRO,Geo Wind,Ground GPS,HIRS,IASI,KUSCAT,LEO-GEO,Land Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD Wind,NewUnknown,Ozone,PIBAL,PRH,Profiler Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SEVIRI,SSMI Wind,SSMIS,Ship,Synthetic,TC_Press,TMI Rain Rate,TPW,UAS,UNKNOWN,VIIRS,WindSat,wndmi
+    - comment: UKMet new files for 2018-December
+      start_date: '20181201'
+      end_date: '20181231'
+      cycles:
+        - '0'
+      interval: 24
+      centers:
+        - MET
+      norm: moist
+      platforms: AHI,AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,BOGUS,Buoy,CrIS,Dropsonde,FY3_MWHS,GAVHR,GMI,GNSSDELAY,GOES,GPM_GMI,GPSRO,Geo Wind,Ground GPS,HIRS,IASI,KUSCAT,LEO-GEO,Land Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD Wind,NewUnknown,Ozone,PIBAL,PRH,Profiler Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SEVIRI,SSMI Wind,SSMIS,Ship,Synthetic,TC_Press,TMI Rain Rate,TPW,UAS,UNKNOWN,VIIRS,WindSat,wndmi
+    - comment: MERRA2 test
+      start_date: '20150101'
+      end_date: '20150117'
+      centers:
+        - MERRA2
+      cycles:
+        - '00'
+      interval: 24
+      norm: moist
+      platforms: AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,Buoy,CrIS,Dropsonde,GAVHR,GOES,GPSRO,Geo
+        Wind,Ground GPS,GMI,GNSSDELAY,HIRS,IASI,LEO-GEO,Land Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD
+        Wind,Ozone,PIBAL,PRH,Profiler Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SSMI
+        Wind,SSMIS,Seviri,Ship,Synthetic,TMI Rain Rate,TPW,UAS,UNKNOWN,WindSat,wndmi,NewUnknown
+    - start_date: '20150103'
+      end_date: '20150113'
+      cycles:
+        - '12'
+      interval: 24
+      centers:
+        - GMAO
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+                    Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+                    Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20190602'
+      end_date: '20190603'
+      cycles:
+        - '00'
+      interval: 24
+      centers:
+        - GMAO
+        - NRL
+      norm: both
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,IASI
+    - start_date: '20190501'
+      end_date: '20190531'
+      cycles:
+        - '00'
+      interval: 24
+      centers:
+        - GMAO
+        - NRL
+      norm: both
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,IASI
+    - start_date: '20190510'
+      end_date: '20190531'
+      cycles:
+        - '0'
+      interval: 24
+      centers:
+        - GMAO
+        - NRL
+      norm: both
+      platforms: IASI
+    - start_date: '20150201'
+      end_date: '20150228'
+      interval: 24
+      norm: dry
+      centers:
+        - GMAO
+        - NRL
+        - JMA_adj
+      cycles:
+        - '00'
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI Rain Rate,Synthetic,AIRS,AMSUA,MHS ,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20190413'
+      end_date: '20190413'
+      centers:
+        - GMAO
+      cycles:
+        - '00'
+      interval: 24
+      norm: moist
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS
+    - start_date: '20150220'
+      end_date: '20150220'
+      cycles:
+        - '6'
+        - '12'
+      interval: '24'
+      centers:
+        - EMC
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20141201'
+      end_date: '20141202'
+      cycles:
+        - '00'
+        - '12'
+        - '18'
+      interval: '6'
+      centers:
+        - EMC
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20150220'
+      end_date: '20150221'
+      cycles:
+        - '18'
+      interval: '24'
+      centers:
+        - EMC
+        - GMAO
+        - NRL
+        - JMA_adj
+        - JMA_ens
+        - MET
+        - MeteoFr
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20181217'
+      end_date: '20181219'
+      cycles:
+        - '00'
+      interval: '24'
+      centers:
+        - NRL
+        - GMAO
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20181217'
+      end_date: '20181219'
+      cycles:
+        - '00'
+      interval: '24'
+      centers:
+        - NRL
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20150201'
+      end_date: '20150201'
+      cycles:
+        - '18'
+      interval: '24'
+      centers:
+        - EMC
+        - GMAO
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20150220'
+      end_date: '20150228'
+      cycles:
+        - '00'
+      interval: '24'
+      centers:
+        - GMAO
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS
+    - start_date: '20150222'
+      end_date: '20150228'
+      cycles:
+        - '18'
+      interval: '24'
+      centers:
+        - EMC
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    - start_date: '20150222'
+      end_date: '20150228'
+      cycles:
+        - '00'
+      interval: '24'
+      centers:
+        - GMAO
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+    fail:
+    # This request produces an error: 'Missing data from S3'
+    - start_date: '20150201'
+      end_date: '20150201'
+      cycles:
+        - '18'
+      interval: '24'
+      centers:
+        - EMC
+      norm: moist
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
+
+    # All requested data are missing
+    - start_date: '20181217'
+      end_date: '20181219'
+      cycles:
+        - '00'
+      interval: '24'
+      centers:
+        - GMAO
+      norm: dry
+      platforms: Radiosonde,Dropsonde,Ship,Buoy,Land Surface,Aircraft,PIBAL,GPSRO,Profiler
+        Wind,NEXRAD Wind,Geo Wind,MODIS Wind,AVHRR Wind,ASCAT Wind,RAPIDSCAT Wind,Ozone,TMI
+        Rain Rate,Synthetic,AIRS,AMSUA,MHS,ATMS,CrIS,HIRS,IASI,Seviri,GOES,SSMIS,UNKNOWN
