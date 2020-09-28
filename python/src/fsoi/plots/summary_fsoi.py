@@ -11,7 +11,6 @@ from argparse import ArgumentDefaultsHelpFormatter as ArgumentHelp
 import fsoi.stats.lib_utils as lib_utils
 import fsoi.stats.lib_obimpact as loi
 from fsoi import log
-import math
 
 
 def summary_fsoi_main():
