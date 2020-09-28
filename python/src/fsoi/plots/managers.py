@@ -486,7 +486,7 @@ class ComparisonPlotGenerator(PlotGenerator):
         """
         Sort centers
         :param data_frame_list: {list<pandas.DataFrame>} A list of data frames
-        :return: {pandas.DataFrame, list} A sorted data frame and list of platforms included by at least 2 centers
+        :return: {pandas.DataFrame, list} A sorted data frame and list of platforms included by at least 1 center
         """
         # count the number of centers that use each platform
         platform_count = {}
@@ -499,10 +499,10 @@ class ComparisonPlotGenerator(PlotGenerator):
                 else:
                     platform_count[platform] = 1
 
-        # set 'pref' to a list of platforms included by 2 or more centers
+        # set 'pref' to a list of platforms included by 1 or more centers
         pref = []
         for key in platform_count:
-            if platform_count[key] > 1:
+            if platform_count[key] >= 1:
                 pref.append(key)
 
         df = []
