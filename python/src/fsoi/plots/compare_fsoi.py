@@ -111,7 +111,7 @@ def bokehcomparesummaryplot(df, palette, qty='TotImp', plot_options=None):
         plot_height=800,
         y_range=list(df.index.unique()),
         x_range=x_range,
-        tools='pan,hover,wheel_zoom,xwheel_zoom,box_zoom,save,reset',
+        tools='pan,hover,wheel_zoom,box_zoom,save,reset',
         toolbar_location='right',
         tooltips=tooltips
     )
