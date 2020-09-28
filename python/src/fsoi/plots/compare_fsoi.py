@@ -77,7 +77,7 @@ def bokehcomparesummaryplot(df, palette, qty='TotImp', plot_options=None):
     :return: None
     """
     from bokeh.plotting import figure
-    from bokeh.models import Title
+    from bokeh.models import Title, Span
     from bokeh.models.sources import ColumnDataSource
     from bokeh.embed import json_item
     from bokeh.io import export_png
@@ -127,6 +127,11 @@ def bokehcomparesummaryplot(df, palette, qty='TotImp', plot_options=None):
         line_color='#000000'
     )
     plot.y_range.range_padding = 0.1
+
+    # add a vertical zero line
+    plot.add_layout(Span(location=0.,
+                         dimension='height', line_color='black',
+                         line_dash='solid', line_width=1))
 
     # add the labels
     plot.xaxis.axis_label = plot_options['xlabel']
