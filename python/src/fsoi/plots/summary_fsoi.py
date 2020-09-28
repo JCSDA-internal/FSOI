@@ -354,5 +354,102 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
         print(ve)
 
 
+def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
+    """
+    Create a summary time series plot with Bokeh libraries
+    :param df: {pandas.DataFrame} The data to plot
+    :param qty: {str} The quantity to plot (e.g. TotImp)
+    :param plot_options: {dict} A dictionary of plot options
+    :return: None
+    """
+    from bokeh.plotting import figure
+    from bokeh.models import Title, HoverTool, Legend, Span
+    from bokeh.models.sources import ColumnDataSource
+    from bokeh.embed import json_item
+    from bokeh.io import export_png
+    import bokeh.palettes
+    # create the data source
+    if plot_options is None:
+        plot_options = {}
+
+    if plot_options['finite']:
+        df = df[numpy.isfinite(df[qty])]
+
+    tmp = df.reset_index().pivot(index='DATETIME', columns='PLATFORM', values=qty)
+
+    # create the figure
+    x_range = (tmp.index.get_level_values('DATETIME').min(), tmp.index.get_level_values('DATETIME').max())
+    y_range = (min(tmp.min()), max(tmp.max()))
+
+    plot = figure(
+        id='%s,%s' % (plot_options['center'], qty),
+        plot_width=800,
+        plot_height=800,
+        x_axis_type='datetime',
+        x_axis_label='Date',
+        y_axis_label=plot_options['xlabel'],
+        y_range=y_range,
+        x_range=x_range,
+        tools='pan,hover,wheel_zoom,box_zoom,save,reset',
+        toolbar_location='right',
+    )
+
+    source = ColumnDataSource(tmp)
+    col_names = tmp.columns
+
+    colors = bokeh.palettes.viridis(len(tmp.columns))
+    p_dict = dict()
+    for col, color, col_name in zip(tmp.columns, colors, col_names):
+        p_dict[col_name] = plot.line('DATETIME', col, source=source,
+                                     line_width=2, color=color,
+                                     muted_color=color, muted_alpha=0.1,)
+        # define the tooltips
+        tooltips = [
+            ('Platform', col),
+            ('Value', f'@{col}'),
+            ('Units', plot_options['xlabel']),
+            ('Date', '@DATETIME{%Y-%m-%d %H:%M:%S}'),
+        ]
+        plot.add_tools(HoverTool(renderers=[p_dict[col_name]],
+                                 tooltips=tooltips,
+                                 formatters={'DATETIME': 'datetime'}))
+
+    # legend
+    legend = Legend(items=[(x, [p_dict[x]]) for x in p_dict],
+                    border_line_color=None, margin=0, spacing=0, padding=0)
+    plot.add_layout(legend, 'right')
+
+    # maybe add a horizontal reference line
+    if qty in ['FracBenObs', 'FracBenNeuObs']:
+        plot.add_layout(Span(location=50.,
+                             dimension='width', line_color='black',
+                             line_dash='dashed', line_width=1))
+
+    # add a horizontal zero line
+    plot.add_layout(Span(location=0.,
+                         dimension='width', line_color='black',
+                         line_dash='solid', line_width=1))
+
+    # add the labels
+    title_lines = plot_options['title'].split('\n')
+    title_lines.reverse()
+    for line in title_lines:
+        plot.add_layout(Title(text=line, text_font_size='1.5em', align='center'), 'above')
+
+    # make the plots interactive
+    plot.legend.click_policy = 'mute'
+
+    # write the json object to a file
+    with open('%s.json' % plot_options['figure_name'], 'w') as f:
+        f.write(json.dumps(json_item(plot)))
+        f.close()
+
+    # write the png file
+    try:
+        export_png(plot, filename='%s.png' % plot_options['figure_name'])
+    except ValueError as ve:
+        print(ve)
+
+
 if __name__ == '__main__':
     summary_fsoi_main()

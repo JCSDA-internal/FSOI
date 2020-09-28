@@ -604,10 +604,11 @@ def scipy_bin_df(df, dlat=5., dlon=5., dpres=None):
     raise NotImplementedError('lib_obimpact.py - scipy_bin_df is not yet active')
 
 
-def summarymetrics(DF):
+def summarymetrics(DF, level=None):
     """
 
     :param DF:
+    :param level:
     :return:
     """
     df = DF[['TotImp', 'ObCnt']].copy()
@@ -615,7 +616,7 @@ def summarymetrics(DF):
     df['ImpPerOb'] = df['TotImp'] / df['ObCnt']
     df['FracBenObs'] = DF['ObCntBen'] / (DF['ObCnt'] - DF['ObCntNeu']) * 100.
     df['FracNeuObs'] = DF['ObCntNeu'] / (DF['ObCnt'] - DF['ObCntBen']) * 100.
-    df['FracImp'] = df['TotImp'] / df['TotImp'].sum() * 100.
+    df['FracImp'] = df['TotImp'] / df['TotImp'].sum(level=level) * 100.
 
     for col in ['ObCnt']:
         df[col] = df[col].astype(_np.int)

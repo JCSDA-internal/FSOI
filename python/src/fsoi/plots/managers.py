@@ -7,7 +7,7 @@ from fsoi import log
 from fsoi.data.datastore import ThreadedDataStore
 from fsoi.data.s3_datastore import FsoiS3DataStore, S3DataStore
 from fsoi.stats import lib_utils, lib_obimpact
-from fsoi.plots.summary_fsoi import bokehsummaryplot, matplotlibsummaryplot
+from fsoi.plots.summary_fsoi import bokehsummaryplot, matplotlibsummaryplot, bokehsummarytseriesplot
 from fsoi.plots.compare_fsoi import bokehcomparesummaryplot, matplotlibcomparesummaryplot
 
 
@@ -65,6 +65,7 @@ class PlotGenerator:
                        'plots/compare/rad',
                        'plots/compare/conv']
             subdirs += ['plots/summary/%s' % center for center in centers]
+            subdirs += ['plots/summarytseries/%s' % center for center in centers]
 
             # create the subdirectories
             for subdir in subdirs:
@@ -240,6 +241,9 @@ class SummaryPlotGenerator(PlotGenerator):
         df, df_std = lib_obimpact.tavg(concatenated, 'PLATFORM')
         df = lib_obimpact.summarymetrics(df)
 
+        # cycle data frames
+        df_cycles = lib_obimpact.summarymetrics(concatenated, level='DATETIME')
+
         # filter out the platforms that were not in the request
         self._filter_platforms_from_data(df, self.platforms)
 
@@ -268,6 +272,8 @@ class SummaryPlotGenerator(PlotGenerator):
                     platform=platforms,
                     domain='Global'
                 )
+
+                # bar plots
                 plot_file = '%s/plots/summary/%s/%s_%s_%s' % (self.work_dir, self.center, self.center, qty, cycle_id)
                 plot_options['figure_name'] = plot_file
                 if 'bokeh' == self.plot_util:
@@ -275,7 +281,20 @@ class SummaryPlotGenerator(PlotGenerator):
                 elif 'matplotlib' == self.plot_util:
                     matplotlibsummaryplot(df, qty=qty, plot_options=plot_options, std=df_std)
 
-                # store the output file locations
+                # store the output file locations for bar plots
+                self.plots.append('%s.png' % plot_file)
+                if 'bokeh' == self.plot_util:
+                    self.json_data.append('%s.json' % plot_file)
+
+                # time series plots
+                plot_file = '%s/plots/summarytseries/%s/%s_%s_%s-tseries' % (self.work_dir, self.center, self.center, qty, cycle_id)
+                plot_options['figure_name'] = plot_file
+                if 'bokeh' == self.plot_util:
+                    bokehsummarytseriesplot(df_cycles, qty=qty, plot_options=plot_options)
+                elif 'matplotlib' == self.plot_util:
+                    raise NotImplementedError('managers.py - time series plots using matplotlib are not yet active')
+
+                # store the output file locations for time series plots
                 self.plots.append('%s.png' % plot_file)
                 if 'bokeh' == self.plot_util:
                     self.json_data.append('%s.json' % plot_file)
