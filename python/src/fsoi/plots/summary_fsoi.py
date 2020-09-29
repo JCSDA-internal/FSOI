@@ -396,6 +396,8 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
     source = ColumnDataSource(tmp)
     col_names = tmp.columns
 
+    # pylint wrongly believes Module 'bokeh.palettes' has no 'viridis' member (no-member)
+    # pylint: disable=E1101
     colors = bokeh.palettes.viridis(len(tmp.columns))
     p_dict = dict()
     for col, color, col_name in zip(tmp.columns, colors, col_names):
