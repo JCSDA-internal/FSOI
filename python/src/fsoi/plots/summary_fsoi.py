@@ -289,7 +289,7 @@ def bokehsummaryplot(df, qty='TotImp', plot_options=None, std=None):
         plot_height=800,
         y_range=list(df1.index.unique()),
         x_range=x_range,
-        tools='pan,hover,wheel_zoom,xwheel_zoom,box_zoom,save,reset',
+        tools='pan,hover,wheel_zoom,box_zoom,save,reset',
         toolbar_location='right',
         tooltips=tooltips
     )
