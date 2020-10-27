@@ -362,7 +362,7 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
     :return: None
     """
     from bokeh.plotting import figure
-    from bokeh.models import Title, HoverTool, Legend, Span
+    from bokeh.models import Title, Legend, Span
     from bokeh.models.sources import ColumnDataSource
     from bokeh.embed import json_item
     from bokeh.io import export_png
@@ -389,7 +389,7 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
         y_axis_label=plot_options['xlabel'],
         y_range=y_range,
         x_range=x_range,
-        tools='pan,hover,wheel_zoom,box_zoom,save,reset',
+        tools='pan,wheel_zoom,box_zoom,save,reset',
         toolbar_location='right',
     )
 
@@ -402,18 +402,7 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
     p_dict = dict()
     for col, color, col_name in zip(tmp.columns, colors, col_names):
         p_dict[col_name] = plot.line('DATETIME', col, source=source,
-                                     line_width=2, color=color,
-                                     muted_color=color, muted_alpha=0.1,)
-        # define the tooltips
-        tooltips = [
-            ('Platform', col),
-            ('Value', f'@{col}'),
-            ('Units', plot_options['xlabel']),
-            ('Date', '@DATETIME{%Y-%m-%d %H:%M:%S}'),
-        ]
-        plot.add_tools(HoverTool(renderers=[p_dict[col_name]],
-                                 tooltips=tooltips,
-                                 formatters={'DATETIME': 'datetime'}))
+                                     line_width=2, color=color)
 
     # legend
     legend = Legend(items=[(x, [p_dict[x]]) for x in p_dict],
@@ -438,7 +427,7 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
         plot.add_layout(Title(text=line, text_font_size='1.5em', align='center'), 'above')
 
     # make the plots interactive
-    plot.legend.click_policy = 'mute'
+    plot.legend.click_policy = 'hide'
 
     # write the json object to a file
     with open('%s.json' % plot_options['figure_name'], 'w') as f:
