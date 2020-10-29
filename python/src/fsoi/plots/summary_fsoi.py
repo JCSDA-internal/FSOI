@@ -362,7 +362,7 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
     :return: None
     """
     from bokeh.plotting import figure
-    from bokeh.models import Title, Legend, Span
+    from bokeh.models import Title, HoverTool, Legend, Span
     from bokeh.models.sources import ColumnDataSource
     from bokeh.embed import json_item
     from bokeh.io import export_png
@@ -374,11 +374,23 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
     if plot_options['finite']:
         df = df[numpy.isfinite(df[qty])]
 
-    tmp = df.reset_index().pivot(index='DATETIME', columns='PLATFORM', values=qty)
+    df1 = df[qty].reset_index()
+    df1.drop('level_0', axis=1, inplace=True)
+
+    # define the tooltips
+    tooltips = [
+        ('Platform', '@PLATFORM'),
+        ('Value', '@%s' % qty),
+        ('Units', plot_options['xlabel']),
+        ('Date', '@DATETIME{%Y-%m-%d %H:%M:%S}'),
+    ]
+
+    # add hover tool
+    ht = HoverTool(tooltips=tooltips, formatters={'DATETIME': 'datetime'})
 
     # create the figure
-    x_range = (tmp.index.get_level_values('DATETIME').min(), tmp.index.get_level_values('DATETIME').max())
-    y_range = (min(tmp.min()), max(tmp.max()))
+    x_range = (df1['DATETIME'].min(), df1['DATETIME'].max())
+    y_range = (df1[qty].min(), df1[qty].max())
 
     plot = figure(
         id='%s,%s' % (plot_options['center'], qty),
@@ -389,20 +401,19 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
         y_axis_label=plot_options['xlabel'],
         y_range=y_range,
         x_range=x_range,
-        tools='pan,wheel_zoom,box_zoom,save,reset',
+        tools=['pan,wheel_zoom,box_zoom,save,reset',ht],
         toolbar_location='right',
+        tooltips=tooltips
     )
-
-    source = ColumnDataSource(tmp)
-    col_names = tmp.columns
 
     # pylint wrongly believes Module 'bokeh.palettes' has no 'viridis' member (no-member)
     # pylint: disable=E1101
-    colors = bokeh.palettes.viridis(len(tmp.columns))
+    platforms = list(df1['PLATFORM'].unique())
+    colors = bokeh.palettes.viridis(len(platforms))
     p_dict = dict()
-    for col, color, col_name in zip(tmp.columns, colors, col_names):
-        p_dict[col_name] = plot.line('DATETIME', col, source=source,
-                                     line_width=2, color=color)
+    for platform, color in zip(platforms, colors):
+        source = ColumnDataSource(df1[df1['PLATFORM'] == platform])
+        p_dict[platform] = plot.line('DATETIME', qty, source=source, line_width=2, color=color)
 
     # legend
     legend = Legend(items=[(x, [p_dict[x]]) for x in p_dict],
