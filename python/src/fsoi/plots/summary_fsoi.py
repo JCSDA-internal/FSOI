@@ -406,9 +406,9 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
         tooltips=tooltips
     )
 
+    platforms = list(df1['PLATFORM'].unique())
     # pylint wrongly believes Module 'bokeh.palettes' has no 'viridis' member (no-member)
     # pylint: disable=E1101
-    platforms = list(df1['PLATFORM'].unique())
     colors = bokeh.palettes.viridis(len(platforms))
     p_dict = dict()
     for platform, color in zip(platforms, colors):
