@@ -94,17 +94,15 @@ class PlotGenerator:
         # create a list of all platforms present in the data frame, but not the request
         excluded_platforms = []
         case_sensitive_included_platforms = []
-        for platform in df.index:
+        for platform in df.index.get_level_values('PLATFORM'):
             if platform.upper() not in included_platforms:
                 excluded_platforms.append(platform)
             else:
                 case_sensitive_included_platforms.append(platform)
 
         # drop platforms from the data frame that were not in the request
-        df.drop(excluded_platforms, inplace=True)
-
-        # update the index (i.e., list of platforms) in the data frame
-        df.reindex(case_sensitive_included_platforms)
+        level = 'PLATFORM' if len(df.index.names) > 1 else None
+        df.drop(excluded_platforms, inplace=True, level=level)
 
 
 class SummaryPlotGenerator(PlotGenerator):
@@ -246,6 +244,7 @@ class SummaryPlotGenerator(PlotGenerator):
 
         # filter out the platforms that were not in the request
         self._filter_platforms_from_data(df, self.platforms)
+        self._filter_platforms_from_data(df_cycles, self.platforms)
 
         # do not continue if all platforms have been removed
         if len(df) == 0:
