@@ -53,6 +53,7 @@ export class DisplayComponent implements OnInit
    * Default constructor
    *
    * @param dialog dependency injection
+   * @param http dependency injection
    */
   constructor(private dialog: MatDialog, private http: HttpClient)
   {
@@ -287,14 +288,14 @@ export class DisplayComponent implements OnInit
    */
   showSingleInteractivePlot(event): void
   {
-    const center = event.target.id.split(',')[0];
-    const type = event.target.id.split(',')[1];
+    const key = event.target.id.split(',')[0];
     this.showInteractivePlot = true;
     this.images = [];
     for (const image of this.allImages)
     {
-      image.selected = (image.center === center && image.type === type);
+      image.selected = (image.key === key);
     }
+
     this.recomputeGrid();
     for (const image of this.allImages)
     {
