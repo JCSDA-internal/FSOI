@@ -1,4 +1,4 @@
-# This file contains constant values used to download and process NRL data
+# This file contains constant values used to download and process GMAO data
 ---
 lag_in_days: 3
 processed_data_bucket: fsoi
