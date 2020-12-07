@@ -46,14 +46,14 @@ def submit_job_for_date(date_str):
     :param date_str: {str} YYYYMMDDHH
     :return: None
     """
-    print('Submitting batch job to process NRL for: %s' % date_str)
+    print('Submitting batch job to process MET for: %s' % date_str)
 
     batch = boto3.client('batch')
 
-    latest = get_latest_revision('ios_ingest_nrl_job')
+    latest = get_latest_revision('ios_ingest_met_job')
     batch.submit_job(
         jobName='met_%s' % date_str,
-        jobDefinition='ios_ingest_nrl_job:%d' % latest,
+        jobDefinition='ios_ingest_met_job:%d' % latest,
         jobQueue='ios_ingest_queue',
         containerOverrides={
             'command': ['process_met', '-o', '/tmp', '-d', date_str]  #, '-n', 'moist']
@@ -67,14 +67,14 @@ def submit_download_job_for_date(date):
     :param date: {str} Date/time string to download in the format YYYYMMDDHH
     :return: None
     """
-    print('Submitting batch job to download NRL for: %s' % date)
+    print('Submitting batch job to download MET for: %s' % date)
 
     # submit the job
     batch = boto3.client('batch')
-    latest = get_latest_revision('ios_ingest_nrl_job')
+    latest = get_latest_revision('ios_ingest_met_job')
     batch.submit_job(
-        jobName='nrl_%s' % date,
-        jobDefinition='ios_ingest_nrl_job:%d' % latest,
+        jobName='met_%s' % date,
+        jobDefinition='ios_ingest_met_job:%d' % latest,
         jobQueue='ios_ingest_queue',
         containerOverrides={
             'command': ['download_met', '--date', date]
