@@ -110,7 +110,7 @@ export class DisplayComponent implements OnInit
   {
     this.http.get(this.imageHost + image.json_uri).subscribe(
       data => {
-        console.log(data);
+        image.data = data;
       }
     );
   }
