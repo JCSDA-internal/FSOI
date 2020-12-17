@@ -244,7 +244,8 @@ class SummaryPlotGenerator(PlotGenerator):
 
         # filter out the platforms that were not in the request
         self._filter_platforms_from_data(df, self.platforms)
-        # TODO: This line broke code for me -- self._filter_platforms_from_data(df_cycles, self.platforms)
+        # TODO: This line broke unit tests for me:  'labels [] not found in level'
+        # self._filter_platforms_from_data(df_cycles, self.platforms)
 
         # do not continue if all platforms have been removed
         if len(df) == 0:

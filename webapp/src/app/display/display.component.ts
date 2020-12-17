@@ -48,7 +48,11 @@ export class DisplayComponent implements OnInit
   /* flag to indicate the interactive plot is being shown */
   showInteractivePlot = false;
 
-  imageHost = 'https://iosbeta.jcsda.org/';  // TODO: Needed for localhost testing purposes only, otherwise it can be '/'
+  /* full URL (starting with https) and ending with a / of the base path of the images.  Just '/' can be used for images served from */
+  /* the main page, which should be the goal of final deployments.  This can be changed for testing the Angular app on localhost, but */
+  /* be aware that there will likely be CORS issues with retrieving JSON data, where the images will likely be fine */
+  imageHost = '/';
+
 
   /**
    * Default constructor
