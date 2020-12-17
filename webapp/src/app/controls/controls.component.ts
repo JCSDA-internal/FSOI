@@ -505,13 +505,6 @@ export class ControlsComponent implements OnInit
 
     console.log(data);
 
-    /* handle response to a JSON data request */
-    if (data.json_data !== undefined)
-    {
-      DisplayComponent.singleton.setJsonData(data.json_data.key, data.data);
-      return;
-    }
-
     /* required a request hash for all other responses */
     if (data.req_hash === undefined)
     {
@@ -541,14 +534,6 @@ export class ControlsComponent implements OnInit
     /* if response contains 'images' attribute, show images and remove progress bar */
     if (data.images !== undefined)
     {
-      for (const image of data.images)
-      {
-        if (image.key.endsWith('.json'))
-        {
-          const jsonDataRequest = {'json_data': {'key': image.key}};
-          this.sendMessage(jsonDataRequest);
-        }
-      }
       DisplayComponent.singleton.setImages(data.images);
       this.sessionRequests[requestIndex].images = data.images;
       this.sessionRequests[requestIndex].isComplete = true;

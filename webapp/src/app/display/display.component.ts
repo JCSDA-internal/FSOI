@@ -48,6 +48,7 @@ export class DisplayComponent implements OnInit
   /* flag to indicate the interactive plot is being shown */
   showInteractivePlot = false;
 
+  imageHost = 'https://iosbeta.jcsda.org/';  // TODO: Needed for localhost testing purposes only, otherwise it can be '/'
 
   /**
    * Default constructor
@@ -82,6 +83,8 @@ export class DisplayComponent implements OnInit
     this.images = [];
     for (let i = 0; i < this.allImages.length; i++)
     {
+      this.loadBokehDataForImage(this.allImages[i]);
+
       if (this.allImages[i]['selected'] === undefined)
       {
         this.allImages[i].selected = true;
@@ -100,6 +103,16 @@ export class DisplayComponent implements OnInit
       }
     }
     this.recomputeGrid();
+  }
+
+
+  loadBokehDataForImage(image: any): void
+  {
+    this.http.get(this.imageHost + image.json_uri).subscribe(
+      data => {
+        console.log(data);
+      }
+    );
   }
 
 
