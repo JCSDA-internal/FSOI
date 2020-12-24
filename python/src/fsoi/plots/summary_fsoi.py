@@ -389,7 +389,10 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
     ht = HoverTool(tooltips=tooltips, formatters={'DATETIME': 'datetime'})
 
     # create the figure
-    x_range = (df1['DATETIME'].min(), df1['DATETIME'].max())
+    if len(df1['DATETIME'].unique()) > 1:
+        x_range = (df1['DATETIME'].min(), df1['DATETIME'].max())
+    else:
+        x_range = None
     y_range = (df1[qty].min(), df1[qty].max())
 
     plot = figure(
