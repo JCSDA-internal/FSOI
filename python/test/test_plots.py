@@ -24,8 +24,12 @@ def test_bokeh_plots():
     for key in spgs:
         print('Checking %s...' % key)
         pg = spgs[key]
-        assert len(pg.plots) == 6
-        assert len(pg.json_data) == 6
+        if key == 'COMP':
+            nplots = 6
+        else:
+            nplots = 12
+        assert len(pg.plots) == nplots
+        assert len(pg.json_data) == nplots
         for plot in pg.plots:
             assert os.path.isfile(plot)
         for json_datum in pg.json_data:
