@@ -456,7 +456,7 @@ Resources:
               Cookies:
                 Forward: all
               QueryString: true
-            PathPattern: /d/*
+            PathPattern: /data/*
             TargetOriginId: !Ref CloudFrontOriginAccessIdentityData
             ViewerProtocolPolicy: redirect-to-https
         Origins:
