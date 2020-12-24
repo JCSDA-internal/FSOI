@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {OptionsComponent} from '../options/options.component';
-import {MatDialog} from '@angular/material';
+import {MatDialog} from '@angular/material/dialog';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {DisplayComponent} from '../display/display.component';
 import {AppComponent} from '../app.component';
@@ -61,8 +61,8 @@ export class ControlsComponent implements OnInit
 
   /* Websocket connection */
   private websocket: WebSocket;
-  private websocketUrl = 'wss://bj2c69kuw2.execute-api.us-east-1.amazonaws.com/v2'; // BETA
-  // private websocketUrl = 'wss://prw9exvaxi.execute-api.us-east-1.amazonaws.com/v2'; // OPS
+  // private websocketUrl = 'wss://bj2c69kuw2.execute-api.us-east-1.amazonaws.com/v2'; // BETA
+  private websocketUrl = 'wss://prw9exvaxi.execute-api.us-east-1.amazonaws.com/v2'; // OPS
 
   /* these headers can be added to an HTTP request to prevent using cached responses */
   private noCacheHeaders: HttpHeaders;
@@ -505,13 +505,6 @@ export class ControlsComponent implements OnInit
 
     console.log(data);
 
-    /* handle response to a JSON data request */
-    if (data.json_data !== undefined)
-    {
-      DisplayComponent.singleton.setJsonData(data.json_data.key, data.data);
-      return;
-    }
-
     /* required a request hash for all other responses */
     if (data.req_hash === undefined)
     {
@@ -541,14 +534,6 @@ export class ControlsComponent implements OnInit
     /* if response contains 'images' attribute, show images and remove progress bar */
     if (data.images !== undefined)
     {
-      for (const image of data.images)
-      {
-        if (image.key.endsWith('.json'))
-        {
-          const jsonDataRequest = {'json_data': {'key': image.key}};
-          this.sendMessage(jsonDataRequest);
-        }
-      }
       DisplayComponent.singleton.setImages(data.images);
       this.sessionRequests[requestIndex].images = data.images;
       this.sessionRequests[requestIndex].isComplete = true;

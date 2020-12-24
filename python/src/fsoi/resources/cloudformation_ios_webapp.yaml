@@ -339,7 +339,7 @@ Resources:
     Properties:
       FunctionName: !Sub 'ios_request_handler${DeploymentType}'
       Handler: lambda_wrapper.handle_request
-      Role: !Sub 'arn:aws:iam::469205354006:role/ios_lambda_role${DeploymentType}'
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/ios_lambda_role${DeploymentType}'
       Code:
         S3Bucket: jcsda-scratch
         S3Key: fsoi_lambda.zip
@@ -378,11 +378,41 @@ Resources:
             Action: 's3:GetObject'
             Resource: !Sub 'arn:aws:s3:::ios${DeploymentType}.jcsda.org/*'
 
+  DataBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: fsoi-image-cache
+      PolicyDocument:
+        Version: 2008-10-17
+        Id: PolicyForCloudFrontPrivateContent
+        Statement:
+          - Sid: 'TODO: Remove this policy Temporary to keep operational site working, allow public access'
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: 'arn:aws:s3:::fsoi-image-cache/*'
+          - Sid: Allow CloudFront Origin Access Identity to access bucket content
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join:
+                  - ' '
+                  - - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity
+                    - !Ref CloudFrontOriginAccessIdentityData
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::fsoi-image-cache/*'
+
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Sub 'S3-ios${DeploymentType}.jcsda.org'
+
+  CloudFrontOriginAccessIdentityData:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'S3-fsoi-image-cache'
 
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -413,6 +443,22 @@ Resources:
             QueryString: true
           TargetOriginId: !Ref CloudFrontOriginAccessIdentity
           ViewerProtocolPolicy: redirect-to-https
+        CacheBehaviors:
+          - AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: false
+            DefaultTTL: 86400
+            ForwardedValues:
+              Cookies:
+                Forward: all
+              QueryString: true
+            PathPattern: /d/*
+            TargetOriginId: !Ref CloudFrontOriginAccessIdentityData
+            ViewerProtocolPolicy: redirect-to-https
         Origins:
           - Id: !Ref CloudFrontOriginAccessIdentity
             DomainName: !Sub 'ios${DeploymentType}.jcsda.org.s3.amazonaws.com'
@@ -420,22 +466,23 @@ Resources:
               OriginAccessIdentity:
                 Fn::Join:
                   - '/'
-                  -
-                    - origin-access-identity
+                  - - origin-access-identity
                     - cloudfront
                     - !Ref CloudFrontOriginAccessIdentity
+          - Id: !Ref CloudFrontOriginAccessIdentityData
+            DomainName: fsoi-image-cache.s3.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity:
+                Fn::Join:
+                  - '/'
+                  - - origin-access-identity
+                    - cloudfront
+                    - !Ref CloudFrontOriginAccessIdentityData
         PriceClass: PriceClass_100
         ViewerCertificate:
           AcmCertificateArn: !Ref Certificate
-          MinimumProtocolVersion: TLSv1.1_2016
+          MinimumProtocolVersion: TLSv1.2_2018
           SslSupportMethod: sni-only
-        CustomErrorResponses:
-          - ErrorCode: 403
-            ResponseCode: 200
-            ResponsePagePath: /index.html
-          - ErrorCode: 404
-            ResponseCode: 200
-            ResponsePagePath: /index.html
 
   CloudFrontDnsEntry:
     Type: AWS::Route53::RecordSet
@@ -458,3 +505,23 @@ Resources:
         - fsoi.jcsda.org
         - '*.jcsda.org'
       ValidationMethod: DNS
+
+#Outputs:
+#  # Export subnet IDs
+#  EfsFileSystemIpAzA:
+#    Description: IP Address of the EFS Mount Target in availability zone A
+#    Value: !GetAtt MountTargetAzA.IpAddress
+#    Export:
+#      Name: !Sub '${AWS::StackName}-efs-ip-az-a'
+#
+#  EfsFileSystemIpAzB:
+#    Description: IP Address of the EFS Mount Target in availability zone B
+#    Value: !GetAtt MountTargetAzB.IpAddress
+#    Export:
+#      Name: !Sub '${AWS::StackName}-efs-ip-az-b'
+#
+#  EfsFileSystemIpAzC:
+#    Description: IP Address of the EFS Mount Target in availability zone C
+#    Value: !GetAtt MountTargetAzC.IpAddress
+#    Export:
+#      Name: !Sub '${AWS::StackName}-efs-ip-az-c'

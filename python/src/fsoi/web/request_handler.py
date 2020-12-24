@@ -127,7 +127,7 @@ class Handler:
 
         for file in files:
             name = file.split('/')[-1]
-            descriptor = {'bucket': bucket, 'prefix': self.hash_value, 'name': name}
+            descriptor = {'bucket': bucket, 'prefix': 'data/%s' % self.hash_value, 'name': name}
             descriptors.append(descriptor)
             datastore.save_from_local_file(file, descriptor)
             os.remove(file)  # TODO: Not necessary once S3 cache is sorted out
@@ -509,9 +509,11 @@ class FullRequestHandler(Handler):
                     'center': plot['name'].split('_')[0],
                     'type': plot['name'].split('_')[1],
                     'bucket': bucket,
-                    'key': key.replace('.png', '.json'),
+                    'img_uri': key,
+                    'json_uri': key.replace('.png', '.json'),
                     'selected': True,
-                    'url': S3DataStore._to_public_url(plot)
+                    'url': S3DataStore._to_public_url(plot),  # TODO: Obsolete
+                    'key': key.replace('.png', '.json')       # TODO: Obsolete
                 }
             )
         self.response['images'] = images

@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {MatDialog} from '@angular/material';
+import {MatDialog} from '@angular/material/dialog';
 import {MessageComponent} from '../message/message.component';
 import {HttpClient} from '@angular/common/http';
 declare var Bokeh: any;
@@ -48,6 +48,11 @@ export class DisplayComponent implements OnInit
   /* flag to indicate the interactive plot is being shown */
   showInteractivePlot = false;
 
+  /* full URL (starting with https) and ending with a / of the base path of the images.  Just '/' can be used for images served from */
+  /* the main page, which should be the goal of final deployments.  This can be changed for testing the Angular app on localhost, but */
+  /* be aware that there will likely be CORS issues with retrieving JSON data, where the images will likely be fine */
+  imageHost = '/';
+
 
   /**
    * Default constructor
@@ -82,6 +87,8 @@ export class DisplayComponent implements OnInit
     this.images = [];
     for (let i = 0; i < this.allImages.length; i++)
     {
+      this.loadBokehDataForImage(this.allImages[i]);
+
       if (this.allImages[i]['selected'] === undefined)
       {
         this.allImages[i].selected = true;
@@ -100,6 +107,16 @@ export class DisplayComponent implements OnInit
       }
     }
     this.recomputeGrid();
+  }
+
+
+  loadBokehDataForImage(image: any): void
+  {
+    this.http.get(this.imageHost + image.json_uri).subscribe(
+      data => {
+        image.data = data;
+      }
+    );
   }
 
 

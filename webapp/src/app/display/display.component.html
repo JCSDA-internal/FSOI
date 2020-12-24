@@ -30,7 +30,7 @@
   <div *ngFor="let image of images">
     <div *ngIf="image.selected" class="display-image-tile" [ngStyle]="{'width': tileWidth, 'height': tileHeight}">
       <div style="overflow:hidden;" id="{{image.key}}" (click)="showSingleInteractivePlot($event)">
-        <img id="{{image.key}},theimage" src="{{image.url}}">
+        <img id="{{image.key}},theimage" src="{{imageHost}}{{image.img_uri}}">
       </div>
     </div>
   </div>

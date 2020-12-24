@@ -1,27 +1,21 @@
 requests:
   batch:
     focus:
-    - centers:
-        - EMC
-        - GMAO
-        - NRL
-        - JMA_adj
-        - JMA_ens
-        - MET
-        - MeteoFr
-      cycles:
-        - '00'
-      end_date: '20150111'
-      interval: 24
-      norm: both
-      platforms: AHI,AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,BOGUS,Buoy,CrIS,Dropsonde,ERS
-        Wind,FY3_MWHS,GAVHR,GMI,GNSSDELAY,GOES,GPM_GMI,GPSRO,Geo Wind,Ground GPS,HIRS,IASI,KUSCAT,LEO-GEO,Land
-        Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD Wind,NewUnknown,Ozone,PIBAL,PRH,Profiler
-        Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SEVIRI,SSMI Wind,SSMIS,SSMIS
-        Wind,Ship,Synthetic,TC_Press,TMI Rain Rate,TPW,UAS,UNKNOWN,VIIRS,WindSat,WindSat
-        Wind,wndmi
-      root_dir: /tmp/fsoi
-      start_date: '20150101'
+      - centers:
+          - MET
+        cycles:
+          - '00'
+        end_date: '20201007'
+        interval: 24
+        norm: both
+        platforms: AHI,AIRS,AMSR,AMSUA,ASCAT Wind,ATMS,AVHRR Wind,Aircraft,Aus Syn,BOGUS,Buoy,CrIS,Dropsonde,ERS
+          Wind,FY3_MWHS,GAVHR,GMI,GNSSDELAY,GOES,GPM_GMI,GPSRO,Geo Wind,Ground GPS,HIRS,IASI,KUSCAT,LEO-GEO,Land
+          Surface,MHS,MODIS Wind,MTSAT,MVIRI,NEXRAD Wind,NewUnknown,Ozone,PIBAL,PRH,Profiler
+          Wind,R/S AMV,RAPIDSCAT Wind,Radiosonde,SAPHIR,SBUV2,SEVIRI,SSMI Wind,SSMIS,SSMIS
+          Wind,Ship,Synthetic,TC_Press,TMI Rain Rate,TPW,UAS,UNKNOWN,VIIRS,WindSat,WindSat
+          Wind,wndmi
+        root_dir: /tmp/fsoi
+        start_date: '20201001'
 
     pass:
     - start_date: '20150101'
