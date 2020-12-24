@@ -1,8 +1,16 @@
 ---
-# Look for TODO items this template to customize your application
-# Pay close attention to the input parameters when creating a stack
-# MANUAL STEPS REQUIRED: Verify certificate with DNS at https://console.aws.amazon.com/acm
-Description: Generic Web Application
+# Description:
+# This template creates a basic stack for a web application with API and static content.  The API can be selected
+# to be either a Websocket or REST API.
+#
+# CloudFront using Price Class 100 (North America, Europe, and Israel; https://aws.amazon.com/cloudfront/pricing/)
+#
+# Stack Creation Checklist:
+# 1. Look for TODO items this template to customize your application
+# 2. Create a new stack from the web console (https://console.aws.amazon.com/cloudformation)
+# 3. During stack creation, add DNS entries for certificate verification (https://console.aws.amazon.com/acm)
+
+Description: Generic Web Application  # TODO: Update the stack description
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
@@ -42,7 +50,7 @@ Parameters:
     Description: Bucket name that will hold the web access logs (e.g. logs.mydomain.com)
     Type: String
   HostedZoneId:
-    Description: Hosted Zone ID of the Route 53 Domain Name Service for desired domain
+    Description: Hosted Zone ID of the Route 53 Domain Name Service for desired domain (https://console.aws.amazon.com/route53)
     Type: String
 
 
@@ -93,21 +101,39 @@ Resources:
       Timeout: 3
       Role: !GetAtt LambdaRole.Arn
       Runtime: python3.8
+      Environment:
+        Variables:
+          API_TYPE: !Ref ApiType
+          API_HOSTNAME: !Ref ApiHostName
+          STAGE: !Ref StageName
       InlineCode: |
+        import os
         import json
         def handler(event, context):
             """
             Sample function
             """
-            response = {'ok': True}
+            # create a response
+            print(event)  # goes to CloudWatch Logs
+            response = {'ok': True, 'event': event}
 
-            return {
-              'isBase64Encoded': False,
-              'headers': {'Content-Type': 'text/json'},
-              'body': json.dumps(response)
-            }
+            # determine API type
+            isWebsocket = os.environ['API_TYPE'] == 'websocket'
 
-
+            # send response
+            if isWebsocket:
+              api_hostname = os.environ['API_HOSTNAME']
+              stage = os.environ['STAGE']
+              connection_id = event['requestContext']['connectionId']
+              client_url = 'https://%s/%s/@connections/%s' % (api_hostname, stage, connection_id)
+              print(client_url)
+              ApiGatewaySender.send_message_to_ws_client(client_url, response)
+            else:
+              return {
+                'isBase64Encoded': False,
+                'headers': {'Content-Type': 'text/json'},
+                'body': json.dumps(response)
+              }
   LambdaInvokePermissionFromWebsocketApi:
     Type: AWS::Lambda::Permission
     Condition: UseWebsocket
@@ -189,6 +215,37 @@ Resources:
       - WebsocketDefaultRoute
     Properties:
       ApiId: !Ref WebsocketApi
+  WebsocketApiDomainName:
+    Type: AWS::ApiGatewayV2::DomainName
+    Condition: UseWebsocket
+    DependsOn: WebsocketDeployment
+    Properties:
+      DomainName: !Ref ApiHostName
+      DomainNameConfigurations:
+        - CertificateArn: !Ref Certificate
+          SecurityPolicy: TLS_1_2
+  WebsocketApiBasePathMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Condition: UseWebsocket
+    DependsOn:
+      - WebsocketApi
+      - WebsocketApiDomainName
+    Properties:
+      ApiId: !Ref WebsocketApi
+      ApiMappingKey: !Sub '${StageName}'
+      DomainName: !Ref WebsocketApiDomainName
+      Stage: !Sub '${StageName}'
+  WebsocketApiDnsEntry:
+    Type: AWS::Route53::RecordSet
+    Condition: UseWebsocket
+    DependsOn: WebsocketApi
+    Properties:
+      Name: !Ref ApiHostName
+      HostedZoneId: !Ref HostedZoneId
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !GetAtt WebsocketApiDomainName.RegionalDomainName
   WebsocketStage:
     Type: AWS::ApiGatewayV2::Stage
     Condition: UseWebsocket
@@ -208,7 +265,7 @@ Resources:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
-            Action: execute-api:*  # TODO: Review
+            Action: execute-api:*
             Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
 
   # REST API
@@ -286,20 +343,6 @@ Resources:
     Properties:
       RestApiId: !Ref RestApi
       StageName: !Sub '${StageName}'
-  RestApiDnsEntry:
-    Type: AWS::Route53::RecordSet
-    Condition: UseRest
-    DependsOn: RestApi
-    Properties:
-      Name: !Ref ApiHostName
-      HostedZoneId: !Ref HostedZoneId
-      Type: CNAME
-      TTL: 300
-      ResourceRecords:
-        - !Join
-          - ''
-          - - !Ref RestApi
-            - !Sub '.execute-api.${AWS::Region}.amazonaws.com'
   RestApiDomainName:
     Type: AWS::ApiGateway::DomainName
     Condition: UseRest
@@ -322,6 +365,17 @@ Resources:
       DomainName: !Ref RestApiDomainName
       RestApiId: !Ref RestApi
       Stage: !Sub '${StageName}'
+  RestApiDnsEntry:
+    Type: AWS::Route53::RecordSet
+    Condition: UseRest
+    DependsOn: RestApi
+    Properties:
+      Name: !Ref ApiHostName
+      HostedZoneId: !Ref HostedZoneId
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !GetAtt RestApiDomainName.DistributionDomainName
 
   # CloudFront and Origins
   CloudFrontDistribution:
@@ -458,7 +512,6 @@ Resources:
             callback(null, response);
         };
       # TODO: Update the Content-Security-Policy header above to include your API (i.e. replace ${ApiHostName})
-
   CloudFormationAddSecurityHeadersRole:
     Type: AWS::IAM::Role
     Properties:

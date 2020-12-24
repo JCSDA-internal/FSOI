@@ -339,7 +339,7 @@ Resources:
     Properties:
       FunctionName: !Sub 'ios_request_handler${DeploymentType}'
       Handler: lambda_wrapper.handle_request
-      Role: !Sub 'arn:aws:iam::469205354006:role/ios_lambda_role${DeploymentType}'
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/ios_lambda_role${DeploymentType}'
       Code:
         S3Bucket: jcsda-scratch
         S3Key: fsoi_lambda.zip

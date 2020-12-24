@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {MatDialog} from '@angular/material';
+import {MatDialog} from '@angular/material/dialog';
 import {MessageComponent} from '../message/message.component';
 import {HttpClient} from '@angular/common/http';
 declare var Bokeh: any;
