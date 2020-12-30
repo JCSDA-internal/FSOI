@@ -50,7 +50,7 @@ def submit_job_for_date(date_str):
 
     batch = boto3.client('batch')
 
-    latest = get_latest_revision('ios_ingest_met_job')
+    latest = get_latest_revision('ios_ingest_nrl_job')
     batch.submit_job(
         jobName='met_%s' % date_str,
         jobDefinition='ios_ingest_met_job:%d' % latest,
@@ -71,7 +71,7 @@ def submit_download_job_for_date(date):
 
     # submit the job
     batch = boto3.client('batch')
-    latest = get_latest_revision('ios_ingest_met_job')
+    latest = get_latest_revision('ios_ingest_nrl_job')
     batch.submit_job(
         jobName='met_%s' % date,
         jobDefinition='ios_ingest_met_job:%d' % latest,
