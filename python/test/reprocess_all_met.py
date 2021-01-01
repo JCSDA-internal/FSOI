@@ -6,6 +6,7 @@ start = dt.datetime(2020, 6, 1, 0, 0, 0)
 end = dt.datetime(2020, 6, 30, 18, 0, 0)
 one_day = dt.timedelta(hours=6)
 
+jobDefinitionName = 'ios_ingest_nrl_job'
 
 def get_latest_revision(job_definition_name):
     """
@@ -50,10 +51,10 @@ def submit_job_for_date(date_str):
 
     batch = boto3.client('batch')
 
-    latest = get_latest_revision('ios_ingest_met_job')
+    latest = get_latest_revision(jobDefinitionName)
     batch.submit_job(
         jobName='met_%s' % date_str,
-        jobDefinition='ios_ingest_met_job:%d' % latest,
+        jobDefinition='%s:%d' % (jobDefinitionName, latest),
         jobQueue='ios_ingest_queue',
         containerOverrides={
             'command': ['process_met', '-o', '/tmp', '-d', date_str]  #, '-n', 'moist']
@@ -71,10 +72,10 @@ def submit_download_job_for_date(date):
 
     # submit the job
     batch = boto3.client('batch')
-    latest = get_latest_revision('ios_ingest_met_job')
+    latest = get_latest_revision(jobDefinitionName)
     batch.submit_job(
         jobName='met_%s' % date,
-        jobDefinition='ios_ingest_met_job:%d' % latest,
+        jobDefinition='%s:%d' % (jobDefinitionName, latest),
         jobQueue='ios_ingest_queue',
         containerOverrides={
             'command': ['download_met', '--date', date]
