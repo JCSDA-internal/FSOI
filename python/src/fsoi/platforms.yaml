@@ -283,6 +283,7 @@ GMAO:
     - SACC_GPSRO_bending_angles
     - CHAMP_bending_angles
     - COSMIC_FM3_bending_angles
+    - GPSRO_COSMIC_2
   Geo Wind:
     - Geo_Wind
   HIRS:
