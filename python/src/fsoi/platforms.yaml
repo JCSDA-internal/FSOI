@@ -635,6 +635,7 @@ OnePlatform:
     - AMSUA_Metop-A
     - AMSUA_METOP-B
     - AMSUA_Metop-B
+    - AMSUA_METOP-C
   ASCAT Wind:
     - ASCAT_Wind
     - SCATWIND
@@ -673,6 +674,11 @@ OnePlatform:
   FY3_MWHS:
     - FY-3B_MWHS-1
     - FY-3C_MWHS-2
+    - FY-3D_MWHS
+  FY3_MWTS:
+    - FY-3D_MWTS
+  FY3_MWRI:
+    - FY-3D_MWRI
   GAVHR:
     - GAVHR
   GOES:
@@ -718,11 +724,14 @@ OnePlatform:
     - HIRS_METOP-B
     - HIRS_Metop-B
     - HIRS_METOP-A
+  HLOSWind:
+    - HLOSWind
   IASI:
     - IASI_METOP-A
     - IASI_Metop-A
     - IASI_METOP-B
     - IASI_Metop-B
+    - IASI_METOP-C
     - IASI616_METOP-A
   KUSCAT:
     - KUSCAT
@@ -742,6 +751,7 @@ OnePlatform:
     - MHS_Metop-A
     - MHS_METOP-B
     - MHS_Metop-B
+    - MHS_METOP-C
   MODIS Wind:
     - MODIS_Wind
     - AMV-MODIS

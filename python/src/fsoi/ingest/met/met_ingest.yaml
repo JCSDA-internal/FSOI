@@ -88,6 +88,10 @@ platforms:
     ASCAT_Wind:
       - ASCAT   3
       - ASCAT   4
+      - ASCAT 51
+      - ASCAT 52
+      - ASCAT 53
+      - ASCAT 54
     KUSCAT:
       - KUSCAT 801
       - KUSCAT 422
@@ -130,6 +134,8 @@ platforms:
       - METOP2 (A) ATOVS AMSUA
     AMSUA_METOP-B:
       - METOP1 (B) ATOVS AMSUA
+    AMSUA_METOP-C:
+      - METOP3 (C) ATOVS AMSUA
     AMSUA_N15:
       - NOAA15 ATOVS AMSUA
     AMSUA_N16:
@@ -150,6 +156,8 @@ platforms:
     IASI_METOP-B:
       - METOP1 (B) ATOVS IASI
       - METOP1 (B) IASI
+    IASI_METOP-C:
+      - METOP3 (C) IASI
     ATMS_NPP:
       - JPSS0 (NPP) ATMS ATMS
     ATMS_N20:
@@ -170,6 +178,8 @@ platforms:
       - METOP2 (A) ATOVS AMSUB
     MHS_METOP-B:
       - METOP1 (B) ATOVS AMSUB
+    MHS_METOP-C:
+      - METOP3 (C) ATOVS AMSUB
     MHS_N18:
       - NOAA18 ATOVS AMSUB
     MHS_N19:
@@ -182,6 +192,12 @@ platforms:
       - Himawari8 AHIClr AHI
     F17_SSMIS:
       - F17 SSMIS
+    FY-3D_MWHS:
+      - FY34 (3D) MWSFY3 MWHS2
+    FY-3D_MWTS:
+      - FY34 (3D) MWSFY3 MWTS2
+    FY-3D_MWRI:
+      - FY34 (3D) MWRI MWRI
     FY-3C_MWHS-2:
       - FY33 (3C) MWSFY3
     FY-3B_MWHS-1:
@@ -193,3 +209,23 @@ platforms:
     GPM1_GMI:
       - GPM1 GMILOW
       - GPM1 GMIHIGH
+    HLOSWind:
+      - HLOSWIND 48 18
+      - HLOSWIND48 10
+      - HLOSWIND48 11
+      - HLOSWIND48 12
+      - HLOSWIND48 13
+      - HLOSWIND48 14
+      - HLOSWIND48 15
+      - HLOSWIND48 16
+      - HLOSWIND48 17
+      - HLOSWIND480
+      - HLOSWIND481
+      - HLOSWIND482
+      - HLOSWIND483
+      - HLOSWIND484
+      - HLOSWIND485
+      - HLOSWIND486
+      - HLOSWIND487
+      - HLOSWIND488
+      - HLOSWIND489
