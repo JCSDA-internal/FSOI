@@ -95,6 +95,7 @@ kx:
   210: AMSUA
   250: SSMI_TPW
   251: WINDSAT_TPW
+  296: CrIS
 kt:
   1:
     - z
