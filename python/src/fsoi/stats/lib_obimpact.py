@@ -617,12 +617,13 @@ def summarymetrics(DF, level=None, mavg=None):
     df['ImpPerOb'] = df['TotImp'] / df['ObCnt']
     df['FracBenObs'] = DF['ObCntBen'] / (DF['ObCnt'] - DF['ObCntNeu']) * 100.
     df['FracNeuObs'] = DF['ObCntNeu'] / (DF['ObCnt'] - DF['ObCntBen']) * 100.
-    df['FracImp'] = df['TotImp'] / df['TotImp'].sum(level=level) * 100.
 
     if mavg:
-        for col in ['TotImp', 'ObCnt', 'ImpPerOb', 'FracBenObs', 'FracNeuObs', 'FracImp']:
+        for col in ['TotImp', 'ObCnt', 'ImpPerOb', 'FracBenObs', 'FracNeuObs']:
             df[col] = df.groupby(level='PLATFORM')[col].apply(
                 lambda x: x.rolling(window=mavg, min_periods=1).mean())
+
+    df['FracImp'] = df['TotImp'] / df['TotImp'].sum(level=level) * 100.
 
     for col in ['ObCnt']:
         df[col] = df[col].astype(_np.int)
