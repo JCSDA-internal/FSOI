@@ -656,6 +656,7 @@ def getPlotOpt(qty='TotImp', **kwargs):
     else:
         plotOpt['cmax'] = kwargs['cmax'] if 'cmax' in kwargs else 1.e6
     plotOpt['cycle'] = ' '.join('%02dZ' % c for c in kwargs['cycle']) if 'cycle' in kwargs else '00'
+    plotOpt['mavg'] = kwargs['mavg'] if 'mavg' in kwargs else 10
 
     if plotOpt['center'] is None:
         plotOpt['center_name'] = ''

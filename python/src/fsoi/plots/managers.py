@@ -242,7 +242,8 @@ class SummaryPlotGenerator(PlotGenerator):
         df = lib_obimpact.summarymetrics(df)
 
         # cycle data frames
-        df_cycles = lib_obimpact.summarymetrics(concatenated, level='DATETIME', mavg=10)
+        plot_options = lib_obimpact.getPlotOpt()
+        df_cycles = lib_obimpact.summarymetrics(concatenated, level='DATETIME', mavg=plot_options['mavg'])
 
         # filter out the platforms that were not in the request
         self._filter_platforms_from_data(df, self.platforms)
