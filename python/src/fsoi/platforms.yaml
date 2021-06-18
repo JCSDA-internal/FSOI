@@ -310,6 +310,7 @@ GMAO:
   Ozone:
     - Ozone
     - OMI_AURA
+    - OMPSNM_NPP
   PIBAL:
     - PIBAL
   Profiler Wind:
@@ -464,7 +465,12 @@ MET:
   FY3_MWHS:
     - FY-3B_MWHS-1
     - FY-3C_MWHS-2
+    - FY-3D_MWHS
+  FY3_MWTS:
+    - FY-3D_MWTS
+  FY3_MWRI:
     - FY-3C_MWRI
+    - FY-3D_MWRI
   GOES:
     - GOES_CSR
   GPM_GMI:
@@ -678,6 +684,7 @@ OnePlatform:
   FY3_MWTS:
     - FY-3D_MWTS
   FY3_MWRI:
+    - FY-3C_MWRI
     - FY-3D_MWRI
   GAVHR:
     - GAVHR
@@ -695,6 +702,7 @@ OnePlatform:
     - GOES_CSR
   GPSRO:
     - GPSRO
+    - GPSRO_COSMIC_2
     - GNSSRO
   Geo Wind:
     - GEO_Wind
@@ -768,6 +776,7 @@ OnePlatform:
     - Ozone
     - OMI_AURA
     - OMPS
+    - OMPSNM_NPP
   PIBAL:
     - PIBAL
     - PILOT
