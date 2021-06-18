@@ -604,11 +604,12 @@ def scipy_bin_df(df, dlat=5., dlon=5., dpres=None):
     raise NotImplementedError('lib_obimpact.py - scipy_bin_df is not yet active')
 
 
-def summarymetrics(DF, level=None):
+def summarymetrics(DF, level=None, mavg=None):
     """
 
     :param DF:
     :param level:
+    :param mavg:
     :return:
     """
     df = DF[['TotImp', 'ObCnt']].copy()
@@ -616,6 +617,12 @@ def summarymetrics(DF, level=None):
     df['ImpPerOb'] = df['TotImp'] / df['ObCnt']
     df['FracBenObs'] = DF['ObCntBen'] / (DF['ObCnt'] - DF['ObCntNeu']) * 100.
     df['FracNeuObs'] = DF['ObCntNeu'] / (DF['ObCnt'] - DF['ObCntBen']) * 100.
+
+    if mavg:
+        for col in ['TotImp', 'ObCnt', 'ImpPerOb', 'FracBenObs', 'FracNeuObs']:
+            df[col] = df.groupby(level='PLATFORM')[col].apply(
+                lambda x: x.rolling(window=mavg, min_periods=1).mean())
+
     df['FracImp'] = df['TotImp'] / df['TotImp'].sum(level=level) * 100.
 
     for col in ['ObCnt']:
@@ -649,6 +656,7 @@ def getPlotOpt(qty='TotImp', **kwargs):
     else:
         plotOpt['cmax'] = kwargs['cmax'] if 'cmax' in kwargs else 1.e6
     plotOpt['cycle'] = ' '.join('%02dZ' % c for c in kwargs['cycle']) if 'cycle' in kwargs else '00'
+    plotOpt['mavg'] = kwargs['mavg'] if 'mavg' in kwargs else 10
 
     if plotOpt['center'] is None:
         plotOpt['center_name'] = ''
