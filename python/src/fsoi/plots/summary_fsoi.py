@@ -436,6 +436,7 @@ def bokehsummarytseriesplot(df, qty='TotImp', plot_options=None):
 
     # add the labels
     title_lines = plot_options['title'].split('\n')
+    title_lines[-1] += ' - Moving Average of %s Cycles' % plot_options['mavg']
     title_lines.reverse()
     for line in title_lines:
         plot.add_layout(Title(text=line, text_font_size='1.5em', align='center'), 'above')
