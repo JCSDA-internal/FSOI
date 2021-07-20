@@ -173,7 +173,10 @@ def _get_platform_channel(instyp, schar, kx, uknownplats):
             channel = ichan
 
     elif platform in ['CrIS']:
-        platform = '%s_NPP' % platform
+        if 'NPP' in schar:
+            platform = '%s_NPP' % platform
+        elif 'NOAA20' in schar:
+            platform = '%s_N20' % platform
         ichan = 0
         chanmin, chanmax = 1, 1143
         for ichan in range(chanmin, chanmax):
@@ -349,7 +352,7 @@ def main():
     parser.add_argument('-d', '--date', help='analysis date to process', metavar='YYYYMMDDHH',
                         required=True)
     args = parser.parse_args()
-    
+
     # prepare the working directory
     # prepare the processing parameters
     date = args.date

@@ -363,6 +363,7 @@ NRL:
   Buoy:
     - Drifting_Buoy
   CrIS:
+    - CrIS_N20
     - CrIS_NPP
   Dropsonde:
     - Dropsonde
@@ -484,6 +485,8 @@ MET:
   HIRS:
     - HIRS_METOP-A
     - HIRS_METOP-B
+  HLOSWind:
+    - HLOSWind
   IASI:
     - IASI_METOP-A
     - IASI_METOP-B
@@ -673,6 +676,7 @@ OnePlatform:
   CrIS:
     - CRIS_NPP
     - CrIS_NPP
+    - CrIS_N20
     - CRIS-FSR_N20
     - CrIS_N20
   Dropsonde:
