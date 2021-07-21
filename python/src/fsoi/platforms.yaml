@@ -676,7 +676,6 @@ OnePlatform:
   CrIS:
     - CRIS_NPP
     - CrIS_NPP
-    - CrIS_N20
     - CRIS-FSR_N20
     - CrIS_N20
   Dropsonde:
