@@ -45,6 +45,10 @@ kt:
   - ba
   - Bending Angle
   - N
+  98:
+  - hlos
+  - Horizontal Line Of Sight
+  - m/s
 platforms:
   observation_types_for_radiance:
     - 10
@@ -210,6 +214,7 @@ platforms:
       - GPM1 GMILOW
       - GPM1 GMIHIGH
     HLOSWind:
+      - HLOSWIND 48
       - HLOSWIND 48 18
       - HLOSWIND48 10
       - HLOSWIND48 11
