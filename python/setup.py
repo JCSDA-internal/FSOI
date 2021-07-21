@@ -13,7 +13,7 @@ setup(
             'fsoi.ingest.met', 'fsoi.ingest.meteofr', 'fsoi.ingest.nrl', 'fsoi.plots', 'fsoi.stats',
             'fsoi.web', 'fsoi.ingest.merra'],
   install_requires=['bokeh==1.4.0', 'pyyaml', 'boto3', 'botocore', 'certifi',
-                    'matplotlib', 'numpy', 'pandas', 'requests',
+                    'matplotlib', 'numpy', 'pandas==1.2.3', 'requests',
                     'urllib3', 'tables', 'fortranformat', 'netCDF4', 'phantomjs', 'selenium'],
   package_dir={'fsoi': 'src/fsoi'},
   package_data={
