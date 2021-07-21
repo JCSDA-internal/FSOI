@@ -90,12 +90,7 @@ platforms:
       - GOES 270
       - GOES 271
     ASCAT_Wind:
-      - ASCAT   3
-      - ASCAT   4
-      - ASCAT 51
-      - ASCAT 52
-      - ASCAT 53
-      - ASCAT 54
+      - ASCAT
     KUSCAT:
       - KUSCAT 801
       - KUSCAT 422
@@ -131,6 +126,8 @@ platforms:
       - BOGUS BOGUS
     TC_Press:
       - BOGUS TCBOGUS
+    HLOSWind:
+      - HLOSWIND
   radiance:
     AIRS_Aqua:
       - EOS2 (AQUA) AIRS
@@ -213,24 +210,3 @@ platforms:
     GPM1_GMI:
       - GPM1 GMILOW
       - GPM1 GMIHIGH
-    HLOSWind:
-      - HLOSWIND 48
-      - HLOSWIND 48 18
-      - HLOSWIND48 10
-      - HLOSWIND48 11
-      - HLOSWIND48 12
-      - HLOSWIND48 13
-      - HLOSWIND48 14
-      - HLOSWIND48 15
-      - HLOSWIND48 16
-      - HLOSWIND48 17
-      - HLOSWIND480
-      - HLOSWIND481
-      - HLOSWIND482
-      - HLOSWIND483
-      - HLOSWIND484
-      - HLOSWIND485
-      - HLOSWIND486
-      - HLOSWIND487
-      - HLOSWIND488
-      - HLOSWIND489
