@@ -93,6 +93,7 @@ kx:
   5: GPSRO
   42: GPSRO
   43: GPSRO
+  44: GPSRO
   112: TCBogus
   120: Radiosonde
   130: AIREP
@@ -151,3 +152,4 @@ kx:
   755: GPSRO_COSMIC_2
   786: CNOFS_GPSRO_bending_angles
   820: SACC_GPSRO_bending_angles
+  825: GPSRO
