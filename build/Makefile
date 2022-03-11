@@ -8,7 +8,7 @@ install: egg
 
 aws_lambda:
 	rm -Rf artifact_build && mkdir artifact_build
-	cd artifact_build; pip3 install -t . chardet requests urllib3 certifi idna pandas pytz six pyyaml matplotlib pyparsing cycler kiwisolver numexpr mock tables
+	cd artifact_build; pip3 install -t . chardet==3.0.4 requests==2.23.0 urllib3==1.25.9 certifi==2020.4.5.1 idna==2.9 pandas==1.0.3 pytz==2020.1 six==1.14.0 pyyaml==5.3.1 matplotlib==3.2.1 pyparsing==2.4.7 cycler==0.10.0 kiwisolver==1.2.0 numexpr==2.7.1 Pillow==7.1.2 tables==3.6.1
 	cd artifact_build; rm -Rf *.dist-info __pycache__ bin setuptools
 	cd artifact_build; pwd
 	cd artifact_build; cp -R ../../python/src/fsoi .
