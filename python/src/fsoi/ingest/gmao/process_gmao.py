@@ -292,7 +292,7 @@ def process_gmao(norm, date=None, path=None):
 
             obtype = kt[ods.kt[o]][0]
 
-            channel = -999 if platform in ['CONV'] else np.int(ods.lev[o])
+            channel = -999 if platform in ['CONV'] else int(ods.lev[o])
             lon = ods.lon[o] if ods.lon[o] >= 0.0 else ods.lon[o] + 360.0
             lat = ods.lat[o]
             if obtype == 'ps':
