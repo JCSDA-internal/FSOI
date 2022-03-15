@@ -59,6 +59,10 @@ kt:
     - Tv
     - Upper-air virtual temperature
     - K
+  87:
+    - mix_o3
+    - Ozone mixing ratio
+    - ppmv
   89:
     - ba
     - Bending Angle
